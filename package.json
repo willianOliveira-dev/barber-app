@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "drizzle:seed": "npx tsx ./src/db/seed.ts"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.3.0",
     "@neondatabase/serverless": "^1.0.2",
     "dotenv": "^17.2.4",
     "drizzle-orm": "^0.45.1",
@@ -27,6 +29,6 @@
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }
