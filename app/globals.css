@@ -5,33 +5,33 @@
 @custom-variant dark (&:is(.dark *));
 
 .dark {
-  --background: 20 10% 4%;
-  --foreground: 40 10% 98%;
+  --background: #15161a;
+  --foreground: #f8fafc;
 
-  --card: 20 10% 7%;
-  --card-foreground: 40 10% 98%;
+  --card: #1a1c21;
+  --card-foreground: #f8fafc;
 
-  --popover: 20 10% 7%;
-  --popover-foreground: 40 10% 98%;
+  --popover: #1a1c21;
+  --popover-foreground: #f8fafc;
 
-  --primary: 43 74% 49%;
-  --primary-foreground: 20 10% 5%;
+  --primary: #d4a017;
+  --primary-foreground: #ffffff;
 
-  --secondary: 20 10% 15%;
-  --secondary-foreground: 40 10% 98%;
+  --secondary: #2a2724;
+  --secondary-foreground: #f8fafc;
 
-  --muted: 20 10% 15%;
-  --muted-foreground: 20 5% 65%;
+  --muted: #24262d;
+  --muted-foreground: #9ca3af;
 
-  --accent: 43 74% 49%;
-  --accent-foreground: 20 10% 5%;
+  --accent: #24262d;
+  --accent-foreground: #f8fafc;
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
 
-  --border: 20 10% 15%;
-  --input: 20 10% 15%;
-  --ring: 43 74% 49%;
+  --border: #24262d;
+  --input: #24262d;
+  --ring: #cbd5e1;
 
   --radius: 0.5rem;
 }
