@@ -3,9 +3,6 @@ import { Button } from "./_components/ui/button"
 import { Header } from "./_components/header"
 import { Input } from "./_components/ui/input"
 import { SearchIcon } from "lucide-react"
-import { Card, CardContent } from "./_components/ui/card"
-import { Badge } from "./_components/ui/badge"
-import { Avatar, AvatarImage } from "./_components/ui/avatar"
 import { barbershopsRepo } from "@/src/repositories/barbershop.repository"
 import { BarberShopItem } from "./_components/barbershop-item"
 import { Footer } from "./_components/footer"
@@ -52,7 +49,7 @@ export default async function Home() {
             alt="Agende nos melhores com Razor Barber"
             src="/banner-01.png"
             fill
-            className="rounded-xl object-cover"
+            className="rounded-xl object-cover object-center"
           />
         </section>
 
