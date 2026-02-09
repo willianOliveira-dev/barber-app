@@ -5,10 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 .dark {
-  --background: #151619;
+  --background: #141518;
   --foreground: #f8fafc;
 
-  --card: #1a1b1f;
+  --card: #26272b;
   --card-foreground: #f8fafc;
 
   --popover: #1a1c21;
@@ -17,7 +17,7 @@
   --primary: #d4a017;
   --primary-foreground: #ffffff;
 
-  --secondary: #26272b;
+  --secondary: #1a1b1f;
   --secondary-foreground: #f8fafc;
 
   --muted: #24262d;
@@ -79,16 +79,7 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
