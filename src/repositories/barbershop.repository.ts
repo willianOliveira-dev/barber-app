@@ -1,4 +1,10 @@
-import { db } from '../db/connection';
-import { barbershops } from '../db/schemas';
+import { db } from "../db/connection"
+import { barbershops } from "../db/schemas"
 
-export class Barbershop {}
+class BarbershopRepository {
+  async findAll() {
+    return db.select().from(barbershops)
+  }
+}
+
+export const barbershopsRepo = new BarbershopRepository()

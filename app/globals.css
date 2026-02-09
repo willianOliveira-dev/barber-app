@@ -5,10 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 .dark {
-  --background: #15161a;
+  --background: #151619;
   --foreground: #f8fafc;
 
-  --card: #1a1c21;
+  --card: #1a1b1f;
   --card-foreground: #f8fafc;
 
   --popover: #1a1c21;
@@ -17,7 +17,7 @@
   --primary: #d4a017;
   --primary-foreground: #ffffff;
 
-  --secondary: #2a2724;
+  --secondary: #26272b;
   --secondary-foreground: #f8fafc;
 
   --muted: #24262d;

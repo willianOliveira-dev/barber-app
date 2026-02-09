@@ -1,37 +1,43 @@
 import Image from "next/image"
 import { Button } from "./_components/ui/button"
-import { Header } from "./_components/ui/header"
+import { Header } from "./_components/header"
 import { Input } from "./_components/ui/input"
 import { SearchIcon } from "lucide-react"
 import { Card, CardContent } from "./_components/ui/card"
 import { Badge } from "./_components/ui/badge"
 import { Avatar, AvatarImage } from "./_components/ui/avatar"
+import { barbershopsRepo } from "@/src/repositories/barbershop.repository"
+import { BarberShopItem } from "./_components/barbershop-item"
 
-export default function Home() {
+export default async function Home() {
+  const barbershops = await barbershopsRepo.findAll()
+
   return (
     <div>
       <Header />
-      <div className="space-y-6 p-5">
-        <h2 className="text-xl font-bold">Olá, Willian!</h2>
-        <p>Segunda-feira, 09 de Fevereiro.</p>
+      <main className="space-y-6 p-5">
+        <section className="flex flex-col gap-2">
+          <h2 className="text-xl font-bold">Olá, Willian!</h2>
+          <p>Segunda-feira, 09 de Fevereiro.</p>
+        </section>
 
-        <div className="flex flex-row items-center gap-2">
+        <section className="flex flex-row items-center gap-2">
           <Input placeholder="Faça sua busca..." />
           <Button size="icon">
             <SearchIcon />
           </Button>
-        </div>
+        </section>
 
-        <div className="relative h-37.5 w-full rounded-xl">
+        <section className="relative h-37.5 w-full rounded-xl">
           <Image
             alt="Agende nos melhores com Razor Barber"
             src="/banner-01.png"
             fill
             className="rounded-xl object-cover"
           />
-        </div>
+        </section>
 
-        <div className="flex flex-col gap-4">
+        <section className="flex flex-col gap-4">
           <h2 className="text-xs font-bold text-gray-400 uppercase">
             Agendemantos
           </h2>
@@ -58,8 +64,32 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
+        </section>
+
+        <section className="flex flex-col gap-4">
+          <h2 className="text-xs font-bold text-gray-400 uppercase">
+            Recomendados
+          </h2>
+
+          <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
+            {barbershops.map((barbershop) => (
+              <BarberShopItem key={barbershop.id} barbershop={barbershop} />
+            ))}
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-4">
+          <h2 className="text-xs font-bold text-gray-400 uppercase">
+            Populares
+          </h2>
+
+          <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
+            {barbershops.map((barbershop) => (
+              <BarberShopItem key={barbershop.id} barbershop={barbershop} />
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   )
 }
