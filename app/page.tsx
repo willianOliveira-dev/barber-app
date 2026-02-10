@@ -7,6 +7,7 @@ import { barbershopsRepo } from "@/src/repositories/barbershop.repository"
 import { BarberShopItem } from "./_components/barbershop-item"
 import { QUICK_SEARCH_OPTIONS } from "./_constants/search"
 import { BookingItem } from "./_components/booking-item"
+import { Footer } from "./_components/footer"
 
 export default async function Home() {
   const barbershops = await barbershopsRepo.findAll()
@@ -91,6 +92,7 @@ export default async function Home() {
           </div>
         </section>
       </main>
+      <Footer />
     </>
   )
 }
