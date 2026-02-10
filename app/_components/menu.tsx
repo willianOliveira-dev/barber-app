@@ -1,3 +1,4 @@
+"use client"
 import { MenuIcon, HomeIcon, CalendarHeart, LogIn } from "lucide-react"
 import { Button } from "./ui/button"
 import { Dialog as SheetPrimitive } from "radix-ui"
@@ -12,12 +13,31 @@ import {
 import { QUICK_SEARCH_OPTIONS } from "../_constants/search"
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
+import { usePathname } from "next/navigation"
+import { cn } from "../_lib/utils"
 
 export type MenuProps = React.ComponentProps<typeof SheetPrimitive.Trigger>
 
 export function Menu({ ...props }: MenuProps) {
+  const pathname = usePathname()
+
+  const navigationLinks = [
+    {
+      name: "Ínicio",
+      router: "/",
+      icon: HomeIcon,
+    },
+    {
+      name: "Agendamentos",
+      router: "/booking",
+      icon: CalendarHeart,
+    },
+  ]
+
+  const [isOpenSheet, setIsOpenSheet] = useState<boolean>(false)
   return (
-    <Sheet>
+    <Sheet open={isOpenSheet} onOpenChange={setIsOpenSheet}>
       <SheetTrigger {...props} asChild>
         <Button variant="secondary" size="icon">
           <MenuIcon />
@@ -40,28 +60,27 @@ export function Menu({ ...props }: MenuProps) {
         <section className="border-b-secondary border-b p-5">
           <nav>
             <ul className="flex flex-col gap-4">
-              <li className="bg-primary rounded-md px-4 py-2">
-                <Link
-                  className="flex items-center justify-start gap-2"
-                  href="/"
+              {navigationLinks.map((link) => (
+                <li
+                  key={link.name}
+                  className={cn(
+                    "hover:bg-secondary rounded-md px-4 py-2 transition-all duration-300",
+                    pathname === link.router &&
+                      "bg-primary hover:bg-primary/85",
+                  )}
                 >
-                  <span>
-                    <HomeIcon size={16} />
-                  </span>
-                  Ínicio
-                </Link>
-              </li>
-              <li className="rounded-md px-4 py-2">
-                <Link
-                  className="flex items-center justify-start gap-2"
-                  href="/"
-                >
-                  <span>
-                    <CalendarHeart size={16} />
-                  </span>
-                  Agendamentos
-                </Link>
-              </li>
+                  <Link
+                    className="flex items-center justify-start gap-2"
+                    href={link.router}
+                    onClick={() => setIsOpenSheet((state) => !state)}
+                  >
+                    <span>
+                      <link.icon size={16} />
+                    </span>
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
         </section>
