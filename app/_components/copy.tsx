@@ -1,5 +1,5 @@
 "use client"
-
+import { toast } from "sonner"
 import { Button } from "./ui/button"
 
 interface CopyProps {
@@ -8,6 +8,7 @@ interface CopyProps {
 
 export function Copy({ message }: CopyProps) {
   const handleCopy = (message: string): void => {
+    toast.success("Copiado com sucesso!")
     window.navigator.clipboard.writeText(message)
   }
   return (
