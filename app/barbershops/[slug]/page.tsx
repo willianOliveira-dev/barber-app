@@ -138,8 +138,6 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
           </div>
         </div>
       </section>
-
-      <Footer />
     </main>
   )
 }
