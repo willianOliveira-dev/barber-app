@@ -1,4 +1,5 @@
 import { BarbershopServiceItem } from "@/app/_components/barbershop-service-item"
+import { Copy } from "@/app/_components/copy"
 import { Footer } from "@/app/_components/footer"
 import { Button } from "@/app/_components/ui/button"
 import { barbershopsRepo } from "@/src/repositories/barbershop.repository"
@@ -62,7 +63,7 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
             </Button>
           </div>
           <div className="flex flex-col gap-2 p-5">
-            <h1 className="text-md">{barbershop?.name}</h1>
+            <h1 className="text-lg font-bold">{barbershop?.name}</h1>
             <div className="space-y-1.5">
               <p className="flex items-center gap-1 text-xs">
                 <MapPinHouse className="text-primary" size={16} />
@@ -116,9 +117,7 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
                   </span>
                   {barbershop.phone}
                 </p>
-                <Button asChild variant={"secondary"}>
-                  <Link href={`tel:${barbershop.phone}`}>Ligar</Link>
-                </Button>
+                <Copy message={barbershop.phone} />
               </div>
             ) : (
               <p className="text-xs">Sem telefone</p>
@@ -131,9 +130,7 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
                   </span>
                   {barbershop.email}
                 </p>
-                <Button asChild variant={"secondary"}>
-                  <Link href={`mailto:${barbershop.email}`}>Enviar email</Link>
-                </Button>
+                <Copy message={barbershop.email} />
               </div>
             ) : (
               <p className="text-xs">Sem email</p>
