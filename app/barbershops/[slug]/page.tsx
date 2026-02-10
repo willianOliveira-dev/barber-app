@@ -1,11 +1,10 @@
 import { BarbershopServiceItem } from "@/app/_components/barbershop-service-item"
 import { Copy } from "@/app/_components/copy"
-import { Footer } from "@/app/_components/footer"
+import { Menu } from "@/app/_components/menu"
 import { Button } from "@/app/_components/ui/button"
 import { barbershopsRepo } from "@/src/repositories/barbershop.repository"
 import {
   ArrowLeft,
-  Menu,
   StarIcon,
   MapPinHouse,
   Smartphone,
@@ -54,13 +53,7 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
                 <ArrowLeft />
               </Link>
             </Button>
-            <Button
-              size="icon"
-              className="absolute top-5 right-5 z-20"
-              variant="secondary"
-            >
-              <Menu />
-            </Button>
+            <Menu className="absolute top-5 right-5 z-20" />
           </div>
           <div className="flex flex-col gap-2 p-5">
             <h1 className="text-lg font-bold">{barbershop?.name}</h1>

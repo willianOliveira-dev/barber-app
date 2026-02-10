@@ -5,7 +5,6 @@ import { Input } from "./_components/ui/input"
 import { SearchIcon } from "lucide-react"
 import { barbershopsRepo } from "@/src/repositories/barbershop.repository"
 import { BarberShopItem } from "./_components/barbershop-item"
-import { Footer } from "./_components/footer"
 import { QUICK_SEARCH_OPTIONS } from "./_constants/search"
 import { BookingItem } from "./_components/booking-item"
 

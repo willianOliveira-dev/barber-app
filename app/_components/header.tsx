@@ -1,7 +1,6 @@
 import Image from "next/image"
 import { Card, CardContent } from "./ui/card"
-import { Button } from "./ui/button"
-import { MenuIcon } from "lucide-react"
+import { Menu } from "./menu"
 
 export function Header() {
   return (
@@ -9,9 +8,7 @@ export function Header() {
       <Card className="rounded-t-none border-0">
         <CardContent className="bg-card flex flex-row items-center justify-between">
           <Image alt="Razor Barber" src="/logo.webp" width={180} height={22} />
-          <Button variant="outline" size="icon">
-            <MenuIcon />
-          </Button>
+          <Menu />
         </CardContent>
       </Card>
     </header>
