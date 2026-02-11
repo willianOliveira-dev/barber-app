@@ -1,1 +1,0 @@
-ALTER TABLE "barbershops" ADD COLUMN "image_url" varchar(500);
