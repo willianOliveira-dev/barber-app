@@ -58,13 +58,10 @@ export const authOptions: AuthOptions = {
           throw new Error("INVALID_PASSWORD")
         }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image ?? null,
-          emailVerified: user.emailVerified ?? null,
-        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _, ...userWithoutPassword } = user
+
+        return userWithoutPassword
       },
     }),
   ],

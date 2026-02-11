@@ -3,7 +3,7 @@ import { Copy } from "@/app/_components/copy"
 import { Footer } from "@/app/_components/footer"
 import { Menu } from "@/app/_components/menu"
 import { Button } from "@/app/_components/ui/button"
-import { barbershopsRepo } from "@/src/repositories/barbershop.repository"
+import { barbershopRepo } from "@/src/repositories/barbershop.repository"
 import {
   ArrowLeft,
   StarIcon,
@@ -20,7 +20,7 @@ interface BarbershopPageProps {
 
 export default async function BarbershopPage({ params }: BarbershopPageProps) {
   const { slug } = await params
-  const barbershop = await barbershopsRepo.findBySlug(slug)
+  const barbershop = await barbershopRepo.findBySlug(slug)
 
   return (
     <>

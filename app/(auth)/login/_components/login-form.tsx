@@ -38,8 +38,18 @@ export function LoginForm() {
       toast.error("Erro ao autenticar com Google")
       return
     }
-    toast.success("Login realizado com sucesso!")
+
     router.push("/")
+  }
+
+  const handleAuthError = (error: string) => {
+    const errorMap: Record<string, string> = {
+      USER_NOT_FOUND: "Usuário não encontrado",
+      INVALID_PASSWORD: "Senha inválida",
+      USER_WITHOUT_PASSWORD: "Usuário não possui senha",
+      CredentialsSignin: "E-mail ou senha inválidos",
+    }
+    toast.error(errorMap[error] ?? "Erro ao realizar login")
   }
 
   const handleSubmit = async (values: LoginFormData) => {
@@ -61,16 +71,6 @@ export function LoginForm() {
 
     toast.success("Login realizado com sucesso!")
     router.push("/")
-  }
-
-  const handleAuthError = (error: string) => {
-    const errorMap: Record<string, string> = {
-      USER_NOT_FOUND: "Usuário não encontrado",
-      INVALID_PASSWORD: "Senha inválida",
-      USER_WITHOUT_PASSWORD: "Usuário não possui senha",
-      CredentialsSignin: "E-mail ou senha inválidos",
-    }
-    toast.error(errorMap[error] ?? "Erro ao realizar login")
   }
 
   return (
@@ -108,6 +108,7 @@ export function LoginForm() {
                     {...field}
                     type="email"
                     placeholder="m@example.com"
+                    className="bg-input focus:ring-primary mt-1 w-full rounded-xl px-4 py-3 outline-none focus:ring-2"
                     required
                   />
                 </FormControl>
@@ -127,6 +128,7 @@ export function LoginForm() {
                     {...field}
                     type="password"
                     placeholder="Sua senha"
+                    className="bg-input focus:ring-primary mt-1 w-full rounded-xl px-4 py-3 outline-none focus:ring-2"
                     required
                   />
                 </FormControl>

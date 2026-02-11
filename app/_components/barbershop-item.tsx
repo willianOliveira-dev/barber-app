@@ -7,11 +7,11 @@ import { Badge } from "./ui/badge"
 import { StarIcon } from "lucide-react"
 import Link from "next/link"
 
-interface BarberShopItemProps {
+interface BarbershopItemProps {
   barbershop: InferSelectModel<typeof barbershop>
 }
 
-export function BarberShopItem({ barbershop }: BarberShopItemProps) {
+export function BarbershopItem({ barbershop }: BarbershopItemProps) {
   return (
     <Card className="min-w-52.5 overflow-hidden pt-0">
       <CardHeader className="relative h-37.5 w-full">

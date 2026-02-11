@@ -1,21 +1,20 @@
 import Image from "next/image"
 import { Button } from "./_components/ui/button"
 import { Header } from "./_components/header"
-import { Input } from "./_components/ui/input"
-import { SearchIcon } from "lucide-react"
-import { barbershopsRepo } from "@/src/repositories/barbershop.repository"
-import { BarberShopItem } from "./_components/barbershop-item"
+import { barbershopRepo } from "@/src/repositories/barbershop.repository"
+import { BarbershopItem } from "./_components/barbershop-item"
 import { QUICK_SEARCH_OPTIONS } from "./_constants/search"
 import { BookingItem } from "./_components/booking-item"
 import { Footer } from "./_components/footer"
+import { Search } from "./_components/search"
 
 export default async function Home() {
-  const barbershops = await barbershopsRepo.findAll()
+  const barbershops = await barbershopRepo.findAll()
 
   return (
     <>
       <Header />
-      <main className="space-y-6 p-5">
+      <main className="flex-1 space-y-6 p-5">
         <section className="flex items-center justify-center">
           <div className="container flex flex-col gap-2">
             <h2 className="text-xl font-bold">Olá, Willian!</h2>
@@ -24,11 +23,8 @@ export default async function Home() {
         </section>
 
         <section className="flex items-center justify-center">
-          <div className="container flex flex-row items-center gap-2">
-            <Input placeholder="Faça sua busca..." />
-            <Button size="icon">
-              <SearchIcon />
-            </Button>
+          <div className="container">
+            <Search />
           </div>
         </section>
 
@@ -73,7 +69,7 @@ export default async function Home() {
 
             <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
               {barbershops.map((barbershop) => (
-                <BarberShopItem key={barbershop.id} barbershop={barbershop} />
+                <BarbershopItem key={barbershop.id} barbershop={barbershop} />
               ))}
             </div>
           </div>
@@ -86,7 +82,7 @@ export default async function Home() {
             </h2>
             <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
               {barbershops.map((barbershop) => (
-                <BarberShopItem key={barbershop.id} barbershop={barbershop} />
+                <BarbershopItem key={barbershop.id} barbershop={barbershop} />
               ))}
             </div>
           </div>

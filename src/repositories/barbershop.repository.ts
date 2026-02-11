@@ -24,6 +24,12 @@ class BarbershopRepository {
       services,
     }
   }
+
+  async findByParams(search?: string) {
+    return await db.query.barbershop.findMany({
+      where: (barbershop, { ilike }) => ilike(barbershop.name, `%${search}%`),
+    })
+  }
 }
 
-export const barbershopsRepo = new BarbershopRepository()
+export const barbershopRepo = new BarbershopRepository()
