@@ -6,7 +6,6 @@ import {
   text,
   boolean,
   timestamp,
-  uniqueIndex,
   index,
 } from "drizzle-orm/pg-core"
 
@@ -23,7 +22,10 @@ export const users = pgTable(
     username: varchar("username", { length: 50 }).unique(),
     phone: varchar("phone", { length: 20 }),
     isActive: boolean("is_active").notNull().default(true),
-    emailVerified: boolean("email_verified").notNull().default(false),
+    emailVerified: timestamp("email_verified", {
+      mode: "date",
+      withTimezone: true,
+    }),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .notNull()
       .defaultNow(),
