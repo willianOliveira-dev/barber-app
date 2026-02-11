@@ -13,7 +13,7 @@ import {
 import { QUICK_SEARCH_OPTIONS } from "../_constants/search"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { cn } from "../_lib/utils"
+import { cn } from "../_lib/utils.lib"
 import Image from "next/image"
 import Link from "next/link"
 

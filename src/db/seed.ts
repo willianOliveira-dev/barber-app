@@ -2,6 +2,7 @@ import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
 import { fakerPT_BR as faker } from "@faker-js/faker"
 import { sql } from "drizzle-orm"
+import { bcryptUtil } from "@/app/_utils/bcrypt.util"
 import { env } from "../config/env"
 import { users, barbershopServices, barbershops, bookings } from "./schemas"
 
@@ -27,7 +28,7 @@ async function main() {
         fullName: `${firstName} ${lastName}`,
         username,
         email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-        password: "password_segura_123",
+        password: bcryptUtil.hashSync("@Password_segura_123"),
         phone: faker.phone.number(),
         avatarUrl: `https://i.pravatar.cc/150?u=${username}`,
         isActive: true,
