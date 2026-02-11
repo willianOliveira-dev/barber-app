@@ -11,11 +11,11 @@ import {
   SheetTrigger,
 } from "./ui/sheet"
 import { QUICK_SEARCH_OPTIONS } from "../_constants/search"
-import Image from "next/image"
-import Link from "next/link"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "../_lib/utils"
+import Image from "next/image"
+import Link from "next/link"
 
 export type MenuProps = React.ComponentProps<typeof SheetPrimitive.Trigger>
 
@@ -51,8 +51,10 @@ export function Menu({ ...props }: MenuProps) {
         <section className="border-b-secondary border-b p-5">
           <div className="flex items-center justify-between gap-4">
             <p className="text-lg font-semibold">Olá. Faça seu login!</p>
-            <Button size="icon">
-              <LogIn />
+            <Button asChild size="icon">
+              <Link href="/login">
+                <LogIn />
+              </Link>
             </Button>
           </div>
         </section>

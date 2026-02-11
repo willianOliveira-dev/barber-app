@@ -15,6 +15,13 @@
       "when": 1770665933976,
       "tag": "0001_lovely_earthquake",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770813278285,
+      "tag": "0002_faithful_the_fury",
+      "breakpoints": true
     }
   ]
 }
