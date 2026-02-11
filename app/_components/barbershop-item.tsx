@@ -1,25 +1,25 @@
 import Image from "next/image"
 import { Card, CardContent, CardHeader } from "./ui/card"
 import { InferSelectModel } from "drizzle-orm"
-import { barbershops } from "@/src/db/schemas"
+import { barbershop } from "@/src/db/schemas"
 import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { StarIcon } from "lucide-react"
 import Link from "next/link"
 
 interface BarberShopItemProps {
-  barbershop: InferSelectModel<typeof barbershops>
+  barbershop: InferSelectModel<typeof barbershop>
 }
 
 export function BarberShopItem({ barbershop }: BarberShopItemProps) {
   return (
     <Card className="min-w-52.5 overflow-hidden pt-0">
       <CardHeader className="relative h-37.5 w-full">
-        {barbershop.imageUrl ? (
+        {barbershop.image ? (
           <Image
             quality={75}
             alt={barbershop.name}
-            src={barbershop.imageUrl}
+            src={barbershop.image}
             className="rounded-lg object-cover"
             fill
           />

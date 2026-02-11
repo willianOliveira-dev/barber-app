@@ -6,15 +6,17 @@ import {
   text,
   uuid,
 } from "drizzle-orm/pg-core"
-import { users } from "./users.schema"
+import { user } from "./user.schema"
 
-export const authenticators = pgTable(
+export const authenticator = pgTable(
   "authenticator",
   {
     credentialID: text("credentialID").notNull().unique(),
+
     userId: uuid("userId")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" }),
+
     providerAccountId: text("providerAccountId").notNull(),
     credentialPublicKey: text("credentialPublicKey").notNull(),
     counter: integer("counter").notNull(),
@@ -22,11 +24,9 @@ export const authenticators = pgTable(
     credentialBackedUp: boolean("credentialBackedUp").notNull(),
     transports: text("transports"),
   },
-  (authenticator) => [
-    {
-      compositePK: primaryKey({
-        columns: [authenticator.userId, authenticator.credentialID],
-      }),
-    },
-  ],
+  (authenticator) => ({
+    compositePK: primaryKey({
+      columns: [authenticator.userId, authenticator.credentialID],
+    }),
+  }),
 )

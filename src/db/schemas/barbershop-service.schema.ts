@@ -9,29 +9,29 @@ import {
   index,
   uniqueIndex,
 } from "drizzle-orm/pg-core"
-import { barbershops } from "./barbershops.schema"
+import { barbershop } from "./barbershop.schema"
 import { sql } from "drizzle-orm"
 
-export const barbershopServices = pgTable(
-  "barbershop_services",
+export const barbershopService = pgTable(
+  "barbershop_service",
   {
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    imageUrl: varchar("image_url", { length: 500 }),
+    image: varchar("image", { length: 500 }),
     name: varchar("name", { length: 150 }).notNull(),
     slug: varchar("slug", { length: 200 }).notNull(),
     description: text("description"),
-    barbershopId: uuid("barbershop_id")
+    barbershopId: uuid("barbershopId")
       .notNull()
-      .references(() => barbershops.id, { onDelete: "cascade" }),
-    durationMinutes: integer("duration_minutes").notNull(),
-    priceInCents: integer("price_in_cents").notNull(),
-    isActive: boolean("is_active").notNull().default(true),
-    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .references(() => barbershop.id, { onDelete: "cascade" }),
+    durationMinutes: integer("durationMinutes").notNull(),
+    priceInCents: integer("priceInCents").notNull(),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt", { mode: "date", withTimezone: true })
       .notNull()
       .defaultNow(),
-    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+    updatedAt: timestamp("updatedAt", { mode: "date", withTimezone: true })
       .notNull()
       .defaultNow(),
   },

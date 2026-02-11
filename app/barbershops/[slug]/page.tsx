@@ -28,10 +28,10 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
         <section className="border-b-secondary flex flex-col items-center border">
           <div className="container">
             <div className="relative h-62.5 w-full overflow-hidden rounded-b-2xl p-5">
-              {barbershop?.imageUrl ? (
+              {barbershop?.image ? (
                 <>
                   <Image
-                    src={barbershop?.imageUrl}
+                    src={barbershop?.image}
                     alt={barbershop?.name}
                     fill
                     className="object-cover"

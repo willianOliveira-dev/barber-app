@@ -1,26 +1,26 @@
 import { pgTable, uuid, timestamp, varchar } from "drizzle-orm/pg-core"
-import { users } from "./users.schema"
-import { barbershopServices } from "./barbershop-services.schema"
+import { user } from "./user.schema"
+import { barbershopService } from "./barbershop-service.schema"
 import { sql } from "drizzle-orm"
 
-export const bookings = pgTable("bookings", {
+export const booking = pgTable("booking", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
 
-  userId: uuid("user_id")
+  userId: uuid("userId")
     .notNull()
-    .references(() => users.id),
+    .references(() => user.id),
 
-  serviceId: uuid("service_id")
+  serviceId: uuid("serviceId")
     .notNull()
-    .references(() => barbershopServices.id),
+    .references(() => barbershopService.id),
 
-  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+  scheduledAt: timestamp("scheduledAt", { withTimezone: true }).notNull(),
 
   status: varchar("status", { length: 30 }).notNull().default("scheduled"),
 
-  createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+  createdAt: timestamp("createdAt", { mode: "date", withTimezone: true })
     .notNull()
     .defaultNow(),
 })

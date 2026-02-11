@@ -1,146 +1,11 @@
 {
-  "id": "c88b25f0-350f-426b-af17-7c298bac13c2",
+  "id": "77b1aef0-53d7-4ee8-930c-e67105a55441",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.users": {
-      "name": "users",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "full_name": {
-          "name": "full_name",
-          "type": "varchar(150)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "avatar_url": {
-          "name": "avatar_url",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "email": {
-          "name": "email",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "password": {
-          "name": "password",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "username": {
-          "name": "username",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "phone": {
-          "name": "phone",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "email_verified": {
-          "name": "email_verified",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "users_email_index": {
-          "name": "users_email_index",
-          "columns": [
-            {
-              "expression": "email",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "users_username_index": {
-          "name": "users_username_index",
-          "columns": [
-            {
-              "expression": "username",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_email_unique": {
-          "name": "users_email_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
-        },
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.barbershops": {
-      "name": "barbershops",
+    "public.user": {
+      "name": "user",
       "schema": "",
       "columns": {
         "id": {
@@ -156,14 +21,121 @@
           "primaryKey": false,
           "notNull": true
         },
-        "image_url": {
-          "name": "image_url",
+        "image": {
+          "name": "image",
           "type": "varchar(500)",
           "primaryKey": false,
           "notNull": false
         },
-        "owner_id": {
-          "name": "owner_id",
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "emailVerified": {
+          "name": "emailVerified",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "isActive": {
+          "name": "isActive",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deletedAt": {
+          "name": "deletedAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "user_email_index": {
+          "name": "user_email_index",
+          "columns": [
+            {
+              "expression": "email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_email_unique": {
+          "name": "user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.barbershop": {
+      "name": "barbershop",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image": {
+          "name": "image",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ownerId": {
+          "name": "ownerId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -198,8 +170,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "zip_code": {
-          "name": "zip_code",
+        "zipCode": {
+          "name": "zipCode",
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false
@@ -216,41 +188,41 @@
           "primaryKey": false,
           "notNull": false
         },
-        "opening_time": {
-          "name": "opening_time",
+        "openingTime": {
+          "name": "openingTime",
           "type": "varchar(5)",
           "primaryKey": false,
           "notNull": true
         },
-        "closing_time": {
-          "name": "closing_time",
+        "closingTime": {
+          "name": "closingTime",
           "type": "varchar(5)",
           "primaryKey": false,
           "notNull": true
         },
-        "is_active": {
-          "name": "is_active",
+        "isActive": {
+          "name": "isActive",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": true
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
-        "updated_at": {
-          "name": "updated_at",
+        "updatedAt": {
+          "name": "updatedAt",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
-        "deleted_at": {
-          "name": "deleted_at",
+        "deletedAt": {
+          "name": "deletedAt",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
@@ -261,7 +233,7 @@
           "name": "barbershops_owner_index",
           "columns": [
             {
-              "expression": "owner_id",
+              "expression": "ownerId",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -282,7 +254,7 @@
               "nulls": "last"
             },
             {
-              "expression": "owner_id",
+              "expression": "ownerId",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -325,12 +297,12 @@
         }
       },
       "foreignKeys": {
-        "barbershops_owner_id_users_id_fk": {
-          "name": "barbershops_owner_id_users_id_fk",
-          "tableFrom": "barbershops",
-          "tableTo": "users",
+        "barbershop_ownerId_user_id_fk": {
+          "name": "barbershop_ownerId_user_id_fk",
+          "tableFrom": "barbershop",
+          "tableTo": "user",
           "columnsFrom": [
-            "owner_id"
+            "ownerId"
           ],
           "columnsTo": [
             "id"
@@ -345,8 +317,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.barbershop_services": {
-      "name": "barbershop_services",
+    "public.barbershop_service": {
+      "name": "barbershop_service",
       "schema": "",
       "columns": {
         "id": {
@@ -356,8 +328,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "image_url": {
-          "name": "image_url",
+        "image": {
+          "name": "image",
           "type": "varchar(500)",
           "primaryKey": false,
           "notNull": false
@@ -380,40 +352,40 @@
           "primaryKey": false,
           "notNull": false
         },
-        "barbershop_id": {
-          "name": "barbershop_id",
+        "barbershopId": {
+          "name": "barbershopId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "duration_minutes": {
-          "name": "duration_minutes",
+        "durationMinutes": {
+          "name": "durationMinutes",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "price_in_cents": {
-          "name": "price_in_cents",
+        "priceInCents": {
+          "name": "priceInCents",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "is_active": {
-          "name": "is_active",
+        "isActive": {
+          "name": "isActive",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": true
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
-        "updated_at": {
-          "name": "updated_at",
+        "updatedAt": {
+          "name": "updatedAt",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -440,7 +412,7 @@
           "name": "services_barbershop_index",
           "columns": [
             {
-              "expression": "barbershop_id",
+              "expression": "barbershopId",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -455,7 +427,7 @@
           "name": "services_slug_unique",
           "columns": [
             {
-              "expression": "barbershop_id",
+              "expression": "barbershopId",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -474,12 +446,12 @@
         }
       },
       "foreignKeys": {
-        "barbershop_services_barbershop_id_barbershops_id_fk": {
-          "name": "barbershop_services_barbershop_id_barbershops_id_fk",
-          "tableFrom": "barbershop_services",
-          "tableTo": "barbershops",
+        "barbershop_service_barbershopId_barbershop_id_fk": {
+          "name": "barbershop_service_barbershopId_barbershop_id_fk",
+          "tableFrom": "barbershop_service",
+          "tableTo": "barbershop",
           "columnsFrom": [
-            "barbershop_id"
+            "barbershopId"
           ],
           "columnsTo": [
             "id"
@@ -494,8 +466,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.bookings": {
-      "name": "bookings",
+    "public.booking": {
+      "name": "booking",
       "schema": "",
       "columns": {
         "id": {
@@ -505,20 +477,20 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "user_id": {
-          "name": "user_id",
+        "userId": {
+          "name": "userId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "service_id": {
-          "name": "service_id",
+        "serviceId": {
+          "name": "serviceId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "scheduled_at": {
-          "name": "scheduled_at",
+        "scheduledAt": {
+          "name": "scheduledAt",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
@@ -530,8 +502,8 @@
           "notNull": true,
           "default": "'scheduled'"
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -540,12 +512,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "bookings_user_id_users_id_fk": {
-          "name": "bookings_user_id_users_id_fk",
-          "tableFrom": "bookings",
-          "tableTo": "users",
+        "booking_userId_user_id_fk": {
+          "name": "booking_userId_user_id_fk",
+          "tableFrom": "booking",
+          "tableTo": "user",
           "columnsFrom": [
-            "user_id"
+            "userId"
           ],
           "columnsTo": [
             "id"
@@ -553,12 +525,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "bookings_service_id_barbershop_services_id_fk": {
-          "name": "bookings_service_id_barbershop_services_id_fk",
-          "tableFrom": "bookings",
-          "tableTo": "barbershop_services",
+        "booking_serviceId_barbershop_service_id_fk": {
+          "name": "booking_serviceId_barbershop_service_id_fk",
+          "tableFrom": "booking",
+          "tableTo": "barbershop_service",
           "columnsFrom": [
-            "service_id"
+            "serviceId"
           ],
           "columnsTo": [
             "id"
@@ -577,6 +549,13 @@
       "name": "account",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "userId": {
           "name": "userId",
           "type": "uuid",
@@ -646,10 +625,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "account_userId_users_id_fk": {
-          "name": "account_userId_users_id_fk",
+        "account_userId_user_id_fk": {
+          "name": "account_userId_user_id_fk",
           "tableFrom": "account",
-          "tableTo": "users",
+          "tableTo": "user",
           "columnsFrom": [
             "userId"
           ],
@@ -661,7 +640,16 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "account_provider_unique": {
+          "name": "account_provider_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "provider",
+            "providerAccountId"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -721,10 +709,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "authenticator_userId_users_id_fk": {
-          "name": "authenticator_userId_users_id_fk",
+        "authenticator_userId_user_id_fk": {
+          "name": "authenticator_userId_user_id_fk",
           "tableFrom": "authenticator",
-          "tableTo": "users",
+          "tableTo": "user",
           "columnsFrom": [
             "userId"
           ],
@@ -735,7 +723,15 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "authenticator_userId_credentialID_pk": {
+          "name": "authenticator_userId_credentialID_pk",
+          "columns": [
+            "userId",
+            "credentialID"
+          ]
+        }
+      },
       "uniqueConstraints": {
         "authenticator_credentialID_unique": {
           "name": "authenticator_credentialID_unique",
@@ -774,10 +770,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "session_userId_users_id_fk": {
-          "name": "session_userId_users_id_fk",
+        "session_userId_user_id_fk": {
+          "name": "session_userId_user_id_fk",
           "tableFrom": "session",
-          "tableTo": "users",
+          "tableTo": "user",
           "columnsFrom": [
             "userId"
           ],

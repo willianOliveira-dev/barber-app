@@ -16,11 +16,20 @@ import { usePathname } from "next/navigation"
 import { cn } from "../_lib/utils.lib"
 import Image from "next/image"
 import Link from "next/link"
+import { signOut, useSession } from "next-auth/react"
+import { SkeletonAvatar } from "./skeleton-avatar"
+import { ProfileCard } from "./profile-card"
 
 export type MenuProps = React.ComponentProps<typeof SheetPrimitive.Trigger>
 
 export function Menu({ ...props }: MenuProps) {
+  const { status, data } = useSession()
+
   const pathname = usePathname()
+
+  const handleSignOutClick = async () => {
+    await signOut({ callbackUrl: "/" })
+  }
 
   const navigationLinks = [
     {
@@ -48,18 +57,28 @@ export function Menu({ ...props }: MenuProps) {
           <SheetTitle>Menu</SheetTitle>
         </SheetHeader>
 
-        <section className="border-b-secondary border-b p-5">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-lg font-semibold">Olá. Faça seu login!</p>
-            <Button asChild size="icon">
-              <Link href="/login">
-                <LogIn />
-              </Link>
-            </Button>
+        {status === "loading" ? (
+          <SkeletonAvatar />
+        ) : status === "authenticated" ? (
+          <ProfileCard
+            avatarUrl={data.user.image}
+            email={data.user.email}
+            name={data.user.name}
+          />
+        ) : (
+          <div className="border-b-secondary border-b p-5">
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-lg font-semibold">Olá. Faça seu login!</p>
+              <Button asChild size="icon">
+                <Link href="/login">
+                  <LogIn />
+                </Link>
+              </Button>
+            </div>
           </div>
-        </section>
+        )}
 
-        <section className="border-b-secondary border-b p-5">
+        <div className="border-b-secondary border-b p-5">
           <nav>
             <ul className="flex flex-col gap-4">
               {navigationLinks.map((link) => (
@@ -85,9 +104,9 @@ export function Menu({ ...props }: MenuProps) {
               ))}
             </ul>
           </nav>
-        </section>
+        </div>
 
-        <section className="border-b-secondary border-b p-5">
+        <div className="border-b-secondary border-b p-5">
           <div className="flex flex-col gap-4">
             {QUICK_SEARCH_OPTIONS.map((option) => (
               <Button
@@ -107,18 +126,20 @@ export function Menu({ ...props }: MenuProps) {
               </Button>
             ))}
           </div>
-        </section>
+        </div>
 
-        <SheetFooter>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost">
-              <span>
-                <LogIn />
-              </span>
-              Sair da conta
-            </Button>
-          </div>
-        </SheetFooter>
+        {status === "authenticated" && (
+          <SheetFooter>
+            <div className="flex items-center gap-4">
+              <Button onClick={handleSignOutClick} variant="ghost">
+                <span>
+                  <LogIn />
+                </span>
+                Sair da conta
+              </Button>
+            </div>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   )

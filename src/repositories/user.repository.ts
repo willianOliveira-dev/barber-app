@@ -2,14 +2,14 @@ import { db } from "../db/connection"
 
 export class UserRepository {
   async findByEmail(email: string) {
-    return db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.email, email),
+    return db.query.user.findFirst({
+      where: (user, { eq }) => eq(user.email, email),
     })
   }
 
   async findById(id: string) {
-    return db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, id),
+    return db.query.user.findFirst({
+      where: (user, { eq }) => eq(user.id, id),
     })
   }
 }

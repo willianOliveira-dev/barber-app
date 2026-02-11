@@ -29,7 +29,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "src/db/schemas/verification-tokens.schema.ts"
+    "src/db/schemas/verification-token.schema.ts"
   ],
   "exclude": ["node_modules"]
 }

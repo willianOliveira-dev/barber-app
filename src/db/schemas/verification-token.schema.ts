@@ -1,6 +1,6 @@
 import { pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core"
 
-export const verificationTokens = pgTable(
+export const verificationToken = pgTable(
   "verificationToken",
   {
     identifier: text("identifier").notNull(),

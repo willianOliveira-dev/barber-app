@@ -2,13 +2,13 @@ import { DefaultSession } from "next-auth"
 
 interface CustomUser {
   id: string
-  fullName: string
-  avatarUrl: string | null
+  name: string
+  image: string | null
   email: string
-  username: string | null
+  emailVerified: Date | null
+  password: string | null
   phone: string | null
   isActive: boolean
-  emailVerified: Date | null
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null

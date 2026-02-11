@@ -1,19 +1,28 @@
 "use client"
-import { signIn } from "next-auth/react"
 
-type ProviderOptions = "google" // | facebook ...
+import { signIn, SignInResponse } from "next-auth/react"
+
+type ProviderOptions = "google"
 
 export class LoginAction {
-  async crendetials(email: string, password: string): Promise<void> {
-    await signIn("credentials", {
+  async credentials(
+    email: string,
+    password: string,
+  ): Promise<SignInResponse | undefined> {
+    return signIn("credentials", {
       email,
       password,
       redirect: false,
+      callbackUrl: "/",
     })
   }
-  async providers(provider: ProviderOptions): Promise<void> {
-    await signIn(provider, {
+
+  async provider(
+    provider: ProviderOptions,
+  ): Promise<SignInResponse | undefined> {
+    return signIn(provider, {
       redirect: false,
+      callbackUrl: "/",
     })
   }
 }

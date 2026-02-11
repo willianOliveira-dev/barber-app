@@ -6,8 +6,9 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { Adapter } from "next-auth/adapters"
 import { db } from "@/src/db/connection"
 import { env } from "@/src/config/env"
+
 import GoogleProvider from "next-auth/providers/google"
-import Credentials from "next-auth/providers/credentials"
+import CredentialsProvider from "next-auth/providers/credentials"
 
 interface AuthorizeCredentialOptions {
   email: string
@@ -16,46 +17,58 @@ interface AuthorizeCredentialOptions {
 
 export const authOptions: AuthOptions = {
   adapter: DrizzleAdapter(db) as Adapter,
+
   session: {
     strategy: "jwt",
   },
+
   providers: [
     GoogleProvider({
       clientId: env.AUTH_GOOGLE_ID,
       clientSecret: env.AUTH_GOOGLE_SECRET,
     }),
-    Credentials({
+
+    CredentialsProvider({
       name: "credentials",
+
       credentials: {
         email: { label: "Email", type: "email", required: true },
         password: { label: "Password", type: "password", required: true },
       },
+      // @ts-expect-error - NextAuth Credentials authorize typing is incompatible with custom user model
       async authorize(credentials: AuthorizeCredentialOptions | undefined) {
-        try {
-          const { email, password } = await signInSchema.parseAsync(credentials)
+        const { email, password } = await signInSchema.parseAsync(credentials)
 
-          if (!email || !password) return null
+        const user = await userRepo.findByEmail(email)
 
-          const user = await userRepo.findByEmail(email)
+        if (!user) {
+          throw new Error("USER_NOT_FOUND")
+        }
 
-          if (!user) return null
+        if (!user.password) {
+          throw new Error("USER_WITHOUT_PASSWORD")
+        }
 
-          const passwordIsValid = await bcryptUtil.compareAsync(
-            password,
-            user.password,
-          )
+        const passwordIsValid = await bcryptUtil.compareAsync(
+          password,
+          user.password,
+        )
 
-          if (!passwordIsValid) return null
-          // eslint-disable-next-line  @typescript-eslint/no-unused-vars
-          const { password: _, ...userWithoutPassword } = user
+        if (!passwordIsValid) {
+          throw new Error("INVALID_PASSWORD")
+        }
 
-          return userWithoutPassword
-        } catch {
-          return null
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image ?? null,
+          emailVerified: user.emailVerified ?? null,
         }
       },
     }),
   ],
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -64,7 +77,7 @@ export const authOptions: AuthOptions = {
         return token
       }
 
-      const userId = token.id || token.sub
+      const userId = token.sub
 
       if (userId) {
         const latestUser = await userRepo.findById(userId)
@@ -73,16 +86,21 @@ export const authOptions: AuthOptions = {
           token.emailVerified = latestUser.emailVerified
         }
       }
+
       return token
     },
 
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.sub!
+      if (session.user && token.sub) {
+        session.user.id = token.sub
         session.user.emailVerified = token.emailVerified
-        return session
       }
+
       return session
     },
+  },
+
+  pages: {
+    signIn: "/login",
   },
 }
