@@ -31,7 +31,7 @@ async function main() {
         phone: faker.phone.number(),
         avatarUrl: `https://i.pravatar.cc/150?u=${username}`,
         isActive: true,
-        emailVerified: true,
+        emailVerified: faker.date.recent(),
       }
     })
     const insertedUsers = await db
