@@ -4,16 +4,16 @@ import { Header } from "../_components/header"
 import { Search } from "../_components/search"
 import { Footer } from "../_components/footer"
 import { Button } from "../_components/ui/button"
-import { QUICK_SEARCH_ALL_OPTIONS } from "../_constants/search"
 import { AppPagination } from "../_components/pagination"
+import { NoResultsCard } from "../_components/no-results-card"
+import { categoryRepo } from "@/src/repositories/category.repository"
 import Image from "next/image"
 import Link from "next/link"
-import { NoResultsCard } from "../_components/no-results-card"
 
 interface BarbershopsPageProps {
   searchParams: Promise<{
     search?: string
-    service: string
+    category: string
     page?: number
     limit?: number
   }>
@@ -22,25 +22,42 @@ interface BarbershopsPageProps {
 export default async function BarbershopsPage({
   searchParams,
 }: BarbershopsPageProps) {
-  const { search = "", service = "", page = 1, limit = 12 } = await searchParams
+  const {
+    search = "",
+    category = "",
+    page = 1,
+    limit = 12,
+  } = await searchParams
 
   const { barbershops, meta } = await barbershopRepo.findByParams(
     search,
-    service,
+    category,
     page,
     limit,
   )
 
+  const categories = await categoryRepo.findAll()
+
+  const categoriesWithAll = [
+    {
+      id: "all",
+      name: "Todos",
+      slug: "todos",
+      icon: "/icons/all.svg",
+    },
+    ...categories,
+  ]
+
   const start = (meta.page - 1) * meta.limit + 1
   const end = Math.min(meta.page * meta.limit, meta.total)
 
-  const activeService = service || "Todos"
+  const activeCategory = category || "todos"
 
-  const createBarbershopServiceLink = (service: string) => {
+  const createBarbershopCategoryLink = (categorySlug: string) => {
     const params = new URLSearchParams()
 
-    if (service.toLocaleLowerCase() !== "todos") {
-      params.set("service", service)
+    if (categorySlug.toLocaleLowerCase() !== "todos") {
+      params.set("category", categorySlug)
       params.set("page", "1")
       params.set("limit", "12")
     }
@@ -70,24 +87,24 @@ export default async function BarbershopsPage({
 
         <section className="flex items-center justify-center">
           <div className="container flex flex-row items-center gap-2 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
-            {QUICK_SEARCH_ALL_OPTIONS.map((option) => {
+            {categoriesWithAll.map((category) => {
               const isActive =
-                option.label.toLowerCase() === activeService.toLowerCase()
+                category.slug.toLowerCase() === activeCategory.toLowerCase()
               return (
                 <Button
-                  key={option.label}
+                  key={category.name}
                   asChild
                   variant={isActive ? "default" : "ghost"}
                   className="flex items-center justify-start gap-4"
                 >
-                  <Link href={createBarbershopServiceLink(option.label)}>
+                  <Link href={createBarbershopCategoryLink(category.slug)}>
                     <Image
-                      alt={option.label}
-                      src={option.icon}
+                      alt={category.name}
+                      src={category.icon!}
                       width={16}
                       height={16}
                     />
-                    {option.label}
+                    {category.name}
                   </Link>
                 </Button>
               )

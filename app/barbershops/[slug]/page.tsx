@@ -4,6 +4,7 @@ import { Footer } from "@/app/_components/footer"
 import { Menu } from "@/app/_components/menu"
 import { Button } from "@/app/_components/ui/button"
 import { barbershopRepo } from "@/src/repositories/barbershop.repository"
+import { categoryRepo } from "@/src/repositories/category.repository"
 import {
   ArrowLeft,
   StarIcon,
@@ -21,6 +22,7 @@ interface BarbershopPageProps {
 export default async function BarbershopPage({ params }: BarbershopPageProps) {
   const { slug } = await params
   const barbershop = await barbershopRepo.findBySlug(slug)
+  const categories = await categoryRepo.findAll()
 
   return (
     <>
@@ -53,7 +55,10 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
                   <ArrowLeft />
                 </Link>
               </Button>
-              <Menu className="absolute top-5 right-5 z-20" />
+
+              <div className="absolute top-5 right-5 z-20">
+                <Menu categories={categories} />
+              </div>
             </div>
             <div className="flex flex-col gap-2 p-5">
               <h1 className="text-lg font-bold">{barbershop?.name}</h1>

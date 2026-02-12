@@ -18,19 +18,19 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet"
-
 import { Button } from "./ui/button"
 import { SkeletonAvatar } from "./skeleton-avatar"
 import { ProfileCard } from "./profile-card"
-
-import { QUICK_SEARCH_OPTIONS } from "../_constants/search"
 import { cn } from "../_lib/utils.lib"
+import { InferSelectModel } from "drizzle-orm"
+import { category } from "@/src/db/schemas"
 
-export type MenuProps = React.ComponentProps<typeof SheetPrimitive.Trigger>
+export type MenuProps = { categories: InferSelectModel<typeof category>[] }
 
-export function Menu({ ...props }: MenuProps) {
+export function Menu({ categories }: MenuProps) {
   const { status, data } = useSession()
   const [isOpenSheet, setIsOpenSheet] = useState<boolean>(false)
+
   const pathname = usePathname()
 
   const navigationLinks = [
@@ -43,9 +43,9 @@ export function Menu({ ...props }: MenuProps) {
     await signOut({ callbackUrl: "/" })
   }
 
-  const createBarbershopServiceLink = (service: string) => {
+  const createBarbershopCategoryLink = (categorySlug: string) => {
     const params = new URLSearchParams()
-    params.set("service", service)
+    params.set("category", categorySlug)
     params.set("page", "1")
     params.set("limit", "12")
     return `/barbershops?${params.toString()}`
@@ -53,7 +53,7 @@ export function Menu({ ...props }: MenuProps) {
 
   return (
     <Sheet open={isOpenSheet} onOpenChange={setIsOpenSheet}>
-      <SheetTrigger {...props} asChild>
+      <SheetTrigger asChild>
         <Button variant="secondary" size="icon">
           <MenuIcon />
         </Button>
@@ -119,24 +119,24 @@ export function Menu({ ...props }: MenuProps) {
 
         <div className="p-5">
           <div className="flex flex-col gap-4">
-            {QUICK_SEARCH_OPTIONS.map((option) => (
+            {categories.map((category) => (
               <Button
-                key={option.label}
+                key={category.id}
                 asChild
                 variant="ghost"
                 className="flex items-center justify-start gap-4"
               >
                 <Link
-                  href={createBarbershopServiceLink(option.label)}
+                  href={createBarbershopCategoryLink(category.slug)}
                   onClick={() => setIsOpenSheet((state) => !state)}
                 >
                   <Image
-                    alt={option.label}
-                    src={option.icon}
+                    alt={category.name}
+                    src={category.icon!}
                     width={16}
                     height={16}
                   />
-                  {option.label}
+                  {category.name}
                 </Link>
               </Button>
             ))}

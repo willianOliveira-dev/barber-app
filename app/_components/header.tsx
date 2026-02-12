@@ -1,9 +1,12 @@
-import Image from "next/image"
 import { Card, CardContent } from "./ui/card"
 import { Menu } from "./menu"
+import { categoryRepo } from "@/src/repositories/category.repository"
+import Image from "next/image"
 import Link from "next/link"
 
-export function Header() {
+export async function Header() {
+  const categories = await categoryRepo.findAll()
+
   return (
     <header>
       <Card className="rounded-t-none border-0">
@@ -16,7 +19,7 @@ export function Header() {
               height={22}
             />
           </Link>
-          <Menu />
+          <Menu categories={categories} />
         </CardContent>
       </Card>
     </header>

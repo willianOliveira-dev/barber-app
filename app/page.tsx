@@ -1,19 +1,21 @@
-import Image from "next/image"
 import { Button } from "./_components/ui/button"
 import { Header } from "./_components/header"
 import { barbershopRepo } from "@/src/repositories/barbershop.repository"
 import { BarbershopItem } from "./_components/barbershop-item"
-import { QUICK_SEARCH_OPTIONS } from "./_constants/search"
 import { BookingItem } from "./_components/booking-item"
 import { Footer } from "./_components/footer"
 import { Search } from "./_components/search"
+import { categoryRepo } from "@/src/repositories/category.repository"
+import Image from "next/image"
 import Link from "next/link"
 
 export default async function Home() {
   const barbershops = await barbershopRepo.findAll()
-  const createBarbershopServiceLink = (service: string) => {
+  const categories = await categoryRepo.findAll()
+
+  const createBarbershopServiceLink = (categorySlug: string) => {
     const params = new URLSearchParams()
-    params.set("service", service)
+    params.set("category", categorySlug)
     params.set("page", "1")
     params.set("limit", "12")
     return `/barbershops?${params.toString()}`
@@ -38,21 +40,21 @@ export default async function Home() {
 
         <section className="flex items-center justify-center">
           <div className="container flex flex-row items-center gap-2 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
-            {QUICK_SEARCH_OPTIONS.map((option) => (
+            {categories.map((category) => (
               <Button
-                key={option.label}
+                key={category.name}
                 asChild
                 variant="ghost"
                 className="flex items-center justify-start gap-4"
               >
-                <Link href={createBarbershopServiceLink(option.label)}>
+                <Link href={createBarbershopServiceLink(category.slug)}>
                   <Image
-                    alt={option.label}
-                    src={option.icon}
+                    alt={category.name}
+                    src={category.icon!}
                     width={16}
                     height={16}
                   />
-                  {option.label}
+                  {category.name}
                 </Link>
               </Button>
             ))}

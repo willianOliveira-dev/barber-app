@@ -22,7 +22,7 @@ export function NoResultsCard({ query }: { query?: string }) {
 
       <CardContent className="text-muted-foreground max-w-md text-sm md:text-base">
         {query
-          ? `Não encontramos resultados para "${query}". Experimente outro serviço ou categoria.`
+          ? `Não encontramos resultados para "${query}". Experimente outra busca ou categoria.`
           : "Não há barbearias disponíveis no momento."}
       </CardContent>
 
