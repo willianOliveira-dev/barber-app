@@ -19,7 +19,7 @@ export const category = pgTable(
     name: varchar("name", { length: 100 }).notNull(),
     slug: varchar("slug", { length: 150 }).notNull(),
     description: text("description"),
-    icon: varchar("icon", { length: 100 }), // Nome do ícone (ex: "scissors", "beard", "hair")
+    icon: varchar("icon", { length: 100 }),
     image: varchar("image", { length: 500 }),
     isActive: boolean("isActive").notNull().default(true),
     createdAt: timestamp("createdAt", { mode: "date", withTimezone: true })

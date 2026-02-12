@@ -64,7 +64,7 @@ export default async function Home() {
             <div className="relative h-37.5 w-full rounded-xl">
               <Image
                 alt="Agende nos melhores com Razor Barber"
-                src="/banner-01.png"
+                src="/images/banner-01.png"
                 fill
                 className="rounded-xl object-cover object-center"
               />

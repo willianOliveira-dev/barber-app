@@ -111,11 +111,11 @@ async function seed() {
     console.log("📁 Criando categorias de serviços...")
     const categoriesToInsert = [
       {
-        name: "Corte de Cabelo",
-        slug: "corte-de-cabelo",
+        name: "Cabelo",
+        slug: "cabelo",
         description:
           "Serviços de corte masculino com máquina, tesoura e acabamento profissional.",
-        icon: "scissors",
+        icon: "/icons/hair.svg",
         image:
           "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&h=300&fit=crop",
       },
@@ -124,16 +124,16 @@ async function seed() {
         slug: "barba",
         description:
           "Aparar, desenhar e cuidados especiais para barba com navalha e produtos premium.",
-        icon: "beard",
+        icon: "/icons/beard.svg",
         image:
           "https://images.unsplash.com/photo-1621604048884-c818a0e57e59?w=400&h=300&fit=crop",
       },
       {
-        name: "Combo",
-        slug: "combo",
+        name: "Acabamento",
+        slug: "acabamento",
         description:
-          "Pacotes promocionais combinando múltiplos serviços com desconto especial.",
-        icon: "package",
+          "Ajustes precisos no contorno do cabelo e barba (pezinho) para um visual limpo e renovado.",
+        icon: "/icons/razor.svg",
         image:
           "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&h=300&fit=crop",
       },
@@ -142,16 +142,25 @@ async function seed() {
         slug: "sobrancelha",
         description:
           "Design e modelagem de sobrancelhas masculinas para um olhar marcante.",
-        icon: "eye",
+        icon: "/icons/eyebrow.svg",
         image:
           "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=400&h=300&fit=crop",
       },
       {
-        name: "Tratamentos",
-        slug: "tratamentos",
+        name: "Massagem",
+        slug: "massagem",
+        description:
+          "Momento de relaxamento focado no alívio de tensões musculares e bem-estar físico e mental.",
+        icon: "/icons/towel.svg",
+        image:
+          "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Hidratação",
+        slug: "hidratacao",
         description:
           "Tratamentos capilares, hidratação e cuidados especiais para cabelo e couro cabeludo.",
-        icon: "droplet",
+        icon: "/icons/huge.svg",
         image:
           "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&h=300&fit=crop",
       },

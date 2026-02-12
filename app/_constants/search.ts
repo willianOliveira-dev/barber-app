@@ -6,34 +6,34 @@ interface QuickSearchOptions {
 export const QUICK_SEARCH_OPTIONS: QuickSearchOptions[] = [
   {
     label: "Cabelo",
-    icon: "/hair.svg",
+    icon: "/icons/hair.svg",
   },
   {
     label: "Barba",
-    icon: "/beard.svg",
+    icon: "/icons/beard.svg",
   },
   {
     label: "Acabamento",
-    icon: "/razor.svg",
+    icon: "/icons/razor.svg",
   },
   {
     label: "Sobrancelha",
-    icon: "/eyebrow.svg",
+    icon: "/icons/eyebrow.svg",
   },
   {
     label: "Massagem",
-    icon: "/towel.svg",
+    icon: "/icons/towel.svg",
   },
   {
     label: "Hidratação",
-    icon: "/huge.svg",
+    icon: "/icons/huge.svg",
   },
 ]
 
 export const QUICK_SEARCH_ALL_OPTIONS: QuickSearchOptions[] = [
   {
     label: "Todos",
-    icon: "/all.svg",
+    icon: "/icons/all.svg",
   },
   ...QUICK_SEARCH_OPTIONS,
 ]
