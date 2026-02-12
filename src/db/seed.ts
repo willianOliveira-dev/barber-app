@@ -12,98 +12,95 @@ const db = drizzle(client)
 
 async function seed() {
   try {
-    console.log("🧹 Limpando banco...")
+    console.log("🧹 Limpando banco de dados...")
     await db.execute(
-      sql`
-        TRUNCATE TABLE
-          ${booking},
-          ${barbershopService},
-          ${barbershop},
-          ${user}
-        CASCADE
-      `,
+      sql`TRUNCATE TABLE ${booking}, ${barbershopService}, ${barbershop}, ${user} CASCADE`,
     )
 
-    console.log("👤 Criando usuários...")
-    const usersToInsert = Array.from({ length: 20 }).map(() => {
-      const name = faker.person.firstName()
-
+    console.log("👥 Criando 120 usuários reais...")
+    const usersToInsert = Array.from({ length: 120 }).map(() => {
+      const firstName = faker.person.firstName()
+      const lastName = faker.person.lastName()
       return {
-        name,
-        email: faker.internet.email({ firstName: name }).toLowerCase(),
-        password: bcryptUtil.hashSync("@Password_segura_123"),
-        phone: faker.phone.number(),
-        image: `https://i.pravatar.cc/150?u=${name}`,
+        name: `${firstName} ${lastName}`,
+        email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+        password: bcryptUtil.hashSync("@Password123"),
+        phone: faker.phone.number({ style: "international" }),
+        image: `https://i.pravatar.cc/150?u=${faker.string.uuid()}`,
         isActive: true,
-        emailVerified: faker.date.recent(),
+        emailVerified: faker.date.past(),
       }
     })
-
     const insertedUsers = await db
       .insert(user)
       .values(usersToInsert)
       .returning()
 
-    console.log("💈 Criando barbearias...")
-    const barbershopNames = [
-      "Navalha Afiada",
+    console.log("💈 Criando 50 barbearias reais pelo Brasil...")
+    const cidades = [
+      "São Paulo",
+      "Rio de Janeiro",
+      "Curitiba",
+      "Belo Horizonte",
+      "Porto Alegre",
+      "Florianópolis",
+    ]
+    const nomesFamosos = [
+      "Corleone",
+      "Cavalera",
+      "Seu Elias",
+      "Navalha Gringa",
       "Dom Barbeiro",
-      "Viking Barber",
-      "Corte & Estilo",
-      "Retro Barber Club",
-      "Barba & Cia",
-      "Elite da Tesoura",
-      "Cavalheiros",
-      "Seu Elias Barber",
-      "Fade Masters",
+      "Corte Real",
+      "Confraria da Barba",
     ]
 
-    const barbershopsToInsert = insertedUsers.slice(0, 10).map((owner, i) => {
-      const name = barbershopNames[i]
-      const slug = faker.helpers.slugify(name).toLowerCase()
+    const barbershopsToInsert = Array.from({ length: 50 }).map((_, i) => {
+      const nomeBase = faker.helpers.arrayElement(nomesFamosos)
+      const nomeFinal = `${nomeBase} ${faker.person.lastName()}`
+      const slug = `${faker.helpers.slugify(nomeFinal).toLowerCase()}-${i}`
 
       return {
-        name,
+        name: nomeFinal,
         slug,
-        description: `A ${name} oferece cortes modernos e clássicos.`,
-        image: `https://loremflickr.com/800/600/barbershop?lock=${i}`,
-        ownerId: owner.id,
+        description: `Referência em estética masculina, a ${nomeFinal} oferece um ambiente exclusivo com profissionais premiados e o melhor da barboterapia clássica.`,
+
+        image: `https://loremflickr.com/800/600/barbershop,interior?lock=${i}`,
+        ownerId: insertedUsers[i % 50].id,
         address: faker.location.streetAddress(),
-        city: faker.location.city(),
-        state: faker.location.state({ abbreviated: true }),
+        city: faker.helpers.arrayElement(cidades),
+        state: "BR",
         zipCode: faker.location.zipCode("#####-###"),
         phone: faker.phone.number(),
-        email: `contato@${slug}.com.br`,
-        openingTime: "09:00",
-        closingTime: "20:00",
+        email: `contato@${faker.helpers.slugify(nomeFinal).toLowerCase()}.com.br`,
+        openingTime: "08:00",
+        closingTime: "21:00",
         isActive: true,
       }
     })
-
     const insertedBarbershops = await db
       .insert(barbershop)
       .values(barbershopsToInsert)
       .returning()
 
-    console.log("✂️ Criando serviços...")
-    const servicesTemplate = [
-      { name: "Corte Social", price: 4500, duration: 30 },
-      { name: "Barba Completa", price: 3500, duration: 40 },
-      { name: "Corte Degradê", price: 5500, duration: 45 },
-      { name: "Sobrancelha", price: 1500, duration: 15 },
-      { name: "Combo Completo", price: 8000, duration: 80 },
+    console.log("✂️ Gerando serviços com fotos reais de cortes...")
+
+    const serviceTemplates = [
+      { n: "Corte Clássico", p: 5000, d: 45, search: "haircut,man" },
+      { n: "Barboterapia", p: 4500, d: 40, search: "shave,beard" },
+      { n: "Degradê Moderno", p: 6500, d: 60, search: "fade,haircut" },
+      { n: "Sobrancelha", p: 2500, d: 20, search: "eyebrow,grooming" },
+      { n: "Combo Premium", p: 9500, d: 90, search: "barber,service" },
     ]
 
     for (const shop of insertedBarbershops) {
-      const services = servicesTemplate.map((service) => ({
-        name: service.name,
-        slug: faker.helpers.slugify(service.name).toLowerCase(),
-        description: faker.lorem.paragraph(),
-        image: `https://loremflickr.com/800/600/barber,service?lock=${faker.number.int(
-          { min: 1, max: 99999 },
-        )}`,
-        durationMinutes: service.duration,
-        priceInCents: service.price,
+      const services = serviceTemplates.map((t, idx) => ({
+        name: t.n,
+        slug: `${faker.helpers.slugify(t.n).toLowerCase()}-${faker.string.nanoid(4)}`,
+        description: `Tratamento completo de ${t.n.toLowerCase()} com produtos de linha internacional.`,
+        image: `https://loremflickr.com/600/400/${t.search}?lock=${idx + 50}`,
+        durationMinutes: t.d,
+        priceInCents: t.p,
         isActive: true,
         barbershopId: shop.id,
       }))
@@ -113,18 +110,17 @@ async function seed() {
         .values(services)
         .returning()
 
-      const randomUser = faker.helpers.arrayElement(insertedUsers)
-      const randomService = faker.helpers.arrayElement(insertedServices)
-
-      await db.insert(booking).values({
-        userId: randomUser.id,
-        serviceId: randomService.id,
-        scheduledAt: faker.date.soon({ days: 7 }),
-        status: "scheduled",
-      })
+      for (let j = 0; j < 3; j++) {
+        await db.insert(booking).values({
+          userId: faker.helpers.arrayElement(insertedUsers.slice(51)).id,
+          serviceId: faker.helpers.arrayElement(insertedServices).id,
+          scheduledAt: faker.date.soon({ days: 20 }),
+          status: "confirmed",
+        })
+      }
     }
 
-    console.log("✅ Seed executado com sucesso!")
+    console.log("✅ Seed finalizado com sucesso e sem erros de imagem!")
   } catch (error) {
     console.error("❌ Erro no seed:", error)
   }

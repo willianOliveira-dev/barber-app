@@ -1,6 +1,14 @@
 "use client"
+
+import { useState } from "react"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+import { signOut, useSession } from "next-auth/react"
+
 import { MenuIcon, HomeIcon, CalendarHeart, LogIn } from "lucide-react"
-import { Button } from "./ui/button"
+import { FaScissors } from "react-icons/fa6"
+
 import { Dialog as SheetPrimitive } from "radix-ui"
 import {
   Sheet,
@@ -10,41 +18,39 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet"
-import { QUICK_SEARCH_OPTIONS } from "../_constants/search"
-import { useState } from "react"
-import { usePathname } from "next/navigation"
-import { cn } from "../_lib/utils.lib"
-import Image from "next/image"
-import Link from "next/link"
-import { signOut, useSession } from "next-auth/react"
+
+import { Button } from "./ui/button"
 import { SkeletonAvatar } from "./skeleton-avatar"
 import { ProfileCard } from "./profile-card"
+
+import { QUICK_SEARCH_OPTIONS } from "../_constants/search"
+import { cn } from "../_lib/utils.lib"
 
 export type MenuProps = React.ComponentProps<typeof SheetPrimitive.Trigger>
 
 export function Menu({ ...props }: MenuProps) {
   const { status, data } = useSession()
-
+  const [isOpenSheet, setIsOpenSheet] = useState<boolean>(false)
   const pathname = usePathname()
+
+  const navigationLinks = [
+    { name: "Ínicio", router: "/", icon: HomeIcon },
+    { name: "Barbearias", router: "/barbershops", icon: FaScissors },
+    { name: "Agendamentos", router: "/booking", icon: CalendarHeart },
+  ]
 
   const handleSignOutClick = async () => {
     await signOut({ callbackUrl: "/" })
   }
 
-  const navigationLinks = [
-    {
-      name: "Ínicio",
-      router: "/",
-      icon: HomeIcon,
-    },
-    {
-      name: "Agendamentos",
-      router: "/booking",
-      icon: CalendarHeart,
-    },
-  ]
+  const createBarbershopServiceLink = (service: string) => {
+    const params = new URLSearchParams()
+    params.set("service", service)
+    params.set("page", "1")
+    params.set("limit", "12")
+    return `/barbershops?${params.toString()}`
+  }
 
-  const [isOpenSheet, setIsOpenSheet] = useState<boolean>(false)
   return (
     <Sheet open={isOpenSheet} onOpenChange={setIsOpenSheet}>
       <SheetTrigger {...props} asChild>
@@ -52,6 +58,7 @@ export function Menu({ ...props }: MenuProps) {
           <MenuIcon />
         </Button>
       </SheetTrigger>
+
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Menu</SheetTitle>
@@ -66,7 +73,7 @@ export function Menu({ ...props }: MenuProps) {
             name={data.user.name}
           />
         ) : (
-          <div className="border-b-secondary border-b p-5">
+          <div className="p-5">
             <div className="flex items-center justify-between gap-4">
               <p className="text-lg font-semibold">Olá. Faça seu login!</p>
               <Button asChild size="icon">
@@ -78,7 +85,9 @@ export function Menu({ ...props }: MenuProps) {
           </div>
         )}
 
-        <div className="border-b-secondary border-b p-5">
+        <div className="bg-border h-px" />
+
+        <div className="p-5">
           <nav>
             <ul className="flex flex-col gap-4">
               {navigationLinks.map((link) => (
@@ -91,8 +100,8 @@ export function Menu({ ...props }: MenuProps) {
                   )}
                 >
                   <Link
-                    className="flex items-center justify-start gap-2"
                     href={link.router}
+                    className="flex items-center justify-start gap-2"
                     onClick={() => setIsOpenSheet((state) => !state)}
                   >
                     <span>
@@ -106,39 +115,48 @@ export function Menu({ ...props }: MenuProps) {
           </nav>
         </div>
 
-        <div className="border-b-secondary border-b p-5">
+        <div className="bg-border h-px" />
+
+        <div className="p-5">
           <div className="flex flex-col gap-4">
             {QUICK_SEARCH_OPTIONS.map((option) => (
               <Button
                 key={option.label}
+                asChild
                 variant="ghost"
                 className="flex items-center justify-start gap-4"
               >
-                <span className="relative block size-4">
+                <Link
+                  href={createBarbershopServiceLink(option.label)}
+                  onClick={() => setIsOpenSheet((state) => !state)}
+                >
                   <Image
                     alt={option.label}
                     src={option.icon}
-                    fill
-                    className="object-contain"
-                  ></Image>
-                </span>
-                {option.label}
+                    width={16}
+                    height={16}
+                  />
+                  {option.label}
+                </Link>
               </Button>
             ))}
           </div>
         </div>
 
         {status === "authenticated" && (
-          <SheetFooter>
-            <div className="flex items-center gap-4">
-              <Button onClick={handleSignOutClick} variant="ghost">
-                <span>
-                  <LogIn />
-                </span>
-                Sair da conta
-              </Button>
-            </div>
-          </SheetFooter>
+          <>
+            <div className="bg-border h-px" />
+            <SheetFooter>
+              <div className="flex items-center gap-4">
+                <Button onClick={handleSignOutClick} variant="ghost">
+                  <span>
+                    <LogIn />
+                  </span>
+                  Sair da conta
+                </Button>
+              </div>
+            </SheetFooter>
+          </>
         )}
       </SheetContent>
     </Sheet>

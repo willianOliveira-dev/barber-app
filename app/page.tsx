@@ -7,9 +7,17 @@ import { QUICK_SEARCH_OPTIONS } from "./_constants/search"
 import { BookingItem } from "./_components/booking-item"
 import { Footer } from "./_components/footer"
 import { Search } from "./_components/search"
+import Link from "next/link"
 
 export default async function Home() {
   const barbershops = await barbershopRepo.findAll()
+  const createBarbershopServiceLink = (service: string) => {
+    const params = new URLSearchParams()
+    params.set("service", service)
+    params.set("page", "1")
+    params.set("limit", "12")
+    return `/barbershops?${params.toString()}`
+  }
 
   return (
     <>
@@ -31,16 +39,21 @@ export default async function Home() {
         <section className="flex items-center justify-center">
           <div className="container flex flex-row items-center gap-2 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
             {QUICK_SEARCH_OPTIONS.map((option) => (
-              <Button key={option.label} variant="secondary" className="flex-1">
-                <span className="relative block size-4">
+              <Button
+                key={option.label}
+                asChild
+                variant="ghost"
+                className="flex items-center justify-start gap-4"
+              >
+                <Link href={createBarbershopServiceLink(option.label)}>
                   <Image
                     alt={option.label}
                     src={option.icon}
-                    fill
-                    className="object-contain"
-                  ></Image>
-                </span>
-                {option.label}
+                    width={16}
+                    height={16}
+                  />
+                  {option.label}
+                </Link>
               </Button>
             ))}
           </div>

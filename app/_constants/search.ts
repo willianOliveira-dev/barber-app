@@ -29,3 +29,11 @@ export const QUICK_SEARCH_OPTIONS: QuickSearchOptions[] = [
     icon: "/huge.svg",
   },
 ]
+
+export const QUICK_SEARCH_ALL_OPTIONS: QuickSearchOptions[] = [
+  {
+    label: "Todos",
+    icon: "/all.svg",
+  },
+  ...QUICK_SEARCH_OPTIONS,
+]

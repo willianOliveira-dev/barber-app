@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
 const searchForm = z.object({
-  search: z.string().trim().min(1, { message: "Digite algo para buscar" }),
+  search: z.string().trim(),
 })
 
 type SearchData = z.infer<typeof searchForm>
@@ -29,12 +29,21 @@ export function Search() {
   const form = useSearhForm()
 
   const handleSubmit = ({ search }: SearchData) => {
-    router.push(`${process.env.NEXT_PUBLIC_URL}/barbershops?search=${search}`)
+    if (!search) return null
+
+    const params = new URLSearchParams()
+    params.set("search", search)
+    params.set("page", "1")
+    params.set("limit", "12")
+    router.push(`/barbershops?${params.toString()}`)
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex gap-2">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex items-center gap-2"
+      >
         <FormField
           name="search"
           control={form.control}
@@ -53,7 +62,11 @@ export function Search() {
             </FormItem>
           )}
         />
-        <Button type="submit" size="icon">
+        <Button
+          disabled={!form.watch("search").trim()}
+          type="submit"
+          size="icon"
+        >
           <SearchIcon />
         </Button>
       </form>
