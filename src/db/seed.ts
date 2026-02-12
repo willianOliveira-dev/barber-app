@@ -56,6 +56,14 @@ const SERVICE_IMAGES = {
     "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&h=400&fit=crop",
     "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&h=400&fit=crop",
   ],
+  massagem: [
+    "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=600&h=400&fit=crop",
+  ],
+  hidratacao: [
+    "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=600&h=400&fit=crop",
+  ],
 }
 
 const BARBERSHOP_NAMES = [
@@ -153,7 +161,7 @@ async function seed() {
           "Momento de relaxamento focado no alívio de tensões musculares e bem-estar físico e mental.",
         icon: "/icons/towel.svg",
         image:
-          "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=400&h=300&fit=crop",
+          "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&h=300&fit=crop",
       },
       {
         name: "Hidratação",
@@ -162,7 +170,7 @@ async function seed() {
           "Tratamentos capilares, hidratação e cuidados especiais para cabelo e couro cabeludo.",
         icon: "/icons/huge.svg",
         image:
-          "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&h=300&fit=crop",
+          "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop",
       },
     ]
 
@@ -277,9 +285,7 @@ async function seed() {
         priceInCents: 5000,
         durationMinutes: 45,
         images: SERVICE_IMAGES.corte,
-        categoryId: insertedCategories.find(
-          (c) => c.slug === "corte-de-cabelo",
-        )!.id,
+        categoryId: insertedCategories.find((c) => c.slug === "cabelo")!.id,
       },
       {
         name: "Barba Completa",
@@ -297,7 +303,7 @@ async function seed() {
         priceInCents: 8000,
         durationMinutes: 75,
         images: SERVICE_IMAGES.combo,
-        categoryId: insertedCategories.find((c) => c.slug === "combo")!.id,
+        categoryId: insertedCategories.find((c) => c.slug === "acabamento")!.id,
       },
       {
         name: "Degradê",
@@ -306,9 +312,7 @@ async function seed() {
         priceInCents: 5500,
         durationMinutes: 50,
         images: SERVICE_IMAGES.degrade,
-        categoryId: insertedCategories.find(
-          (c) => c.slug === "corte-de-cabelo",
-        )!.id,
+        categoryId: insertedCategories.find((c) => c.slug === "cabelo")!.id,
       },
       {
         name: "Design de Sobrancelha",
@@ -320,12 +324,39 @@ async function seed() {
         categoryId: insertedCategories.find((c) => c.slug === "sobrancelha")!
           .id,
       },
+      {
+        name: "Pezinho",
+        description:
+          "Acabamento profissional na nuca e contornos, garantindo um visual limpo e renovado.",
+        priceInCents: 1500,
+        durationMinutes: 15,
+        images: SERVICE_IMAGES.combo,
+        categoryId: insertedCategories.find((c) => c.slug === "acabamento")!.id,
+      },
+      {
+        name: "Massagem Relaxante",
+        description:
+          "Massagem terapêutica para alívio de tensões musculares e bem-estar completo.",
+        priceInCents: 3500,
+        durationMinutes: 30,
+        images: SERVICE_IMAGES.massagem,
+        categoryId: insertedCategories.find((c) => c.slug === "massagem")!.id,
+      },
+      {
+        name: "Hidratação Capilar",
+        description:
+          "Tratamento de hidratação profunda com produtos de alta qualidade para revitalizar os fios.",
+        priceInCents: 4500,
+        durationMinutes: 50,
+        images: SERVICE_IMAGES.hidratacao,
+        categoryId: insertedCategories.find((c) => c.slug === "hidratacao")!.id,
+      },
     ]
 
     let totalBookings = 0
 
     for (const shop of insertedBarbershops) {
-      const numServices = faker.number.int({ min: 3, max: 5 })
+      const numServices = faker.number.int({ min: 4, max: 7 })
       const selectedTemplates = faker.helpers.arrayElements(
         serviceTemplates,
         numServices,
