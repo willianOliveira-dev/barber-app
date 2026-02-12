@@ -1,12 +1,13 @@
-import { barbershopServices } from "@/src/db/schemas"
+import { barbershopService } from "@/src/db/schemas"
 import { InferSelectModel } from "drizzle-orm"
 import { Card, CardContent, CardHeader } from "./ui/card"
 import { Button } from "./ui/button"
 import Link from "next/link"
 import Image from "next/image"
+import { BookingSheet } from "./booking-sheet"
 
 interface BarbershopServicesItemProps {
-  service: InferSelectModel<typeof barbershopServices>
+  service: InferSelectModel<typeof barbershopService>
 }
 
 export function BarbershopServiceItem({
@@ -15,11 +16,11 @@ export function BarbershopServiceItem({
   return (
     <Card className="flex flex-row items-center justify-center gap-4 p-5">
       <CardHeader className="relative size-35 overflow-hidden rounded-lg p-0">
-        {service.imageUrl ? (
+        {service.image ? (
           <Image
             quality={75}
             alt={service.name}
-            src={service.imageUrl}
+            src={service.image}
             className="rounded-lg object-cover"
             fill
           />
@@ -42,9 +43,7 @@ export function BarbershopServiceItem({
               currency: "BRL",
             }).format(service.priceInCents / 100)}
           </p>
-          <Button asChild variant="secondary">
-            <Link href={`/barbershops/${service.slug}`}>Reservar</Link>
-          </Button>
+          <BookingSheet />
         </div>
       </CardContent>
     </Card>

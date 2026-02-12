@@ -29,14 +29,12 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
           <div className="container">
             <div className="relative h-62.5 w-full overflow-hidden rounded-b-2xl p-5">
               {barbershop?.image ? (
-                <>
-                  <Image
-                    src={barbershop?.image}
-                    alt={barbershop?.name}
-                    fill
-                    className="object-cover"
-                  />
-                </>
+                <Image
+                  src={barbershop?.image}
+                  alt={barbershop?.name}
+                  fill
+                  className="object-cover"
+                />
               ) : (
                 <Image
                   src="/default.png"

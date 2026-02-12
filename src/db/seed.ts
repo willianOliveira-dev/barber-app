@@ -5,11 +5,20 @@ import { sql } from "drizzle-orm"
 import { bcryptUtil } from "@/app/_utils/bcrypt.util"
 import { env } from "../config/env"
 
-import { user, barbershop, barbershopService, booking } from "./schemas"
+import {
+  user,
+  barbershop,
+  barbershopService,
+  booking,
+  barbershopHour,
+  barbershopStatus,
+  availableTimeSlot,
+} from "./schemas"
 
 const client = neon(env.DATABASE_URL)
 const db = drizzle(client)
 
+// Imagens reais de barbearias do Unsplash
 const BARBERSHOP_IMAGES = [
   "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=600&fit=crop",
   "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=600&fit=crop",
@@ -96,7 +105,7 @@ async function seed() {
   try {
     console.log("🧹 Limpando banco de dados...")
     await db.execute(
-      sql`TRUNCATE TABLE ${booking}, ${barbershopService}, ${barbershop}, ${user} CASCADE`,
+      sql`TRUNCATE TABLE ${availableTimeSlot}, ${booking}, ${barbershopHour}, ${barbershopStatus}, ${barbershopService}, ${barbershop}, ${user} CASCADE`,
     )
 
     console.log("👥 Criando 120 usuários reais...")
@@ -141,8 +150,6 @@ async function seed() {
         zipCode: faker.location.zipCode("#####-###"),
         phone: faker.phone.number(),
         email: `contato@${faker.helpers.slugify(baseName).toLowerCase()}.com.br`,
-        openingTime: "08:00",
-        closingTime: "20:00",
         isActive: true,
       }
     })
@@ -151,6 +158,51 @@ async function seed() {
       .insert(barbershop)
       .values(barbershopsToInsert)
       .returning()
+
+    console.log("🕐 Criando horários de funcionamento para cada barbearia...")
+    const daysOfWeek = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday",
+    ]
+
+    for (const shop of insertedBarbershops) {
+      const hoursToInsert = daysOfWeek.map((day) => {
+        const isSunday = day === "sunday"
+        const isSaturday = day === "saturday"
+
+        return {
+          barbershopId: shop.id,
+          dayOfWeek: day as
+            | "monday"
+            | "tuesday"
+            | "wednesday"
+            | "thursday"
+            | "friday"
+            | "saturday"
+            | "sunday",
+          openingTime: isSunday ? "00:00" : "08:00",
+          closingTime: isSunday ? "00:00" : isSaturday ? "18:00" : "20:00",
+          isOpen: !isSunday,
+        }
+      })
+
+      await db.insert(barbershopHour).values(hoursToInsert)
+    }
+
+    console.log("📊 Criando status inicial para cada barbearia...")
+    const statusToInsert = insertedBarbershops.map((shop) => ({
+      barbershopId: shop.id,
+      isOpen: true,
+      reason: null,
+      closedUntil: null,
+    }))
+
+    await db.insert(barbershopStatus).values(statusToInsert)
 
     console.log("✂️ Gerando serviços com descrições e preços reais...")
 
@@ -230,16 +282,52 @@ async function seed() {
         .values(services)
         .returning()
 
+      console.log(`   Gerando time slots para ${shop.name}...`)
+      const timeSlotsToInsert = []
+
+      for (let day = 0; day < 30; day++) {
+        const date = new Date()
+        date.setDate(date.getDate() + day)
+
+        if (date.getDay() === 0) continue
+
+        const endHour = date.getDay() === 6 ? 18 : 20
+
+        for (let hour = 8; hour < endHour; hour++) {
+          for (let minute = 0; minute < 60; minute += 30) {
+            const startTime = new Date(date)
+            startTime.setHours(hour, minute, 0, 0)
+
+            const endTime = new Date(startTime)
+            endTime.setMinutes(endTime.getMinutes() + 30)
+
+            timeSlotsToInsert.push({
+              barbershopId: shop.id,
+              startTime,
+              endTime,
+              isAvailable: faker.datatype.boolean({ probability: 0.8 }),
+            })
+          }
+        }
+      }
+
+      await db.insert(availableTimeSlot).values(timeSlotsToInsert)
+
       const numBookings = faker.number.int({ min: 2, max: 5 })
 
       for (let j = 0; j < numBookings; j++) {
+        const service = faker.helpers.arrayElement(insertedServices)
         const bookingDate = faker.date.soon({ days: 30 })
+        const endTime = new Date(bookingDate)
+        endTime.setMinutes(endTime.getMinutes() + service.durationMinutes)
 
         await db.insert(booking).values({
           userId: faker.helpers.arrayElement(insertedUsers).id,
-          serviceId: faker.helpers.arrayElement(insertedServices).id,
+          serviceId: service.id,
+          barbershopId: shop.id,
           scheduledAt: bookingDate,
-          status: faker.helpers.arrayElement(["confirmed", "finished"]),
+          endTime: endTime,
+          status: faker.helpers.arrayElement(["confirmed", "completed"]),
         })
 
         totalBookings++

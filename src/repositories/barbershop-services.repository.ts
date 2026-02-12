@@ -1,4 +1,4 @@
-import { db } from '../db/connection';
-import { barbershopServices } from '../db/schemas';
+import { db } from "../db/connection"
+import { barbershopService } from "../db/schemas"
 
 export class BarbershopServices {}
