@@ -13,12 +13,12 @@ import {
   barbershopHour,
   barbershopStatus,
   availableTimeSlot,
+  category,
 } from "./schemas"
 
 const client = neon(env.DATABASE_URL)
 const db = drizzle(client)
 
-// Imagens reais de barbearias do Unsplash
 const BARBERSHOP_IMAGES = [
   "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=600&fit=crop",
   "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=600&fit=crop",
@@ -105,8 +105,62 @@ async function seed() {
   try {
     console.log("🧹 Limpando banco de dados...")
     await db.execute(
-      sql`TRUNCATE TABLE ${availableTimeSlot}, ${booking}, ${barbershopHour}, ${barbershopStatus}, ${barbershopService}, ${barbershop}, ${user} CASCADE`,
+      sql`TRUNCATE TABLE ${availableTimeSlot}, ${booking}, ${barbershopHour}, ${barbershopStatus}, ${barbershopService}, ${barbershop}, ${category}, ${user} CASCADE`,
     )
+
+    console.log("📁 Criando categorias de serviços...")
+    const categoriesToInsert = [
+      {
+        name: "Corte de Cabelo",
+        slug: "corte-de-cabelo",
+        description:
+          "Serviços de corte masculino com máquina, tesoura e acabamento profissional.",
+        icon: "scissors",
+        image:
+          "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Barba",
+        slug: "barba",
+        description:
+          "Aparar, desenhar e cuidados especiais para barba com navalha e produtos premium.",
+        icon: "beard",
+        image:
+          "https://images.unsplash.com/photo-1621604048884-c818a0e57e59?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Combo",
+        slug: "combo",
+        description:
+          "Pacotes promocionais combinando múltiplos serviços com desconto especial.",
+        icon: "package",
+        image:
+          "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Sobrancelha",
+        slug: "sobrancelha",
+        description:
+          "Design e modelagem de sobrancelhas masculinas para um olhar marcante.",
+        icon: "eye",
+        image:
+          "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=400&h=300&fit=crop",
+      },
+      {
+        name: "Tratamentos",
+        slug: "tratamentos",
+        description:
+          "Tratamentos capilares, hidratação e cuidados especiais para cabelo e couro cabeludo.",
+        icon: "droplet",
+        image:
+          "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&h=300&fit=crop",
+      },
+    ]
+
+    const insertedCategories = await db
+      .insert(category)
+      .values(categoriesToInsert)
+      .returning()
 
     console.log("👥 Criando 120 usuários reais...")
     const usersToInsert = Array.from({ length: 120 }).map((_, index) => {
@@ -214,6 +268,9 @@ async function seed() {
         priceInCents: 5000,
         durationMinutes: 45,
         images: SERVICE_IMAGES.corte,
+        categoryId: insertedCategories.find(
+          (c) => c.slug === "corte-de-cabelo",
+        )!.id,
       },
       {
         name: "Barba Completa",
@@ -222,6 +279,7 @@ async function seed() {
         priceInCents: 4000,
         durationMinutes: 40,
         images: SERVICE_IMAGES.barba,
+        categoryId: insertedCategories.find((c) => c.slug === "barba")!.id,
       },
       {
         name: "Corte + Barba",
@@ -230,6 +288,7 @@ async function seed() {
         priceInCents: 8000,
         durationMinutes: 75,
         images: SERVICE_IMAGES.combo,
+        categoryId: insertedCategories.find((c) => c.slug === "combo")!.id,
       },
       {
         name: "Degradê",
@@ -238,6 +297,9 @@ async function seed() {
         priceInCents: 5500,
         durationMinutes: 50,
         images: SERVICE_IMAGES.degrade,
+        categoryId: insertedCategories.find(
+          (c) => c.slug === "corte-de-cabelo",
+        )!.id,
       },
       {
         name: "Design de Sobrancelha",
@@ -246,6 +308,8 @@ async function seed() {
         priceInCents: 2500,
         durationMinutes: 20,
         images: SERVICE_IMAGES.sobrancelha,
+        categoryId: insertedCategories.find((c) => c.slug === "sobrancelha")!
+          .id,
       },
     ]
 
@@ -272,6 +336,7 @@ async function seed() {
           durationMinutes: template.durationMinutes,
           priceInCents:
             template.priceInCents + faker.number.int({ min: -500, max: 1500 }),
+          categoryId: template.categoryId,
           isActive: true,
           barbershopId: shop.id,
         }
@@ -336,6 +401,7 @@ async function seed() {
 
     console.log("✅ Seed finalizado com sucesso!")
     console.log(`📊 Resumo:`)
+    console.log(`   • ${insertedCategories.length} categorias criadas`)
     console.log(`   • ${insertedUsers.length} usuários criados`)
     console.log(`   • ${insertedBarbershops.length} barbearias criadas`)
     console.log(`   • ${totalBookings} agendamentos criados`)

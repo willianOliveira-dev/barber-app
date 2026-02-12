@@ -10,6 +10,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core"
 import { barbershop } from "./barbershop.schema"
+import { category } from "./category.schema"
 import { sql } from "drizzle-orm"
 
 export const barbershopService = pgTable(
@@ -25,6 +26,9 @@ export const barbershopService = pgTable(
     barbershopId: uuid("barbershopId")
       .notNull()
       .references(() => barbershop.id, { onDelete: "cascade" }),
+    categoryId: uuid("categoryId").references(() => category.id, {
+      onDelete: "set null",
+    }),
     durationMinutes: integer("durationMinutes").notNull(),
     priceInCents: integer("priceInCents").notNull(),
     isActive: boolean("isActive").notNull().default(true),
@@ -38,6 +42,7 @@ export const barbershopService = pgTable(
   (table) => ({
     nameIndex: index("services_name_index").on(table.name),
     barbershopIndex: index("services_barbershop_index").on(table.barbershopId),
+    categoryIndex: index("services_category_index").on(table.categoryId),
     slugUnique: uniqueIndex("services_slug_unique").on(
       table.barbershopId,
       table.slug,
