@@ -10,6 +10,88 @@ import { user, barbershop, barbershopService, booking } from "./schemas"
 const client = neon(env.DATABASE_URL)
 const db = drizzle(client)
 
+const BARBERSHOP_IMAGES = [
+  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1632106061261-8d8b6c7f1f5c?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1512690459411-b9245aed614b?w=800&h=600&fit=crop",
+]
+
+const SERVICE_IMAGES = {
+  corte: [
+    "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1621607512214-68297480165e?w=600&h=400&fit=crop",
+  ],
+  barba: [
+    "https://images.unsplash.com/photo-1621604048884-c818a0e57e59?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=600&h=400&fit=crop",
+  ],
+  degrade: [
+    "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&h=400&fit=crop",
+  ],
+  sobrancelha: [
+    "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=600&h=600&fit=crop",
+  ],
+  combo: [
+    "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&h=400&fit=crop",
+  ],
+}
+
+const BARBERSHOP_NAMES = [
+  "Barbearia Corleone",
+  "Gentleman's Barber Shop",
+  "Barbearia do Zé",
+  "The Barbers",
+  "Navalha de Ouro",
+  "Dom Barbeiro",
+  "Barbearia Tradicional",
+  "Seu Elias Barbearia",
+  "Corte & Estilo",
+  "Cavalheiros Barbearia",
+  "Barba & Navalha",
+  "Old School Barber",
+  "Barbearia Premium",
+  "Classic Barber Shop",
+  "Barbearia do Centro",
+  "Estilo Masculino",
+  "Barbeiros Unidos",
+  "Cabelo & Cia",
+  "Lounge do Barbeiro",
+  "Barbearia VIP",
+  "Brothers Barber Shop",
+  "Rei da Barba",
+  "Barberia Moderna",
+  "Studio do Corte",
+  "Barbearia Elegance",
+]
+
+const BRAZILIAN_CITIES = [
+  { city: "São Paulo", state: "SP" },
+  { city: "Rio de Janeiro", state: "RJ" },
+  { city: "Belo Horizonte", state: "MG" },
+  { city: "Curitiba", state: "PR" },
+  { city: "Porto Alegre", state: "RS" },
+  { city: "Brasília", state: "DF" },
+  { city: "Salvador", state: "BA" },
+  { city: "Fortaleza", state: "CE" },
+  { city: "Recife", state: "PE" },
+  { city: "Florianópolis", state: "SC" },
+  { city: "Campinas", state: "SP" },
+  { city: "Vitória", state: "ES" },
+]
+
 async function seed() {
   try {
     console.log("🧹 Limpando banco de dados...")
@@ -18,111 +100,161 @@ async function seed() {
     )
 
     console.log("👥 Criando 120 usuários reais...")
-    const usersToInsert = Array.from({ length: 120 }).map(() => {
+    const usersToInsert = Array.from({ length: 120 }).map((_, index) => {
       const firstName = faker.person.firstName()
       const lastName = faker.person.lastName()
+
       return {
         name: `${firstName} ${lastName}`,
         email: faker.internet.email({ firstName, lastName }).toLowerCase(),
         password: bcryptUtil.hashSync("@Password123"),
         phone: faker.phone.number({ style: "international" }),
-        image: `https://i.pravatar.cc/150?u=${faker.string.uuid()}`,
+        image: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + " " + lastName)}&size=150&background=random`,
         isActive: true,
         emailVerified: faker.date.past(),
       }
     })
+
     const insertedUsers = await db
       .insert(user)
       .values(usersToInsert)
       .returning()
 
     console.log("💈 Criando 50 barbearias reais pelo Brasil...")
-    const cidades = [
-      "São Paulo",
-      "Rio de Janeiro",
-      "Curitiba",
-      "Belo Horizonte",
-      "Porto Alegre",
-      "Florianópolis",
-    ]
-    const nomesFamosos = [
-      "Corleone",
-      "Cavalera",
-      "Seu Elias",
-      "Navalha Gringa",
-      "Dom Barbeiro",
-      "Corte Real",
-      "Confraria da Barba",
-    ]
 
     const barbershopsToInsert = Array.from({ length: 50 }).map((_, i) => {
-      const nomeBase = faker.helpers.arrayElement(nomesFamosos)
-      const nomeFinal = `${nomeBase} ${faker.person.lastName()}`
-      const slug = `${faker.helpers.slugify(nomeFinal).toLowerCase()}-${i}`
+      const location = faker.helpers.arrayElement(BRAZILIAN_CITIES)
+      const baseName = BARBERSHOP_NAMES[i % BARBERSHOP_NAMES.length]
+      const suffix = i >= BARBERSHOP_NAMES.length ? ` ${location.city}` : ""
+      const fullName = `${baseName}${suffix}`
+      const slug = `${faker.helpers.slugify(fullName).toLowerCase()}-${faker.string.nanoid(4)}`
 
       return {
-        name: nomeFinal,
+        name: fullName,
         slug,
-        description: `Referência em estética masculina, a ${nomeFinal} oferece um ambiente exclusivo com profissionais premiados e o melhor da barboterapia clássica.`,
-
-        image: `https://loremflickr.com/800/600/barbershop,interior?lock=${i}`,
-        ownerId: insertedUsers[i % 50].id,
+        description: `Localizada em ${location.city}, a ${baseName} é referência em cortes masculinos modernos e tradicionais. Ambiente acolhedor com profissionais experientes e atendimento premium.`,
+        image: BARBERSHOP_IMAGES[i % BARBERSHOP_IMAGES.length],
+        ownerId: insertedUsers[i % insertedUsers.length].id,
         address: faker.location.streetAddress(),
-        city: faker.helpers.arrayElement(cidades),
-        state: "BR",
+        city: location.city,
+        state: location.state,
         zipCode: faker.location.zipCode("#####-###"),
         phone: faker.phone.number(),
-        email: `contato@${faker.helpers.slugify(nomeFinal).toLowerCase()}.com.br`,
+        email: `contato@${faker.helpers.slugify(baseName).toLowerCase()}.com.br`,
         openingTime: "08:00",
-        closingTime: "21:00",
+        closingTime: "20:00",
         isActive: true,
       }
     })
+
     const insertedBarbershops = await db
       .insert(barbershop)
       .values(barbershopsToInsert)
       .returning()
 
-    console.log("✂️ Gerando serviços com fotos reais de cortes...")
+    console.log("✂️ Gerando serviços com descrições e preços reais...")
 
     const serviceTemplates = [
-      { n: "Corte Clássico", p: 5000, d: 45, search: "haircut,man" },
-      { n: "Barboterapia", p: 4500, d: 40, search: "shave,beard" },
-      { n: "Degradê Moderno", p: 6500, d: 60, search: "fade,haircut" },
-      { n: "Sobrancelha", p: 2500, d: 20, search: "eyebrow,grooming" },
-      { n: "Combo Premium", p: 9500, d: 90, search: "barber,service" },
+      {
+        name: "Corte de Cabelo",
+        description:
+          "Corte profissional com máquina e tesoura, incluindo lavagem e finalização com produtos premium.",
+        priceInCents: 5000,
+        durationMinutes: 45,
+        images: SERVICE_IMAGES.corte,
+      },
+      {
+        name: "Barba Completa",
+        description:
+          "Aparar, desenhar e hidratar a barba com navalha e toalha quente. Inclui massagem facial.",
+        priceInCents: 4000,
+        durationMinutes: 40,
+        images: SERVICE_IMAGES.barba,
+      },
+      {
+        name: "Corte + Barba",
+        description:
+          "Combo completo: corte de cabelo + barba profissional. O melhor custo-benefício!",
+        priceInCents: 8000,
+        durationMinutes: 75,
+        images: SERVICE_IMAGES.combo,
+      },
+      {
+        name: "Degradê",
+        description:
+          "Corte degradê moderno com máquina profissional e finalização impecável.",
+        priceInCents: 5500,
+        durationMinutes: 50,
+        images: SERVICE_IMAGES.degrade,
+      },
+      {
+        name: "Design de Sobrancelha",
+        description:
+          "Modelagem e design de sobrancelhas masculinas com pinça e navalha.",
+        priceInCents: 2500,
+        durationMinutes: 20,
+        images: SERVICE_IMAGES.sobrancelha,
+      },
     ]
 
+    let totalBookings = 0
+
     for (const shop of insertedBarbershops) {
-      const services = serviceTemplates.map((t, idx) => ({
-        name: t.n,
-        slug: `${faker.helpers.slugify(t.n).toLowerCase()}-${faker.string.nanoid(4)}`,
-        description: `Tratamento completo de ${t.n.toLowerCase()} com produtos de linha internacional.`,
-        image: `https://loremflickr.com/600/400/${t.search}?lock=${idx + 50}`,
-        durationMinutes: t.d,
-        priceInCents: t.p,
-        isActive: true,
-        barbershopId: shop.id,
-      }))
+      const numServices = faker.number.int({ min: 3, max: 5 })
+      const selectedTemplates = faker.helpers.arrayElements(
+        serviceTemplates,
+        numServices,
+      )
+
+      const services = selectedTemplates.map((template) => {
+        const imageIndex = faker.number.int({
+          min: 0,
+          max: template.images.length - 1,
+        })
+
+        return {
+          name: template.name,
+          slug: `${faker.helpers.slugify(template.name).toLowerCase()}-${faker.string.nanoid(4)}`,
+          description: template.description,
+          image: template.images[imageIndex],
+          durationMinutes: template.durationMinutes,
+          priceInCents:
+            template.priceInCents + faker.number.int({ min: -500, max: 1500 }),
+          isActive: true,
+          barbershopId: shop.id,
+        }
+      })
 
       const insertedServices = await db
         .insert(barbershopService)
         .values(services)
         .returning()
 
-      for (let j = 0; j < 3; j++) {
+      const numBookings = faker.number.int({ min: 2, max: 5 })
+
+      for (let j = 0; j < numBookings; j++) {
+        const bookingDate = faker.date.soon({ days: 30 })
+
         await db.insert(booking).values({
-          userId: faker.helpers.arrayElement(insertedUsers.slice(51)).id,
+          userId: faker.helpers.arrayElement(insertedUsers).id,
           serviceId: faker.helpers.arrayElement(insertedServices).id,
-          scheduledAt: faker.date.soon({ days: 20 }),
-          status: "confirmed",
+          scheduledAt: bookingDate,
+          status: faker.helpers.arrayElement(["confirmed", "finished"]),
         })
+
+        totalBookings++
       }
     }
 
-    console.log("✅ Seed finalizado com sucesso e sem erros de imagem!")
+    console.log("✅ Seed finalizado com sucesso!")
+    console.log(`📊 Resumo:`)
+    console.log(`   • ${insertedUsers.length} usuários criados`)
+    console.log(`   • ${insertedBarbershops.length} barbearias criadas`)
+    console.log(`   • ${totalBookings} agendamentos criados`)
+    console.log(`   • Todas as imagens são reais do Unsplash`)
   } catch (error) {
     console.error("❌ Erro no seed:", error)
+    throw error
   }
 }
 
