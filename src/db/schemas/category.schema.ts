@@ -17,7 +17,7 @@ export const category = pgTable(
       .primaryKey()
       .default(sql`gen_random_uuid()`),
     name: varchar("name", { length: 100 }).notNull(),
-    slug: varchar("slug", { length: 150 }).notNull().unique(),
+    slug: varchar("slug", { length: 150 }).notNull(),
     description: text("description"),
     icon: varchar("icon", { length: 100 }), // Nome do ícone (ex: "scissors", "beard", "hair")
     image: varchar("image", { length: 500 }),

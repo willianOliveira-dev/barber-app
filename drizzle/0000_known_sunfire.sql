@@ -44,6 +44,7 @@ CREATE TABLE "barbershop_service" (
 	"slug" varchar(200) NOT NULL,
 	"description" text,
 	"barbershopId" uuid NOT NULL,
+	"categoryId" uuid,
 	"durationMinutes" integer NOT NULL,
 	"priceInCents" integer NOT NULL,
 	"isActive" boolean DEFAULT true NOT NULL,
@@ -132,8 +133,21 @@ CREATE TABLE "barbershop_status" (
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "category" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"name" varchar(100) NOT NULL,
+	"slug" varchar(150) NOT NULL,
+	"description" text,
+	"icon" varchar(100),
+	"image" varchar(500),
+	"isActive" boolean DEFAULT true NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "barbershop" ADD CONSTRAINT "barbershop_ownerId_user_id_fk" FOREIGN KEY ("ownerId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_service" ADD CONSTRAINT "barbershop_service_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "barbershop_service" ADD CONSTRAINT "barbershop_service_categoryId_category_id_fk" FOREIGN KEY ("categoryId") REFERENCES "public"."category"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "booking" ADD CONSTRAINT "booking_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "booking" ADD CONSTRAINT "booking_serviceId_barbershop_service_id_fk" FOREIGN KEY ("serviceId") REFERENCES "public"."barbershop_service"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "booking" ADD CONSTRAINT "booking_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -152,6 +166,7 @@ CREATE INDEX "barbershops_name_index" ON "barbershop" USING btree ("name");--> s
 CREATE INDEX "barbershops_city_index" ON "barbershop" USING btree ("city");--> statement-breakpoint
 CREATE INDEX "services_name_index" ON "barbershop_service" USING btree ("name");--> statement-breakpoint
 CREATE INDEX "services_barbershop_index" ON "barbershop_service" USING btree ("barbershopId");--> statement-breakpoint
+CREATE INDEX "services_category_index" ON "barbershop_service" USING btree ("categoryId");--> statement-breakpoint
 CREATE UNIQUE INDEX "services_slug_unique" ON "barbershop_service" USING btree ("barbershopId","slug");--> statement-breakpoint
 CREATE INDEX "booking_user_index" ON "booking" USING btree ("userId");--> statement-breakpoint
 CREATE INDEX "booking_service_index" ON "booking" USING btree ("serviceId");--> statement-breakpoint
@@ -161,4 +176,6 @@ CREATE INDEX "booking_scheduled_at_index" ON "booking" USING btree ("scheduledAt
 CREATE INDEX "available_time_slot_barbershop_index" ON "available_time_slot" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "available_time_slot_start_time_index" ON "available_time_slot" USING btree ("startTime");--> statement-breakpoint
 CREATE INDEX "barbershop_hours_index" ON "barbershop_hour" USING btree ("barbershopId");--> statement-breakpoint
-CREATE INDEX "barbershop_status_index" ON "barbershop_status" USING btree ("barbershopId");
+CREATE INDEX "barbershop_status_index" ON "barbershop_status" USING btree ("barbershopId");--> statement-breakpoint
+CREATE INDEX "category_name_index" ON "category" USING btree ("name");--> statement-breakpoint
+CREATE UNIQUE INDEX "category_slug_unique" ON "category" USING btree ("slug");
