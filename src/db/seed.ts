@@ -354,6 +354,7 @@ async function seed() {
     ]
 
     let totalBookings = 0
+    let totalTimeSlots = 0
 
     for (const shop of insertedBarbershops) {
       const numServices = faker.number.int({ min: 4, max: 7 })
@@ -388,7 +389,6 @@ async function seed() {
         .returning()
 
       console.log(`   Gerando time slots para ${shop.name}...`)
-      const timeSlotsToInsert = []
 
       for (let day = 0; day < 30; day++) {
         const date = new Date()
@@ -398,42 +398,76 @@ async function seed() {
 
         const endHour = date.getDay() === 6 ? 18 : 20
 
-        for (let hour = 8; hour < endHour; hour++) {
-          for (let minute = 0; minute < 60; minute += 30) {
-            const startTime = new Date(date)
-            startTime.setHours(hour, minute, 0, 0)
+        for (const service of insertedServices) {
+          const timeSlotsForService = []
 
-            const endTime = new Date(startTime)
-            endTime.setMinutes(endTime.getMinutes() + 30)
+          for (let hour = 8; hour < endHour; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+              const startTime = new Date(date)
+              startTime.setHours(hour, minute, 0, 0)
 
-            timeSlotsToInsert.push({
-              barbershopId: shop.id,
-              startTime,
-              endTime,
-              isAvailable: faker.datatype.boolean({ probability: 0.8 }),
-            })
+              const slotEndTime = new Date(startTime)
+              slotEndTime.setMinutes(
+                slotEndTime.getMinutes() + service.durationMinutes,
+              )
+
+              const closingTime = new Date(date)
+              closingTime.setHours(endHour, 0, 0, 0)
+
+              if (slotEndTime <= closingTime) {
+                timeSlotsForService.push({
+                  barbershopId: shop.id,
+                  serviceId: service.id,
+                  startTime,
+                  isAvailable: faker.datatype.boolean({ probability: 0.75 }),
+                  bookingId: null,
+                })
+              }
+            }
+          }
+
+          if (timeSlotsForService.length > 0) {
+            await db.insert(availableTimeSlot).values(timeSlotsForService)
+            totalTimeSlots += timeSlotsForService.length
           }
         }
       }
 
-      await db.insert(availableTimeSlot).values(timeSlotsToInsert)
-
-      const numBookings = faker.number.int({ min: 2, max: 5 })
+      const numBookings = faker.number.int({ min: 3, max: 8 })
 
       for (let j = 0; j < numBookings; j++) {
         const service = faker.helpers.arrayElement(insertedServices)
         const bookingDate = faker.date.soon({ days: 30 })
+
+        // Ajusta para horário comercial
+        const hour = faker.number.int({ min: 8, max: 18 })
+        const minute = faker.helpers.arrayElement([0, 30])
+        bookingDate.setHours(hour, minute, 0, 0)
+
         const endTime = new Date(bookingDate)
         endTime.setMinutes(endTime.getMinutes() + service.durationMinutes)
 
-        await db.insert(booking).values({
-          userId: faker.helpers.arrayElement(insertedUsers).id,
-          serviceId: service.id,
-          barbershopId: shop.id,
-          scheduledAt: bookingDate,
-          endTime: endTime,
-          status: faker.helpers.arrayElement(["confirmed", "completed"]),
-        })
+        const insertedBooking = await db
+          .insert(booking)
+          .values({
+            userId: faker.helpers.arrayElement(insertedUsers).id,
+            serviceId: service.id,
+            barbershopId: shop.id,
+            scheduledAt: bookingDate,
+            endTime: endTime,
+            status: faker.helpers.arrayElement(["confirmed", "completed"]),
+          })
+          .returning()
+
+        await db.execute(sql`
+          UPDATE ${availableTimeSlot}
+          SET "isAvailable" = false,
+              "bookingId" = ${insertedBooking[0].id}
+          WHERE "barbershopId" = ${shop.id}
+            AND "serviceId" = ${service.id}
+            AND "startTime" = ${bookingDate}
+          LIMIT 1
+        `)
 
         totalBookings++
       }
@@ -444,6 +478,7 @@ async function seed() {
     console.log(`   • ${insertedCategories.length} categorias criadas`)
     console.log(`   • ${insertedUsers.length} usuários criados`)
     console.log(`   • ${insertedBarbershops.length} barbearias criadas`)
+    console.log(`   • ${totalTimeSlots} time slots gerados`)
     console.log(`   • ${totalBookings} agendamentos criados`)
     console.log(`   • Todas as imagens são reais do Unsplash`)
   } catch (error) {
