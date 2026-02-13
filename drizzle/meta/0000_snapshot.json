@@ -1,5 +1,5 @@
 {
-  "id": "edfabb16-3a51-4ddf-8ac7-f01d74a9446d",
+  "id": "f518dd40-0505-4531-8dad-d23177821903",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1025,14 +1025,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "startTime": {
-          "name": "startTime",
-          "type": "timestamp with time zone",
+        "serviceId": {
+          "name": "serviceId",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "endTime": {
-          "name": "endTime",
+        "startTime": {
+          "name": "startTime",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
@@ -1043,6 +1043,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "bookingId": {
+          "name": "bookingId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -1051,6 +1057,21 @@
           "columns": [
             {
               "expression": "barbershopId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "available_time_slot_service_index": {
+          "name": "available_time_slot_service_index",
+          "columns": [
+            {
+              "expression": "serviceId",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1075,6 +1096,33 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "available_time_slot_availability_index": {
+          "name": "available_time_slot_availability_index",
+          "columns": [
+            {
+              "expression": "barbershopId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "startTime",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "isAvailable",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -1089,6 +1137,32 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "available_time_slot_serviceId_barbershop_service_id_fk": {
+          "name": "available_time_slot_serviceId_barbershop_service_id_fk",
+          "tableFrom": "available_time_slot",
+          "tableTo": "barbershop_service",
+          "columnsFrom": [
+            "serviceId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "available_time_slot_bookingId_booking_id_fk": {
+          "name": "available_time_slot_bookingId_booking_id_fk",
+          "tableFrom": "available_time_slot",
+          "tableTo": "booking",
+          "columnsFrom": [
+            "bookingId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },

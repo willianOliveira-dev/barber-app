@@ -1,6 +1,14 @@
 import { db } from "../db/connection"
-import { and, countDistinct, eq, ilike, or } from "drizzle-orm"
-import { barbershop, barbershopService, category } from "../db/schemas"
+import { and, countDistinct, eq, ilike } from "drizzle-orm"
+import {
+  barbershop,
+  barbershopHour,
+  barbershopService,
+  category,
+} from "../db/schemas"
+import { dayOfWeekEnum } from "../db/schemas"
+
+export type DayOfWeekEnum = (typeof dayOfWeekEnum.enumValues)[number]
 
 class BarbershopRepository {
   async findAll() {
@@ -23,6 +31,12 @@ class BarbershopRepository {
       ..._barbershop,
       services,
     }
+  }
+
+  async findById(id: string) {
+    return db.query.barbershop.findFirst({
+      where: eq(barbershop.id, id),
+    })
   }
 
   async findByParams(
@@ -85,6 +99,24 @@ class BarbershopRepository {
         hasPreviousPage: safePage > 1,
       },
     }
+  }
+
+  async findServiceById(serviceId: string) {
+    return db.query.barbershopService.findFirst({
+      where: eq(barbershopService.id, serviceId),
+    })
+  }
+
+  async findHoursByBarbershopAndDay(
+    barbershopId: string,
+    dayOfWeek: DayOfWeekEnum,
+  ) {
+    return await db.query.barbershopHour.findFirst({
+      where: and(
+        eq(barbershopHour.dayOfWeek, dayOfWeek),
+        eq(barbershopHour.barbershopId, barbershopId),
+      ),
+    })
   }
 }
 

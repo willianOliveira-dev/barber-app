@@ -1,8 +1,8 @@
-import { BarbershopServiceItem } from "@/app/_components/barbershop-service-item"
-import { Copy } from "@/app/_components/copy"
-import { Footer } from "@/app/_components/footer"
-import { Menu } from "@/app/_components/menu"
-import { Button } from "@/app/_components/ui/button"
+import { BarbershopServiceItem } from "@/src/app/_components/barbershop-service-item"
+import { Copy } from "@/src/app/_components/copy"
+import { Footer } from "@/src/app/_components/footer"
+import { Menu } from "@/src/app/_components/menu"
+import { Button } from "@/src/app/_components/ui/button"
 import { barbershopRepo } from "@/src/repositories/barbershop.repository"
 import { categoryRepo } from "@/src/repositories/category.repository"
 import {

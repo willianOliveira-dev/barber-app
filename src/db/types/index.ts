@@ -1,0 +1,6 @@
+export * from "./user.type"
+export * from "./barbershop-hour.type"
+export * from "./barbershop-service.type"
+export * from "./barbershop.type"
+export * from "./available-time-slot.type"
+export * from "./category.type"

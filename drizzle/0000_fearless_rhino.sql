@@ -110,9 +110,10 @@ CREATE TABLE "verificationToken" (
 CREATE TABLE "available_time_slot" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"barbershopId" uuid NOT NULL,
+	"serviceId" uuid NOT NULL,
 	"startTime" timestamp with time zone NOT NULL,
-	"endTime" timestamp with time zone NOT NULL,
-	"isAvailable" boolean DEFAULT true NOT NULL
+	"isAvailable" boolean DEFAULT true NOT NULL,
+	"bookingId" uuid
 );
 --> statement-breakpoint
 CREATE TABLE "barbershop_hour" (
@@ -155,6 +156,8 @@ ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("u
 ALTER TABLE "authenticator" ADD CONSTRAINT "authenticator_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "available_time_slot" ADD CONSTRAINT "available_time_slot_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "available_time_slot" ADD CONSTRAINT "available_time_slot_serviceId_barbershop_service_id_fk" FOREIGN KEY ("serviceId") REFERENCES "public"."barbershop_service"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "available_time_slot" ADD CONSTRAINT "available_time_slot_bookingId_booking_id_fk" FOREIGN KEY ("bookingId") REFERENCES "public"."booking"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_hour" ADD CONSTRAINT "barbershop_hour_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_status" ADD CONSTRAINT "barbershop_status_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "user_email_index" ON "user" USING btree ("email");--> statement-breakpoint
@@ -174,7 +177,9 @@ CREATE INDEX "booking_barbershop_index" ON "booking" USING btree ("barbershopId"
 CREATE INDEX "booking_status_index" ON "booking" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "booking_scheduled_at_index" ON "booking" USING btree ("scheduledAt");--> statement-breakpoint
 CREATE INDEX "available_time_slot_barbershop_index" ON "available_time_slot" USING btree ("barbershopId");--> statement-breakpoint
+CREATE INDEX "available_time_slot_service_index" ON "available_time_slot" USING btree ("serviceId");--> statement-breakpoint
 CREATE INDEX "available_time_slot_start_time_index" ON "available_time_slot" USING btree ("startTime");--> statement-breakpoint
+CREATE INDEX "available_time_slot_availability_index" ON "available_time_slot" USING btree ("barbershopId","startTime","isAvailable");--> statement-breakpoint
 CREATE INDEX "barbershop_hours_index" ON "barbershop_hour" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "barbershop_status_index" ON "barbershop_status" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "category_name_index" ON "category" USING btree ("name");--> statement-breakpoint

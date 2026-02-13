@@ -1,10 +1,8 @@
 import { barbershopService } from "@/src/db/schemas"
 import { InferSelectModel } from "drizzle-orm"
 import { Card, CardContent, CardHeader } from "./ui/card"
-import { Button } from "./ui/button"
-import Link from "next/link"
-import Image from "next/image"
 import { BookingSheet } from "./booking-sheet"
+import Image from "next/image"
 
 interface BarbershopServicesItemProps {
   service: InferSelectModel<typeof barbershopService>

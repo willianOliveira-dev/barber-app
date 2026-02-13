@@ -1,8 +1,8 @@
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
 import { fakerPT_BR as faker } from "@faker-js/faker"
-import { sql } from "drizzle-orm"
-import { bcryptUtil } from "@/app/_utils/bcrypt.util"
+import { sql, eq, and } from "drizzle-orm"
+import { bcryptUtil } from "@/src/app/_utils/bcrypt.util"
 import { env } from "../config/env"
 
 import {
@@ -180,7 +180,7 @@ async function seed() {
       .returning()
 
     console.log("👥 Criando 120 usuários reais...")
-    const usersToInsert = Array.from({ length: 120 }).map((_, index) => {
+    const usersToInsert = Array.from({ length: 120 }).map(() => {
       const firstName = faker.person.firstName()
       const lastName = faker.person.lastName()
 
@@ -439,7 +439,6 @@ async function seed() {
         const service = faker.helpers.arrayElement(insertedServices)
         const bookingDate = faker.date.soon({ days: 30 })
 
-        // Ajusta para horário comercial
         const hour = faker.number.int({ min: 8, max: 18 })
         const minute = faker.helpers.arrayElement([0, 30])
         bookingDate.setHours(hour, minute, 0, 0)
@@ -459,15 +458,19 @@ async function seed() {
           })
           .returning()
 
-        await db.execute(sql`
-          UPDATE ${availableTimeSlot}
-          SET "isAvailable" = false,
-              "bookingId" = ${insertedBooking[0].id}
-          WHERE "barbershopId" = ${shop.id}
-            AND "serviceId" = ${service.id}
-            AND "startTime" = ${bookingDate}
-          LIMIT 1
-        `)
+        await db
+          .update(availableTimeSlot)
+          .set({
+            isAvailable: false,
+            bookingId: insertedBooking[0].id,
+          })
+          .where(
+            and(
+              eq(availableTimeSlot.barbershopId, shop.id),
+              eq(availableTimeSlot.serviceId, service.id),
+              eq(availableTimeSlot.startTime, bookingDate),
+            ),
+          )
 
         totalBookings++
       }
