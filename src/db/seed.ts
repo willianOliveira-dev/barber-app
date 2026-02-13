@@ -77,21 +77,6 @@ const BARBERSHOP_NAMES = [
   "Seu Elias Barbearia",
   "Corte & Estilo",
   "Cavalheiros Barbearia",
-  "Barba & Navalha",
-  "Old School Barber",
-  "Barbearia Premium",
-  "Classic Barber Shop",
-  "Barbearia do Centro",
-  "Estilo Masculino",
-  "Barbeiros Unidos",
-  "Cabelo & Cia",
-  "Lounge do Barbeiro",
-  "Barbearia VIP",
-  "Brothers Barber Shop",
-  "Rei da Barba",
-  "Barberia Moderna",
-  "Studio do Corte",
-  "Barbearia Elegance",
 ]
 
 const BRAZILIAN_CITIES = [
@@ -101,12 +86,6 @@ const BRAZILIAN_CITIES = [
   { city: "Curitiba", state: "PR" },
   { city: "Porto Alegre", state: "RS" },
   { city: "Brasília", state: "DF" },
-  { city: "Salvador", state: "BA" },
-  { city: "Fortaleza", state: "CE" },
-  { city: "Recife", state: "PE" },
-  { city: "Florianópolis", state: "SC" },
-  { city: "Campinas", state: "SP" },
-  { city: "Vitória", state: "ES" },
 ]
 
 async function seed() {
@@ -179,8 +158,8 @@ async function seed() {
       .values(categoriesToInsert)
       .returning()
 
-    console.log("👥 Criando 120 usuários reais...")
-    const usersToInsert = Array.from({ length: 120 }).map(() => {
+    console.log("👥 Criando 30 usuários...")
+    const usersToInsert = Array.from({ length: 30 }).map(() => {
       const firstName = faker.person.firstName()
       const lastName = faker.person.lastName()
 
@@ -200,13 +179,12 @@ async function seed() {
       .values(usersToInsert)
       .returning()
 
-    console.log("💈 Criando 50 barbearias reais pelo Brasil...")
+    console.log("💈 Criando 10 barbearias...")
 
-    const barbershopsToInsert = Array.from({ length: 50 }).map((_, i) => {
+    const barbershopsToInsert = Array.from({ length: 10 }).map((_, i) => {
       const location = faker.helpers.arrayElement(BRAZILIAN_CITIES)
       const baseName = BARBERSHOP_NAMES[i % BARBERSHOP_NAMES.length]
-      const suffix = i >= BARBERSHOP_NAMES.length ? ` ${location.city}` : ""
-      const fullName = `${baseName}${suffix}`
+      const fullName = `${baseName}`
       const slug = `${faker.helpers.slugify(fullName).toLowerCase()}-${faker.string.nanoid(4)}`
 
       return {
@@ -230,7 +208,7 @@ async function seed() {
       .values(barbershopsToInsert)
       .returning()
 
-    console.log("🕐 Criando horários de funcionamento para cada barbearia...")
+    console.log("🕐 Criando horários de funcionamento...")
     const daysOfWeek = [
       "monday",
       "tuesday",
@@ -265,7 +243,7 @@ async function seed() {
       await db.insert(barbershopHour).values(hoursToInsert)
     }
 
-    console.log("📊 Criando status inicial para cada barbearia...")
+    console.log("📊 Criando status inicial...")
     const statusToInsert = insertedBarbershops.map((shop) => ({
       barbershopId: shop.id,
       isOpen: true,
@@ -275,7 +253,8 @@ async function seed() {
 
     await db.insert(barbershopStatus).values(statusToInsert)
 
-    console.log("✂️ Gerando serviços com descrições e preços reais...")
+    console.log("✂️ Gerando serviços...")
+    console.log("🫤 Isso pode demorar um pouco... Aguarde!")
 
     const serviceTemplates = [
       {
@@ -333,31 +312,15 @@ async function seed() {
         images: SERVICE_IMAGES.combo,
         categoryId: insertedCategories.find((c) => c.slug === "acabamento")!.id,
       },
-      {
-        name: "Massagem Relaxante",
-        description:
-          "Massagem terapêutica para alívio de tensões musculares e bem-estar completo.",
-        priceInCents: 3500,
-        durationMinutes: 30,
-        images: SERVICE_IMAGES.massagem,
-        categoryId: insertedCategories.find((c) => c.slug === "massagem")!.id,
-      },
-      {
-        name: "Hidratação Capilar",
-        description:
-          "Tratamento de hidratação profunda com produtos de alta qualidade para revitalizar os fios.",
-        priceInCents: 4500,
-        durationMinutes: 50,
-        images: SERVICE_IMAGES.hidratacao,
-        categoryId: insertedCategories.find((c) => c.slug === "hidratacao")!.id,
-      },
     ]
 
     let totalBookings = 0
     let totalTimeSlots = 0
 
     for (const shop of insertedBarbershops) {
-      const numServices = faker.number.int({ min: 4, max: 7 })
+      console.log(`\n💈 Processando ${shop.name}...`)
+
+      const numServices = faker.number.int({ min: 4, max: 6 })
       const selectedTemplates = faker.helpers.arrayElements(
         serviceTemplates,
         numServices,
@@ -388,9 +351,11 @@ async function seed() {
         .values(services)
         .returning()
 
-      console.log(`   Gerando time slots para ${shop.name}...`)
+      console.log(`   ⏰ Gerando time slots (próximos 14 dias)...`)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const createdSlotsByService = new Map<string, any[]>()
 
-      for (let day = 0; day < 30; day++) {
+      for (let day = 0; day < 14; day++) {
         const date = new Date()
         date.setDate(date.getDate() + day)
 
@@ -415,11 +380,30 @@ async function seed() {
               closingTime.setHours(endHour, 0, 0, 0)
 
               if (slotEndTime <= closingTime) {
+                const now = new Date()
+                const isPast = startTime < now
+                const isToday = startTime.toDateString() === now.toDateString()
+                const daysFromNow = Math.floor(
+                  (startTime.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+                )
+
+                let availabilityProbability = 0.85
+
+                if (isPast) {
+                  availabilityProbability = 0.3
+                } else if (isToday) {
+                  availabilityProbability = 0.5
+                } else if (daysFromNow <= 7) {
+                  availabilityProbability = 0.7
+                }
+
                 timeSlotsForService.push({
                   barbershopId: shop.id,
                   serviceId: service.id,
                   startTime,
-                  isAvailable: faker.datatype.boolean({ probability: 0.75 }),
+                  isAvailable: faker.datatype.boolean({
+                    probability: availabilityProbability,
+                  }),
                   bookingId: null,
                 })
               }
@@ -427,63 +411,86 @@ async function seed() {
           }
 
           if (timeSlotsForService.length > 0) {
-            await db.insert(availableTimeSlot).values(timeSlotsForService)
-            totalTimeSlots += timeSlotsForService.length
+            const insertedSlots = await db
+              .insert(availableTimeSlot)
+              .values(timeSlotsForService)
+              .returning()
+
+            totalTimeSlots += insertedSlots.length
+
+            if (!createdSlotsByService.has(service.id)) {
+              createdSlotsByService.set(service.id, [])
+            }
+            createdSlotsByService.get(service.id)!.push(...insertedSlots)
           }
         }
       }
 
-      const numBookings = faker.number.int({ min: 3, max: 8 })
+      console.log(`   📅 Criando bookings para slots ocupados...`)
 
-      for (let j = 0; j < numBookings; j++) {
-        const service = faker.helpers.arrayElement(insertedServices)
-        const bookingDate = faker.date.soon({ days: 30 })
+      for (const service of insertedServices) {
+        const slotsForService = createdSlotsByService.get(service.id) || []
+        const occupiedSlots = slotsForService.filter(
+          (slot) => !slot.isAvailable,
+        )
 
-        const hour = faker.number.int({ min: 8, max: 18 })
-        const minute = faker.helpers.arrayElement([0, 30])
-        bookingDate.setHours(hour, minute, 0, 0)
+        for (const occupiedSlot of occupiedSlots) {
+          const endTime = new Date(occupiedSlot.startTime)
+          endTime.setMinutes(endTime.getMinutes() + service.durationMinutes)
 
-        const endTime = new Date(bookingDate)
-        endTime.setMinutes(endTime.getMinutes() + service.durationMinutes)
+          const now = new Date()
+          let status: "pending" | "confirmed" | "completed" | "cancelled"
 
-        const insertedBooking = await db
-          .insert(booking)
-          .values({
-            userId: faker.helpers.arrayElement(insertedUsers).id,
-            serviceId: service.id,
-            barbershopId: shop.id,
-            scheduledAt: bookingDate,
-            endTime: endTime,
-            status: faker.helpers.arrayElement(["confirmed", "completed"]),
-          })
-          .returning()
+          if (occupiedSlot.startTime < now) {
+            status = faker.helpers.arrayElement([
+              "completed",
+              "completed",
+              "completed",
+              "completed",
+              "cancelled",
+            ])
+          } else {
+            status = faker.helpers.arrayElement([
+              "confirmed",
+              "confirmed",
+              "confirmed",
+            ])
+          }
 
-        await db
-          .update(availableTimeSlot)
-          .set({
-            isAvailable: false,
-            bookingId: insertedBooking[0].id,
-          })
-          .where(
-            and(
-              eq(availableTimeSlot.barbershopId, shop.id),
-              eq(availableTimeSlot.serviceId, service.id),
-              eq(availableTimeSlot.startTime, bookingDate),
-            ),
-          )
+          const insertedBooking = await db
+            .insert(booking)
+            .values({
+              userId: faker.helpers.arrayElement(insertedUsers).id,
+              serviceId: service.id,
+              barbershopId: shop.id,
+              scheduledAt: occupiedSlot.startTime,
+              endTime: endTime,
+              status: status,
+            })
+            .returning()
 
-        totalBookings++
+          await db
+            .update(availableTimeSlot)
+            .set({
+              bookingId: insertedBooking[0].id,
+            })
+            .where(eq(availableTimeSlot.id, occupiedSlot.id))
+
+          totalBookings++
+        }
       }
+
+      console.log(`   ✅ ${shop.name} concluído!`)
     }
 
-    console.log("✅ Seed finalizado com sucesso!")
-    console.log(`📊 Resumo:`)
-    console.log(`   • ${insertedCategories.length} categorias criadas`)
-    console.log(`   • ${insertedUsers.length} usuários criados`)
-    console.log(`   • ${insertedBarbershops.length} barbearias criadas`)
-    console.log(`   • ${totalTimeSlots} time slots gerados`)
-    console.log(`   • ${totalBookings} agendamentos criados`)
-    console.log(`   • Todas as imagens são reais do Unsplash`)
+    console.log("\n✅ Seed finalizado com sucesso!")
+    console.log(`\n📊 Resumo Final:`)
+    console.log(`   • ${insertedCategories.length} categorias`)
+    console.log(`   • ${insertedUsers.length} usuários`)
+    console.log(`   • ${insertedBarbershops.length} barbearias`)
+    console.log(`   • ${totalTimeSlots} time slots (14 dias)`)
+    console.log(`   • ${totalBookings} agendamentos`)
+    console.log(`   • Imagens reais do Unsplash`)
   } catch (error) {
     console.error("❌ Erro no seed:", error)
     throw error

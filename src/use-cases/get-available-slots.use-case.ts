@@ -1,3 +1,4 @@
+// src/use-cases/get-available-slots.use-case.ts
 import { timeSlotRepo } from "../repositories/available-time-slot.repository"
 import {
   barbershopRepo,
@@ -5,19 +6,19 @@ import {
 } from "../repositories/barbershop.repository"
 import { timeSlotService } from "../services/available-time-slot.service"
 
-type GetAvailableSlotsInput = {
+export interface GetAvailableSlotsInput {
   barbershopId: string
   serviceId: string
   date: Date
 }
 
-type GetAvailableSlotsOutput = {
-  slots: Array<{
+export interface GetAvailableSlotsOutput {
+  slots: {
     id?: string
     startTime: Date
     endTime: Date
     isAvailable: boolean
-  }>
+  }[]
 }
 
 export class GetAvailableSlotsUseCase {
@@ -32,6 +33,7 @@ export class GetAvailableSlotsUseCase {
       throw new Error("Serviço não encontrado")
     }
 
+    // 2. Busca os horários de funcionamento do dia
     const dayOfWeek = [
       "sunday",
       "monday",
@@ -51,22 +53,29 @@ export class GetAvailableSlotsUseCase {
       return { slots: [] }
     }
 
+    // 3. MUDANÇA: Busca TODOS os slots do dia (não apenas disponíveis)
+    const existingSlots = await timeSlotRepo.findSlotsByDate(
+      barbershopId,
+      serviceId,
+      date,
+    )
+
+    if (existingSlots.length === 0) {
+      return { slots: [] }
+    }
+    // 4. Gera os slots teóricos possíveis
     const theoreticalSlots = timeSlotService.generateAvailableSlots(
       barbershopHours,
       service,
       date,
     )
 
-    const existingSlots = await timeSlotRepo.findAvailableSlots(
-      barbershopId,
-      serviceId,
-      date,
-    )
-
+    // 5. Cria um mapa dos slots existentes
     const existingSlotsMap = new Map(
       existingSlots.map((slot) => [slot.startTime.getTime(), slot]),
     )
 
+    // 6. Mescla slots teóricos com dados reais do banco
     const slots = theoreticalSlots.map((theoreticalSlot) => {
       const existingSlot = existingSlotsMap.get(
         theoreticalSlot.startTime.getTime(),
@@ -79,6 +88,7 @@ export class GetAvailableSlotsUseCase {
           theoreticalSlot.startTime,
           service.durationMinutes,
         ),
+        // Se existe no banco, usa o status real; senão, considera disponível
         isAvailable: existingSlot?.isAvailable ?? true,
       }
     })

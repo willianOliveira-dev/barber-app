@@ -19,7 +19,9 @@ interface BarbershopPageProps {
   params: Promise<{ slug: string }>
 }
 
-export default async function BarbershopPage({ params }: BarbershopPageProps) {
+export default async function BarbershopDetailPage({
+  params,
+}: BarbershopPageProps) {
   const { slug } = await params
   const barbershop = await barbershopRepo.findBySlug(slug)
   const categories = await categoryRepo.findAll()
@@ -96,9 +98,15 @@ export default async function BarbershopPage({ params }: BarbershopPageProps) {
             </h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {barbershop?.services.map((service) => (
-                <BarbershopServiceItem key={service.id} service={service} />
-              ))}
+              {barbershop?.services.map((service) => {
+                return (
+                  <BarbershopServiceItem
+                    key={service.id}
+                    barbershopName={barbershop.name}
+                    service={service}
+                  />
+                )
+              })}
             </div>
           </div>
         </section>

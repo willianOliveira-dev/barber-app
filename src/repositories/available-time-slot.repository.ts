@@ -1,19 +1,46 @@
 import { db } from "../db/connection"
-import { and, eq, gte, lt, or } from "drizzle-orm"
+import { and, eq, gte, lt, lte, or } from "drizzle-orm"
 import { availableTimeSlot } from "../db/schemas"
 
 export class TimeSlotRepository {
+  async findSlotsByDate(barbershopId: string, serviceId: string, date: Date) {
+    // Define início do dia (00:00:00)
+    const startOfDay = new Date(date)
+    startOfDay.setHours(0, 0, 0, 0)
+
+    // Define fim do dia (23:59:59)
+    const endOfDay = new Date(date)
+    endOfDay.setHours(23, 59, 59, 999)
+
+    return await db.query.availableTimeSlot.findMany({
+      where: and(
+        eq(availableTimeSlot.barbershopId, barbershopId),
+        eq(availableTimeSlot.serviceId, serviceId),
+        gte(availableTimeSlot.startTime, startOfDay),
+        lte(availableTimeSlot.startTime, endOfDay),
+      ),
+      orderBy: (slots, { asc }) => [asc(slots.startTime)],
+    })
+  }
+
   async findAvailableSlots(
     barbershopId: string,
     serviceId: string,
     date: Date,
   ) {
+    const startOfDay = new Date(date)
+    startOfDay.setHours(0, 0, 0, 0)
+
+    const endOfDay = new Date(date)
+    endOfDay.setHours(23, 59, 59, 999)
+
     return await db.query.availableTimeSlot.findMany({
       where: and(
         eq(availableTimeSlot.barbershopId, barbershopId),
         eq(availableTimeSlot.serviceId, serviceId),
         eq(availableTimeSlot.isAvailable, true),
-        gte(availableTimeSlot.startTime, date),
+        gte(availableTimeSlot.startTime, startOfDay),
+        lte(availableTimeSlot.startTime, endOfDay),
       ),
       orderBy: (slots, { asc }) => [asc(slots.startTime)],
     })

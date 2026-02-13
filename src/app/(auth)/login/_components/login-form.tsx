@@ -18,7 +18,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/app/_components/ui/form"
+} from "@/src/app/_components/ui/form"
 
 import { loginAction } from "../_actions/login.action"
 

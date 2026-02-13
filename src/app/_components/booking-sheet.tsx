@@ -1,29 +1,16 @@
-import { BookingCalendar } from "./booking-calendar"
-import { Button } from "./ui/button"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "./ui/sheet"
+import { BookingSheetClient } from "./booking-sheet-client"
+import { type BarbershopService } from "@/src/db/types"
 
-export function BookingSheet() {
+interface BookingSheetProps {
+  service: BarbershopService
+  barbershopName: string
+}
+
+export async function BookingSheet({
+  service,
+  barbershopName,
+}: BookingSheetProps) {
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="secondary" size="sm">
-          Fazer Reserva
-        </Button>
-      </SheetTrigger>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Fazer Reserva</SheetTitle>
-        </SheetHeader>
-        <div className="flex justify-center p-5">
-          <BookingCalendar />
-        </div>
-      </SheetContent>
-    </Sheet>
+    <BookingSheetClient barbershopName={barbershopName} service={service} />
   )
 }

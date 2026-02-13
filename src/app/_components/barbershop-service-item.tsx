@@ -1,15 +1,17 @@
-import { barbershopService } from "@/src/db/schemas"
-import { InferSelectModel } from "drizzle-orm"
 import { Card, CardContent, CardHeader } from "./ui/card"
 import { BookingSheet } from "./booking-sheet"
+import { BarbershopService } from "@/src/db/types"
 import Image from "next/image"
+import { priceFormat } from "../_utils/price-format.util"
 
 interface BarbershopServicesItemProps {
-  service: InferSelectModel<typeof barbershopService>
+  service: BarbershopService
+  barbershopName: string
 }
 
 export function BarbershopServiceItem({
   service,
+  barbershopName,
 }: BarbershopServicesItemProps) {
   return (
     <Card className="flex flex-row items-center justify-center gap-4 p-5">
@@ -36,12 +38,9 @@ export function BarbershopServiceItem({
         <p className="line-clamp-2 text-xs">{service.description}</p>
         <div className="flex flex-col gap-2">
           <p className="text-primary font-semibold">
-            {Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(service.priceInCents / 100)}
+            {priceFormat.formatToPrice(service.priceInCents)}
           </p>
-          <BookingSheet />
+          <BookingSheet barbershopName={barbershopName} service={service} />
         </div>
       </CardContent>
     </Card>
