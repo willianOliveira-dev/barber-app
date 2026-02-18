@@ -83,6 +83,7 @@ export function BookingSheet({
         setSlots(availableSlots.slots)
       } catch (error) {
         console.error("Erro ao buscar slots:", error)
+        toast.error("Erro ao buscar horários disponíveis")
       } finally {
         setIsLoadingSlots(false)
       }

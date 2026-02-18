@@ -29,7 +29,7 @@ export default async function BarbershopsPage({
     limit = 12,
   } = await searchParams
 
-  const { barbershops, meta } = await barbershopRepo.findByParams(
+  const { barbershops, meta } = await barbershopRepo.findWithPagination(
     search,
     category,
     page,

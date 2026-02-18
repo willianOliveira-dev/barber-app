@@ -1,4 +1,221 @@
-import { db } from "../db/connection"
+import { and, desc, eq, gt, lt, or } from "drizzle-orm"
 import { booking } from "../db/schemas"
+import { db } from "../db/connection"
+import { InferSelectModel } from "drizzle-orm"
 
-export class Booking {}
+export type BaseBooking = InferSelectModel<typeof booking>
+
+export type BookingStatus = "confirmed" | "completed" | "cancelled"
+
+export type BookingWithRelations = BaseBooking & {
+  barbershop: {
+    id: string
+    name: string
+    image: string | null
+  }
+  user: {
+    id: string
+    email: string
+    name: string
+    image: string | null
+  }
+  service: {
+    id: string
+    name: string
+    priceInCents: number
+    durationMinutes: number
+  }
+}
+export interface CursorPaginationResponse {
+  bookings: BookingWithRelations[]
+  meta: {
+    nextCursor: {
+      id: string
+      createdAt: Date
+    } | null
+    hasMore: boolean
+    total: number
+  }
+}
+
+export class BookingRepository {
+  async findLatestByUser(
+    userId: string,
+  ): Promise<BookingWithRelations | undefined> {
+    return db.query.booking.findFirst({
+      with: {
+        barbershop: {
+          columns: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        user: {
+          columns: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+          },
+        },
+        service: {
+          columns: {
+            id: true,
+            name: true,
+            priceInCents: true,
+            durationMinutes: true,
+          },
+        },
+      },
+      where: and(eq(booking.userId, userId), eq(booking.status, "confirmed")),
+      orderBy: desc(booking.createdAt),
+    })
+  }
+
+  async findWithCursorPagination(
+    userId: string,
+    cursor?: {
+      id: string
+      createdAt: Date
+    },
+    limit: number = 5,
+    status?: BookingStatus | BookingStatus[],
+  ): Promise<CursorPaginationResponse> {
+    const safeLimit = Math.min(limit, 5)
+    const filters = []
+
+    filters.push(eq(booking.userId, userId))
+
+    if (cursor) {
+      filters.push(
+        or(
+          lt(booking.createdAt, cursor.createdAt),
+          and(
+            eq(booking.createdAt, cursor.createdAt),
+            lt(booking.id, cursor.id),
+          ),
+        ),
+      )
+    }
+
+    if (status) {
+      if (Array.isArray(status)) {
+        filters.push(or(...status.map((s) => eq(booking.status, s))))
+      } else {
+        filters.push(eq(booking.status, status))
+      }
+    }
+
+    const whereClause = filters.length > 0 ? and(...filters) : undefined
+
+    const results = await db.query.booking.findMany({
+      where: whereClause,
+      with: {
+        barbershop: {
+          columns: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        user: {
+          columns: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+          },
+        },
+        service: {
+          columns: {
+            id: true,
+            name: true,
+            priceInCents: true,
+            durationMinutes: true,
+          },
+        },
+      },
+      orderBy: (booking, { desc }) => [
+        desc(booking.createdAt),
+        desc(booking.id),
+      ],
+      limit: safeLimit + 1,
+    })
+
+    const hasMore = results.length > safeLimit
+    const bookings = hasMore ? results.slice(0, safeLimit) : results
+
+    const nextCursor = hasMore
+      ? {
+          createdAt: bookings[bookings.length - 1].createdAt,
+          id: bookings[bookings.length - 1].id,
+        }
+      : null
+    return {
+      bookings,
+      meta: {
+        nextCursor,
+        hasMore,
+        total: bookings.length,
+      },
+    }
+  }
+
+  async updateStatus(id: string, status: BookingStatus) {
+    return await db
+      .update(booking)
+      .set({
+        status,
+        updatedAt: new Date(),
+        ...(status === "cancelled" ? { cancelledAt: new Date() } : undefined),
+      })
+      .where(eq(booking.id, id))
+      .returning()
+  }
+
+  async findById(id: string) {
+    return await db.query.booking.findFirst({
+      where: eq(booking.id, id),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        barbershop: {
+          columns: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        service: {
+          columns: {
+            id: true,
+            name: true,
+            priceInCents: true,
+            durationMinutes: true,
+          },
+        },
+      },
+    })
+  }
+
+  async create(data: typeof booking.$inferInsert) {
+    return await db.insert(booking).values(data).returning()
+  }
+
+  async cancel(id: string) {
+    return await this.updateStatus(id, "cancelled")
+  }
+
+  async complete(id: string) {
+    return await this.updateStatus(id, "completed")
+  }
+}
+
+export const bookingRepo = new BookingRepository()

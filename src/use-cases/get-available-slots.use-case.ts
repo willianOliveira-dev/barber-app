@@ -1,4 +1,3 @@
-// src/use-cases/get-available-slots.use-case.ts
 import { timeSlotRepo } from "../repositories/available-time-slot.repository"
 import {
   barbershopRepo,

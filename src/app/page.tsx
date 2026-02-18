@@ -6,12 +6,29 @@ import { BookingItem } from "./_components/booking-item"
 import { Footer } from "./_components/footer"
 import { Search } from "./_components/search"
 import { categoryRepo } from "@/src/repositories/category.repository"
+import {
+  bookingRepo,
+  BookingWithRelations,
+} from "../repositories/booking.repository"
+import { authOptions } from "./_lib/auth.lib"
+import { getServerSession } from "next-auth"
+import { ptBR } from "date-fns/locale"
 import Image from "next/image"
 import Link from "next/link"
+import { format } from "date-fns"
 
 export default async function Home() {
+  const session = await getServerSession(authOptions)
+  const user = session?.user ? session.user : undefined
+  const userId = user ? user.id : undefined
   const barbershops = await barbershopRepo.findAll()
   const categories = await categoryRepo.findAll()
+
+  let latestBooking: BookingWithRelations | undefined = undefined
+
+  if (userId) {
+    latestBooking = await bookingRepo.findLatestByUser(userId)
+  }
 
   const createBarbershopServiceLink = (categorySlug: string) => {
     const params = new URLSearchParams()
@@ -25,12 +42,16 @@ export default async function Home() {
     <>
       <Header />
       <main className="flex-1 space-y-6 p-5">
-        <section className="flex items-center justify-center">
-          <div className="container flex flex-col gap-2">
-            <h2 className="text-xl font-bold">Olá, Willian!</h2>
-            <p>Segunda-feira, 09 de Fevereiro.</p>
-          </div>
-        </section>
+        {user && (
+          <section className="flex items-center justify-center">
+            <div className="container flex flex-col gap-2">
+              <h2 className="text-xl font-bold">Olá, {user.name}</h2>
+              <p className="text-md text-gray-400">
+                {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              </p>
+            </div>
+          </section>
+        )}
 
         <section className="flex items-center justify-center">
           <div className="container">
@@ -74,7 +95,22 @@ export default async function Home() {
           </div>
         </section>
 
-        <BookingItem />
+        {latestBooking && (
+          <section className="flex items-center justify-center">
+            <div className="container flex flex-col gap-2">
+              <h3 className="text-xs font-bold text-gray-400 uppercase">
+                Agendemantos
+              </h3>
+              <Link
+                className="text-primary hover:text-primary/85 self-end text-sm"
+                href="/bookings"
+              >
+                Ver mais
+              </Link>
+              <BookingItem booking={latestBooking} />
+            </div>
+          </section>
+        )}
 
         <section className="flex items-center justify-center">
           <div className="container flex flex-col gap-4">

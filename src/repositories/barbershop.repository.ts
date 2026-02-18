@@ -39,7 +39,7 @@ class BarbershopRepository {
     })
   }
 
-  async findByParams(
+  async findWithPagination(
     search?: string,
     categorySlug?: string,
     page: number = 1,

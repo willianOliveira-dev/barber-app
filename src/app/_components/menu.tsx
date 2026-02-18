@@ -36,7 +36,7 @@ export function Menu({ categories }: MenuProps) {
   const navigationLinks = [
     { name: "Ínicio", router: "/", icon: HomeIcon },
     { name: "Barbearias", router: "/barbershops", icon: FaScissors },
-    { name: "Agendamentos", router: "/booking", icon: CalendarHeart },
+    { name: "Agendamentos", router: "/bookings", icon: CalendarHeart },
   ]
 
   const handleSignOutClick = async () => {
