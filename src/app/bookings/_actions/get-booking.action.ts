@@ -10,7 +10,7 @@ import { authOptions } from "../../_lib/auth.lib"
 interface GetBookingActionParams {
   cursor?: {
     id: string
-    createdAt: Date
+    scheduledAt: Date
   }
   limit?: number
   status?: BookingStatus | BookingStatus[]
@@ -30,7 +30,7 @@ export async function getBookingsAction(params: GetBookingActionParams) {
     const cursor = params.cursor
       ? {
           id: params.cursor.id,
-          createdAt: new Date(params.cursor.createdAt),
+          scheduledAt: new Date(params.cursor.scheduledAt),
         }
       : undefined
 

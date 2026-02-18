@@ -19,9 +19,10 @@ export function useBookings({
   autoLoad = true,
 }: UseBookingsParams = {}) {
   const [data, setData] = useState<CursorPaginationResponse["bookings"]>([])
-  const [cursor, setCursor] = useState<{ id: string; createdAt: Date } | null>(
-    null,
-  )
+  const [cursor, setCursor] = useState<{
+    id: string
+    scheduledAt: Date
+  } | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

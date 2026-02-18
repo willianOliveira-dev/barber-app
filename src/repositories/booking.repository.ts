@@ -31,7 +31,7 @@ export interface CursorPaginationResponse {
   meta: {
     nextCursor: {
       id: string
-      createdAt: Date
+      scheduledAt: Date
     } | null
     hasMore: boolean
     total: number
@@ -69,7 +69,7 @@ export class BookingRepository {
         },
       },
       where: and(eq(booking.userId, userId), eq(booking.status, "confirmed")),
-      orderBy: desc(booking.createdAt),
+      orderBy: desc(booking.scheduledAt),
     })
   }
 
@@ -77,7 +77,7 @@ export class BookingRepository {
     userId: string,
     cursor?: {
       id: string
-      createdAt: Date
+      scheduledAt: Date
     },
     limit: number = 5,
     status?: BookingStatus | BookingStatus[],
@@ -90,9 +90,9 @@ export class BookingRepository {
     if (cursor) {
       filters.push(
         or(
-          lt(booking.createdAt, cursor.createdAt),
+          lt(booking.scheduledAt, cursor.scheduledAt),
           and(
-            eq(booking.createdAt, cursor.createdAt),
+            eq(booking.scheduledAt, cursor.scheduledAt),
             lt(booking.id, cursor.id),
           ),
         ),
@@ -136,10 +136,7 @@ export class BookingRepository {
           },
         },
       },
-      orderBy: (booking, { desc }) => [
-        desc(booking.createdAt),
-        desc(booking.id),
-      ],
+      orderBy: [desc(booking.scheduledAt), desc(booking.id)],
       limit: safeLimit + 1,
     })
 
@@ -148,7 +145,7 @@ export class BookingRepository {
 
     const nextCursor = hasMore
       ? {
-          createdAt: bookings[bookings.length - 1].createdAt,
+          scheduledAt: bookings[bookings.length - 1].scheduledAt,
           id: bookings[bookings.length - 1].id,
         }
       : null
