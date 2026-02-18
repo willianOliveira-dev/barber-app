@@ -1,8 +1,12 @@
+"use client"
 import { Card, CardContent, CardHeader } from "./ui/card"
 import { BookingSheet } from "./booking-sheet"
 import { BarbershopService } from "@/src/db/types"
 import Image from "next/image"
 import { priceFormat } from "../_utils/price-format.util"
+import { useSession } from "next-auth/react"
+import Link from "next/link"
+import { Button } from "./ui/button"
 
 interface BarbershopServicesItemProps {
   service: BarbershopService
@@ -13,6 +17,7 @@ export function BarbershopServiceItem({
   service,
   barbershopName,
 }: BarbershopServicesItemProps) {
+  const { status } = useSession()
   return (
     <Card className="flex flex-row items-center justify-center gap-4 p-5">
       <CardHeader className="relative size-35 overflow-hidden rounded-lg p-0">
@@ -40,7 +45,14 @@ export function BarbershopServiceItem({
           <p className="text-primary font-semibold">
             {priceFormat.formatToPrice(service.priceInCents)}
           </p>
-          <BookingSheet barbershopName={barbershopName} service={service} />
+
+          {status === "unauthenticated" ? (
+            <Button asChild variant="secondary" size="sm">
+              <Link href="/login">Fazer Reservar</Link>
+            </Button>
+          ) : (
+            <BookingSheet barbershopName={barbershopName} service={service} />
+          )}
         </div>
       </CardContent>
     </Card>
