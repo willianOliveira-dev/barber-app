@@ -8,6 +8,7 @@ import { distanceFormat } from "../_utils/distance.util"
 import type { NearbyBarbershop } from "@/src/db/types"
 import Image from "next/image"
 import Link from "next/link"
+import { cn } from "../_lib/utils.lib"
 
 interface NearbyBarbershopCardProps {
   barbershop: NearbyBarbershop
@@ -30,11 +31,12 @@ export function NearbyBarbershopCard({
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onClick?.(barbershop)}
       aria-pressed={isSelected}
-      className={`group border-border bg-card w-full overflow-hidden border pt-0 transition-colors ${
-        isSelected ? "border-primary/40" : "hover:border-primary/20"
-      }`}
+      className={cn(
+        "group border-border bg-card flex h-full w-full flex-col overflow-hidden border pt-0 transition-colors",
+        isSelected ? "border-primary/40" : "hover:border-primary/20",
+      )}
     >
-      <CardHeader className="relative h-37.5 w-full p-0">
+      <CardHeader className="relative h-37.5 w-full shrink-0 p-0">
         {image ? (
           <Image
             quality={75}
@@ -63,25 +65,28 @@ export function NearbyBarbershopCard({
         </Badge>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-2 p-3">
-        <h2 className="text-foreground truncate text-sm font-semibold">
-          {name}
-        </h2>
-        <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
-          {address}, {city}, {state}
-          {zipCode ? ` — ${zipCode}` : ""}
-        </p>
-        {phone && (
-          <p className="text-muted-foreground flex items-center gap-1 text-xs">
-            <PhoneIcon className="h-3 w-3 shrink-0" />
-            {phone}
+      <CardContent className="flex flex-1 flex-col justify-between p-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-foreground truncate text-sm font-semibold">
+            {name}
+          </h2>
+          <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
+            {address}, {city}, {state}
+            {zipCode ? ` — ${zipCode}` : ""}
           </p>
-        )}
+          {phone && (
+            <p className="text-muted-foreground flex items-center gap-1 text-xs">
+              <PhoneIcon className="h-3 w-3 shrink-0" />
+              {phone}
+            </p>
+          )}
+        </div>
+
         <Button
           asChild
           variant="secondary"
           size="sm"
-          className="hover:border-primary/30 hover:text-primary mt-1 w-full rounded-lg text-xs"
+          className="hover:border-primary/30 hover:text-primary mt-3 w-full rounded-lg text-xs"
         >
           <Link href={`/barbershops/${barbershop.slug}`}>Reservar</Link>
         </Button>
