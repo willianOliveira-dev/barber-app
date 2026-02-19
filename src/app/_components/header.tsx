@@ -24,25 +24,21 @@ export async function Header() {
   return (
     <header className="border-border bg-card/80 sticky top-0 z-50 w-full border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4 px-5 lg:px-8 xl:px-12">
-        {/* Logo */}
         <Link href="/" className="shrink-0">
           <Image
             alt="Razor Barber"
             src="/logo.webp"
             width={150}
             height={22}
-            className="h-auto w-[130px] lg:w-[150px]"
+            className="h-auto w-32.5 lg:w-37.5"
           />
         </Link>
 
-        {/* Center: Search — only desktop */}
         <div className="hidden w-full max-w-sm lg:block xl:max-w-md">
           <Search />
         </div>
 
-        {/* Right side */}
         <div className="flex items-center gap-2">
-          {/* Nav links — desktop only */}
           <nav className="hidden items-center gap-1 lg:flex">
             {navigationLinks.map(({ name, href, icon: Icon }) => (
               <Link
@@ -56,10 +52,8 @@ export async function Header() {
             ))}
           </nav>
 
-          {/* Divider */}
           <div className="bg-border mx-1 hidden h-5 w-px lg:block" />
 
-          {/* User — desktop only */}
           <div className="hidden items-center gap-3 lg:flex">
             {user ? (
               <div className="border-border bg-background/50 flex items-center gap-2.5 rounded-xl border px-3 py-1.5">
@@ -91,7 +85,6 @@ export async function Header() {
             )}
           </div>
 
-          {/* Mobile menu trigger */}
           <div className="lg:hidden">
             <Menu categories={categories} />
           </div>
