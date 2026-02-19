@@ -9,6 +9,7 @@ import { categoryRepo } from "@/src/repositories/category.repository"
 import { LayoutGrid, SlidersHorizontal } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { twMerge } from "tailwind-merge"
 
 interface BarbershopsPageProps {
   searchParams: Promise<{
@@ -99,12 +100,12 @@ export default async function BarbershopsPage({
                   <Link
                     key={cat.id}
                     href={createCategoryLink(cat.slug)}
-                    className={[
+                    className={twMerge(
                       "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium whitespace-nowrap transition-all",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "border-border text-muted-foreground hover:border-primary/30 hover:text-primary border",
-                    ].join(" ")}
+                    )}
                   >
                     {cat.icon && (
                       <Image

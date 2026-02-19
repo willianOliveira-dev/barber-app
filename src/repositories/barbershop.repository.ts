@@ -1,5 +1,5 @@
 import { db } from "../db/connection"
-import { and, countDistinct, eq, ilike } from "drizzle-orm"
+import { and, countDistinct, eq, ilike, sql } from "drizzle-orm"
 import {
   barbershop,
   barbershopHour,
@@ -7,12 +7,77 @@ import {
   category,
 } from "../db/schemas"
 import { dayOfWeekEnum } from "../db/schemas"
+import { NearbyBarbershop } from "../db/types"
 
 export type DayOfWeekEnum = (typeof dayOfWeekEnum.enumValues)[number]
 
 class BarbershopRepository {
   async findAll() {
     return db.select().from(barbershop) ?? []
+  }
+
+  async findNearbyBarbershops(
+    userLat: number,
+    userLng: number,
+    radiusKm: number = 100,
+  ): Promise<NearbyBarbershop[]> {
+    const MAX_RESULTS = 50
+    const latDelta = radiusKm / 111.0 // ~111 km por grau de latitude
+    const lngDelta = radiusKm / (111.0 * Math.cos((userLat * Math.PI) / 180))
+
+    const minLat = userLat - latDelta
+    const maxLat = userLat + latDelta
+    const minLng = userLng - lngDelta
+    const maxLng = userLng + lngDelta
+
+    const rows = await db
+      .select({
+        id: barbershop.id,
+        name: barbershop.name,
+        slug: barbershop.slug,
+        latitude: barbershop.latitude,
+        longitude: barbershop.longitude,
+        address: barbershop.address,
+        city: barbershop.city,
+        state: barbershop.state,
+        zipCode: barbershop.zipCode,
+        phone: barbershop.phone,
+        image: barbershop.image,
+        distance: sql<number>`
+        calculate_distance(
+          ${userLat}::double precision,
+          ${userLng}::double precision,
+          ${barbershop.latitude}::double precision,
+          ${barbershop.longitude}::double precision
+        )
+      `.as("distance"),
+      })
+      .from(barbershop)
+      .where(
+        sql`
+        ${barbershop.isActive}    = true
+        AND ${barbershop.deletedAt} IS NULL
+        AND ${barbershop.latitude}  IS NOT NULL
+        AND ${barbershop.longitude} IS NOT NULL
+        AND ${barbershop.latitude}  BETWEEN ${minLat} AND ${maxLat}
+        AND ${barbershop.longitude} BETWEEN ${minLng} AND ${maxLng}
+        AND calculate_distance(
+              ${userLat}::double precision,
+              ${userLng}::double precision,
+              ${barbershop.latitude}::double precision,
+              ${barbershop.longitude}::double precision
+            ) <= ${radiusKm}
+      `,
+      )
+      .orderBy(sql`distance ASC`)
+      .limit(MAX_RESULTS)
+
+    return rows.map((row) => ({
+      ...row,
+      latitude: Number(row.latitude),
+      longitude: Number(row.longitude),
+      distance: Number(row.distance),
+    })) as NearbyBarbershop[]
   }
 
   async findBySlug(slug: string) {

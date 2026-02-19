@@ -24,6 +24,7 @@ import {
   Clock,
   MapPin,
 } from "lucide-react"
+import { NearbyBarbershopsHomeSection } from "./_components/nearby-barbershop-home-section"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
@@ -179,6 +180,8 @@ export default async function Home() {
                 </div>
               </section>
             )}
+
+            <NearbyBarbershopsHomeSection />
 
             <section className="space-y-4">
               <div className="flex items-center justify-between">

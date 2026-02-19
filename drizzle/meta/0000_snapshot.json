@@ -1,5 +1,5 @@
 {
-  "id": "f518dd40-0505-4531-8dad-d23177821903",
+  "id": "06cc8697-5297-4a31-bd49-f35f2df81844",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -218,6 +218,18 @@
           "name": "zipCode",
           "type": "varchar(20)",
           "primaryKey": false,
+          "notNull": true
+        },
+        "streetNumber": {
+          "name": "streetNumber",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "complement": {
+          "name": "complement",
+          "type": "varchar(100)",
+          "primaryKey": false,
           "notNull": false
         },
         "phone": {
@@ -229,6 +241,24 @@
         "email": {
           "name": "email",
           "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "website": {
+          "name": "website",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "numeric(9, 6)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "numeric(9, 6)",
           "primaryKey": false,
           "notNull": false
         },
@@ -317,6 +347,36 @@
           "columns": [
             {
               "expression": "city",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "barbershops_latitude_index": {
+          "name": "barbershops_latitude_index",
+          "columns": [
+            {
+              "expression": "latitude",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "barbershops_longitude_index": {
+          "name": "barbershops_longitude_index",
+          "columns": [
+            {
+              "expression": "longitude",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

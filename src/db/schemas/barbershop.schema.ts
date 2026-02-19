@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm"
 import {
   pgTable,
   uuid,
@@ -7,9 +8,9 @@ import {
   timestamp,
   index,
   uniqueIndex,
+  numeric,
 } from "drizzle-orm/pg-core"
 import { user } from "./user.schema"
-import { sql } from "drizzle-orm"
 
 export const barbershop = pgTable(
   "barbershop",
@@ -27,9 +28,14 @@ export const barbershop = pgTable(
     address: varchar("address", { length: 255 }).notNull(),
     city: varchar("city", { length: 100 }).notNull(),
     state: varchar("state", { length: 50 }).notNull(),
-    zipCode: varchar("zipCode", { length: 20 }),
+    zipCode: varchar("zipCode", { length: 20 }).notNull(),
+    streetNumber: varchar("streetNumber", { length: 20 }).notNull(),
+    complement: varchar("complement", { length: 100 }),
     phone: varchar("phone", { length: 20 }),
     email: varchar("email", { length: 255 }),
+    website: varchar("website", { length: 255 }),
+    latitude: numeric("latitude", { precision: 9, scale: 6 }),
+    longitude: numeric("longitude", { precision: 9, scale: 6 }),
     isActive: boolean("isActive").notNull().default(true),
     createdAt: timestamp("createdAt", { mode: "date", withTimezone: true })
       .notNull()
@@ -40,12 +46,14 @@ export const barbershop = pgTable(
     deletedAt: timestamp("deletedAt", { mode: "date", withTimezone: true }),
   },
   (table) => ({
-    ownerId: index("barbershops_owner_index").on(table.ownerId),
+    ownerIdIndex: index("barbershops_owner_index").on(table.ownerId),
     slugUnique: uniqueIndex("barbershops_owner_slug_unique").on(
       table.slug,
       table.ownerId,
     ),
     nameIndex: index("barbershops_name_index").on(table.name),
     cityIndex: index("barbershops_city_index").on(table.city),
+    latIndex: index("barbershops_latitude_index").on(table.latitude),
+    lngIndex: index("barbershops_longitude_index").on(table.longitude),
   }),
 )

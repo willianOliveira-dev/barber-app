@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { AuthProvider } from "./_providers/auth.provider"
 import { Poppins } from "next/font/google"
 import { Toaster } from "sonner"
+import "leaflet/dist/leaflet.css"
 import "./globals.css"
 
 const poppins = Poppins({

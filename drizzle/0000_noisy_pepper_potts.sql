@@ -28,9 +28,14 @@ CREATE TABLE "barbershop" (
 	"address" varchar(255) NOT NULL,
 	"city" varchar(100) NOT NULL,
 	"state" varchar(50) NOT NULL,
-	"zipCode" varchar(20),
+	"zipCode" varchar(20) NOT NULL,
+	"streetNumber" varchar(20) NOT NULL,
+	"complement" varchar(100),
 	"phone" varchar(20),
 	"email" varchar(255),
+	"website" varchar(255),
+	"latitude" numeric(9, 6),
+	"longitude" numeric(9, 6),
 	"isActive" boolean DEFAULT true NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
@@ -167,6 +172,8 @@ CREATE INDEX "barbershops_owner_index" ON "barbershop" USING btree ("ownerId");-
 CREATE UNIQUE INDEX "barbershops_owner_slug_unique" ON "barbershop" USING btree ("slug","ownerId");--> statement-breakpoint
 CREATE INDEX "barbershops_name_index" ON "barbershop" USING btree ("name");--> statement-breakpoint
 CREATE INDEX "barbershops_city_index" ON "barbershop" USING btree ("city");--> statement-breakpoint
+CREATE INDEX "barbershops_latitude_index" ON "barbershop" USING btree ("latitude");--> statement-breakpoint
+CREATE INDEX "barbershops_longitude_index" ON "barbershop" USING btree ("longitude");--> statement-breakpoint
 CREATE INDEX "services_name_index" ON "barbershop_service" USING btree ("name");--> statement-breakpoint
 CREATE INDEX "services_barbershop_index" ON "barbershop_service" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "services_category_index" ON "barbershop_service" USING btree ("categoryId");--> statement-breakpoint

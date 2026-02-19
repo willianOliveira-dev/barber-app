@@ -63,7 +63,9 @@ export default async function BarbershopDetailPage({
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
-            <Menu categories={categories} />
+            <div className="block sm:hidden">
+              <Menu categories={categories} />
+            </div>
           </div>
 
           <div className="absolute right-0 bottom-0 left-0 z-10 p-5 lg:p-8">

@@ -30,13 +30,12 @@ export function Sidebar({
   isLoggedIn,
   categories,
 }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("sidebar-collapsed")
-      return stored === "true"
-    }
-    return false
-  })
+  const [collapsed, setCollapsed] = useState<boolean>(false)
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("sidebar-collapsed")
+    setCollapsed(stored === "true")
+  }, [])
 
   const createLink = (slug: string) => {
     const params = new URLSearchParams()
