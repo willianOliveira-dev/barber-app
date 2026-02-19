@@ -12,6 +12,12 @@ export type BookingWithRelations = BaseBooking & {
     id: string
     name: string
     image: string | null
+    address: string
+    city: string
+    zipCode: string | null
+    state: string
+    phone: string | null
+    email: string | null
   }
   user: {
     id: string
@@ -49,6 +55,12 @@ export class BookingRepository {
             id: true,
             name: true,
             image: true,
+            address: true,
+            city: true,
+            zipCode: true,
+            state: true,
+            phone: true,
+            email: true,
           },
         },
         user: {
@@ -117,6 +129,12 @@ export class BookingRepository {
             id: true,
             name: true,
             image: true,
+            address: true,
+            city: true,
+            zipCode: true,
+            state: true,
+            phone: true,
+            email: true,
           },
         },
         user: {
@@ -188,6 +206,12 @@ export class BookingRepository {
             id: true,
             name: true,
             image: true,
+            address: true,
+            city: true,
+            zipCode: true,
+            state: true,
+            phone: true,
+            email: true,
           },
         },
         service: {

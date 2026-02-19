@@ -13,7 +13,7 @@ export function ProfileCard({ name, email, avatarUrl }: ProfileCardProps) {
         {avatarUrl ? (
           <AvatarImage src={avatarUrl} alt={name} />
         ) : (
-          <AvatarFallback className="bg-primary font-semibold text-white">
+          <AvatarFallback className="bg-primary font-bold text-white">
             {name
               .split(" ")
               .map((n) => n[0])

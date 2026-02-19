@@ -19,6 +19,7 @@ import { priceFormat } from "../_utils/price-format.util"
 import { toast } from "sonner"
 import { type BarbershopService } from "@/src/db/types"
 import { SkeletonSlots } from "./skeleton-slots"
+import { BookingSummary } from "./booking-summary"
 
 interface BookingSheetClientProps {
   service: BarbershopService
@@ -162,47 +163,20 @@ export function BookingSheet({
 
           {selectedSlot && selectedDate && (
             <div className="flex items-center justify-center">
-              <Card className="w-full">
-                <CardContent>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-4">
-                      <h3 className="font-semibold">{service.name}</h3>
-                      <p className="font-semibold">
-                        {priceFormat.formatToPrice(service.priceInCents)}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-gray-400">Data</p>
-                      <p className="text-gray-400">
-                        {format(selectedDate, "dd 'de' MMMM", {
-                          locale: ptBR,
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-gray-400">Horário</p>
-                      <p className="text-gray-400">
-                        {format(selectedSlot, "HH:mm", {
-                          locale: ptBR,
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-gray-400">Barbearia</p>
-                      <p className="line-clamp-1 text-gray-400">
-                        {barbershopName}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <BookingSummary
+                barbershopName={barbershopName}
+                serviceName={service.name}
+                date={selectedDate}
+                scheduledTime={selectedSlot}
+                servicePrice={service.priceInCents}
+              />
             </div>
           )}
         </div>
 
         {selectedSlot && selectedDate && (
           <SheetFooter>
-            <Button>Confirmar</Button>
+            <Button className="w-full">Confirmar</Button>
           </SheetFooter>
         )}
       </SheetContent>

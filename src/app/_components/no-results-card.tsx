@@ -5,7 +5,7 @@ import Image from "next/image"
 
 export function NoResultsCard({ query }: { query?: string }) {
   return (
-    <Card className="text-card-foreground col-span-2 flex flex-col items-center justify-center border-0 bg-transparent p-8 text-center shadow-sm shadow-gray-400/10">
+    <Card className="text-card-foreground col-span-2 flex flex-col items-center justify-center border-0 bg-transparent p-8 text-center">
       <CardHeader className="flex w-full flex-col items-center gap-4">
         <div className="relative size-40">
           <Image

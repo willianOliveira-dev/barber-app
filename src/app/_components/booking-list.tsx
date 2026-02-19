@@ -2,6 +2,7 @@ import { Loader2 } from "lucide-react"
 import { useBookings } from "../bookings/_hooks/use-bookings"
 import { BookingItem } from "./booking-item"
 import { Button } from "./ui/button"
+import { SkeletonBookingItem } from "./skeleton-booking-item"
 
 export function BookingList({
   bookings,
@@ -27,9 +28,13 @@ export function BookingList({
       <h2 className="text-xs font-bold text-gray-400 uppercase">
         Foram encontrados {data.length} agendamentos.
       </h2>
-      {data.map((booking) => (
-        <BookingItem key={booking.id} booking={booking} />
-      ))}
+      {isLoading
+        ? Array.from({ length: 5 }).map((_, i) => (
+            <SkeletonBookingItem key={i} />
+          ))
+        : data.map((booking) => (
+            <BookingItem key={booking.id} booking={booking} />
+          ))}
 
       {hasMore && (
         <Button

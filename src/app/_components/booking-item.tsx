@@ -4,7 +4,22 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { ProfileBarbershop } from "./profile-barbershop"
 import { twMerge } from "tailwind-merge"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet"
+import { BookingSummary } from "./booking-summary"
+import { Copy } from "./copy"
+import { MailIcon, Smartphone } from "lucide-react"
+import { Button } from "./ui/button"
+import { CancelBookingDialog } from "./cancel-booking-dialog"
 import { type BookingWithRelations } from "@/src/repositories/booking.repository"
+import Image from "next/image"
 
 interface BookingItemProps {
   booking: BookingWithRelations
@@ -30,37 +45,141 @@ export function BookingItem({ booking }: BookingItemProps) {
   }[booking.status]
 
   return (
-    <Card
-      className={twMerge("border-r-indigo-500 p-0", bookingStatusMap.border)}
-    >
-      <CardContent className="flex justify-between p-0">
-        <div className="flex flex-col gap-2 p-6">
-          <Badge className={twMerge("w-fit", bookingStatusMap.background)}>
-            {bookingStatusMap.label}
-          </Badge>
-          <div className="space-y-1.5">
-            <h3 className="font-semibold">{booking.service.name}</h3>
-            <div className="flex items-center gap-2">
-              <ProfileBarbershop
-                image={booking.barbershop.image}
-                name={booking.barbershop.name}
-              />
-              <p className="text-sm">{booking.barbershop.name}</p>
+    <Sheet>
+      <SheetTrigger asChild className="cursor-pointer">
+        <Card
+          className={twMerge(
+            "border-r-indigo-500 p-0",
+            bookingStatusMap.border,
+          )}
+        >
+          <CardContent className="flex justify-between p-0">
+            <div className="flex flex-col gap-4 p-6">
+              <Badge className={twMerge("w-fit", bookingStatusMap.background)}>
+                {bookingStatusMap.label}
+              </Badge>
+              <div className="space-y-4">
+                <h3 className="font-semibold">{booking.service.name}</h3>
+                <div className="flex items-center gap-4">
+                  <ProfileBarbershop
+                    image={booking.barbershop.image}
+                    name={booking.barbershop.name}
+                  />
+                  <p className="text-sm">{booking.barbershop.name}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-center border-l-2 border-gray-400/10 p-6">
+              <p className="text-sm capitalize">
+                {format(booking.scheduledAt, "MMMM", { locale: ptBR })}
+              </p>
+              <p className="text-2xl">
+                {format(booking.scheduledAt, "dd", { locale: ptBR })}
+              </p>
+              <p className="text-sm">
+                {format(booking.scheduledAt, "HH:mm", { locale: ptBR })}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Informações da reserva</SheetTitle>
+        </SheetHeader>
+        <div className="bg-border h-px" />
+        <div className="space-y-6 p-5">
+          <div className="relative flex h-45 w-full items-end overflow-hidden rounded-2xl">
+            <Image
+              alt="Mapa de Barbearia"
+              src="/images/map.png"
+              loading="lazy"
+              fill
+              className="object-cover"
+            ></Image>
+            <Card className="z-10 mx-5 mb-3 w-full overflow-hidden border-none p-2 shadow-md transition-all hover:shadow-lg">
+              <CardContent className="flex items-center gap-4 p-2">
+                <ProfileBarbershop
+                  name={booking.barbershop.name}
+                  image={booking.barbershop.image}
+                />
+                <div className="flex flex-col gap-0.5 overflow-hidden">
+                  <h3 className="text-primary truncate leading-tight font-bold tracking-tight">
+                    {booking.barbershop.name}
+                  </h3>
+
+                  <div className="text-muted-foreground flex flex-col text-xs">
+                    <p className="text-foreground/80 truncate font-medium">
+                      {booking.barbershop.address}
+                    </p>
+                    <p className="flex items-center gap-1">
+                      {booking.barbershop.city} • {booking.barbershop.state}
+                    </p>
+                    <p className="mt-1 text-[13.3px] font-light opacity-70">
+                      CEP: {booking.barbershop.zipCode}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="space-y-3">
+            <Badge className={twMerge("w-fit", bookingStatusMap.background)}>
+              {bookingStatusMap.label}
+            </Badge>
+            <BookingSummary
+              barbershopName={booking.barbershop.name}
+              serviceName={booking.service.name}
+              date={booking.scheduledAt}
+              scheduledTime={booking.scheduledAt}
+              servicePrice={booking.service.priceInCents}
+            />
+          </div>
+          <div className="flex flex-col gap-4">
+            <h2 className="text-xs font-bold text-gray-400 uppercase">
+              Contato
+            </h2>
+            <div className="flex flex-col gap-2">
+              {booking.barbershop?.phone ? (
+                <div className="flex items-center justify-between gap-4">
+                  <p className="flex items-center gap-1 text-xs">
+                    <span>
+                      <Smartphone size={16} />
+                    </span>
+                    {booking.barbershop.phone}
+                  </p>
+                  <Copy message={booking.barbershop.phone} />
+                </div>
+              ) : (
+                <p className="text-xs">Sem telefone</p>
+              )}
+              {booking.barbershop.email ? (
+                <div className="flex items-center justify-between gap-4">
+                  <p className="flex items-center gap-1 text-xs">
+                    <span>
+                      <MailIcon size={16} />
+                    </span>
+                    {booking.barbershop.email}
+                  </p>
+                  <Copy message={booking.barbershop.email} />
+                </div>
+              ) : (
+                <p className="text-xs">Sem email</p>
+              )}
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center border-l-2 border-gray-400/10 p-6">
-          <p className="text-sm capitalize">
-            {format(booking.scheduledAt, "MMMM", { locale: ptBR })}
-          </p>
-          <p className="text-2xl">
-            {format(booking.scheduledAt, "dd", { locale: ptBR })}
-          </p>
-          <p className="text-sm">
-            {format(booking.scheduledAt, "HH:mm", { locale: ptBR })}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        <SheetFooter>
+          <div className="flex flex-col items-center gap-3">
+            <SheetClose asChild>
+              <Button variant="outline" className="w-full">
+                Voltar
+              </Button>
+            </SheetClose>
+            {booking.status === "confirmed" && <CancelBookingDialog />}
+          </div>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }

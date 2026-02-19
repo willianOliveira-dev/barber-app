@@ -133,7 +133,7 @@ export default async function BarbershopsPage({
                   <BarbershopItem key={barbershop.id} barbershop={barbershop} />
                 ))
               ) : (
-                <div className="col-span-full flex justify-center">
+                <div className="col-span-full flex items-center justify-center">
                   <NoResultsCard query={search} />
                 </div>
               )}
@@ -141,11 +141,13 @@ export default async function BarbershopsPage({
           </div>
         </section>
 
-        <section className="flex items-center justify-center">
-          <div className="container">
-            <AppPagination meta={meta} />
-          </div>
-        </section>
+        {meta.totalPages > 0 && (
+          <section className="flex items-center justify-center">
+            <div className="container">
+              <AppPagination meta={meta} />
+            </div>
+          </section>
+        )}
       </main>
       <Footer />
     </>
