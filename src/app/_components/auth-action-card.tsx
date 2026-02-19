@@ -1,7 +1,7 @@
-import Image from "next/image"
 import { Card, CardContent } from "./ui/card"
-import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 
 interface AuthCardProps {
   label: string
@@ -23,7 +23,7 @@ export function AuthActionCard({
               <span>
                 <Image
                   alt="Máquina de barbear"
-                  src="/shaver-barber.svg"
+                  src="/icons/shaver-barber.svg"
                   width={24}
                   height={24}
                 />

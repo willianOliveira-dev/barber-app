@@ -1,8 +1,8 @@
 "use client"
 
-import { AuthActionCard } from "@/app/_components/auth-action-card"
-import { Button } from "@/app/_components/ui/button"
-import { Input } from "@/app/_components/ui/input"
+import { AuthActionCard } from "../../_components/auth-action-card"
+import { Button } from "../../_components/ui/button"
+import { Input } from "../../_components/ui/input"
 import Image from "next/image"
 import Link from "next/link"
 

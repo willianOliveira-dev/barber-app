@@ -6,14 +6,19 @@ import Link from "next/link"
 import Image from "next/image"
 import { signOut, useSession } from "next-auth/react"
 
-import { MenuIcon, HomeIcon, CalendarHeart, LogIn } from "lucide-react"
+import {
+  MenuIcon,
+  HomeIcon,
+  CalendarHeart,
+  LogIn,
+  LogOut,
+  ChevronRight,
+} from "lucide-react"
 import { FaScissors } from "react-icons/fa6"
 
-import { Dialog as SheetPrimitive } from "radix-ui"
 import {
   Sheet,
   SheetContent,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -34,7 +39,7 @@ export function Menu({ categories }: MenuProps) {
   const pathname = usePathname()
 
   const navigationLinks = [
-    { name: "Ínicio", router: "/", icon: HomeIcon },
+    { name: "Início", router: "/", icon: HomeIcon },
     { name: "Barbearias", router: "/barbershops", icon: FaScissors },
     { name: "Agendamentos", router: "/bookings", icon: CalendarHeart },
   ]
@@ -54,109 +59,143 @@ export function Menu({ categories }: MenuProps) {
   return (
     <Sheet open={isOpenSheet} onOpenChange={setIsOpenSheet}>
       <SheetTrigger asChild>
-        <Button variant="secondary" size="icon">
-          <MenuIcon />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="border-border bg-card hover:bg-card/80 hover:border-primary/30 rounded-xl border transition-all"
+        >
+          <MenuIcon className="h-4 w-4" />
         </Button>
       </SheetTrigger>
 
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Menu</SheetTitle>
+      <SheetContent className="border-border bg-card flex w-75 flex-col gap-0 border-l p-0 sm:w-[320px]">
+        <SheetHeader className="border-border border-b px-6 pt-6 pb-5">
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
+              <FaScissors className="text-primary h-3.5 w-3.5" />
+            </div>
+            <SheetTitle className="text-foreground text-sm font-semibold tracking-[0.12em] uppercase">
+              Menu
+            </SheetTitle>
+          </div>
         </SheetHeader>
 
-        {status === "loading" ? (
-          <SkeletonAvatar />
-        ) : status === "authenticated" ? (
-          <ProfileCard
-            avatarUrl={data.user.image}
-            email={data.user.email}
-            name={data.user.name}
-          />
-        ) : (
-          <div className="p-5">
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-lg font-semibold">Olá. Faça seu login!</p>
-              <Button asChild size="icon">
-                <Link href="/login">
-                  <LogIn />
+        <div className="border-border border-b px-4 py-4">
+          {status === "loading" ? (
+            <SkeletonAvatar />
+          ) : status === "authenticated" ? (
+            <div className="border-border bg-background/50 rounded-xl border p-3">
+              <ProfileCard
+                avatarUrl={data.user.image}
+                email={data.user.email}
+                name={data.user.name}
+              />
+            </div>
+          ) : (
+            <div className="border-border bg-background/50 flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
+              <div>
+                <p className="text-foreground text-sm font-semibold">
+                  Olá, visitante
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  Faça login para agendar
+                </p>
+              </div>
+              <Button asChild size="sm" className="gap-1.5 rounded-lg text-xs">
+                <Link href="/login" onClick={() => setIsOpenSheet(false)}>
+                  <LogIn className="h-3.5 w-3.5" />
+                  Entrar
                 </Link>
               </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        <div className="bg-border h-px" />
-
-        <div className="p-5">
+        <div className="border-border border-b px-4 py-4">
+          <p className="text-muted-foreground mb-2 px-3 text-[10px] font-semibold tracking-[0.18em] uppercase">
+            Navegar
+          </p>
           <nav>
-            <ul className="flex flex-col gap-4">
-              {navigationLinks.map((link) => (
-                <li
-                  key={link.name}
-                  className={cn(
-                    "hover:bg-secondary rounded-md px-4 py-2 transition-all duration-300",
-                    pathname === link.router &&
-                      "bg-primary hover:bg-primary/85",
-                  )}
-                >
-                  <Link
-                    href={link.router}
-                    className="flex items-center justify-start gap-2"
-                    onClick={() => setIsOpenSheet((state) => !state)}
-                  >
-                    <span>
-                      <link.icon size={16} />
-                    </span>
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
+            <ul className="flex flex-col gap-0.5">
+              {navigationLinks.map((link) => {
+                const isActive = pathname === link.router
+                return (
+                  <li key={link.name}>
+                    <Link
+                      href={link.router}
+                      onClick={() => setIsOpenSheet(false)}
+                      className={cn(
+                        "group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <link.icon
+                          size={15}
+                          className={cn(
+                            isActive
+                              ? "text-primary-foreground"
+                              : "text-muted-foreground group-hover:text-primary",
+                          )}
+                        />
+                        {link.name}
+                      </div>
+                      <ChevronRight
+                        className={cn(
+                          "h-3.5 w-3.5 transition-opacity",
+                          isActive
+                            ? "opacity-60"
+                            : "opacity-0 group-hover:opacity-100",
+                        )}
+                      />
+                    </Link>
+                  </li>
+                )
+              })}
             </ul>
           </nav>
         </div>
 
-        <div className="bg-border h-px" />
-
-        <div className="p-5">
-          <div className="flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          <p className="text-muted-foreground mb-2 px-3 text-[10px] font-semibold tracking-[0.18em] uppercase">
+            Categorias
+          </p>
+          <div className="flex flex-col gap-0.5">
             {categories.map((category) => (
-              <Button
+              <Link
                 key={category.id}
-                asChild
-                variant="ghost"
-                className="flex items-center justify-start gap-4"
+                href={createBarbershopCategoryLink(category.slug)}
+                onClick={() => setIsOpenSheet(false)}
+                className="group text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-all"
               >
-                <Link
-                  href={createBarbershopCategoryLink(category.slug)}
-                  onClick={() => setIsOpenSheet((state) => !state)}
-                >
+                <div className="flex items-center gap-3">
                   <Image
                     alt={category.name}
                     src={category.icon!}
-                    width={16}
-                    height={16}
+                    width={14}
+                    height={14}
+                    className="opacity-60 transition-opacity group-hover:opacity-100"
                   />
-                  {category.name}
-                </Link>
-              </Button>
+                  <span className="font-medium">{category.name}</span>
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+              </Link>
             ))}
           </div>
         </div>
 
         {status === "authenticated" && (
-          <>
-            <div className="bg-border h-px" />
-            <SheetFooter>
-              <div className="flex items-center gap-4">
-                <Button onClick={handleSignOutClick} variant="ghost">
-                  <span>
-                    <LogIn />
-                  </span>
-                  Sair da conta
-                </Button>
-              </div>
-            </SheetFooter>
-          </>
+          <div className="border-border border-t px-4 py-4">
+            <button
+              onClick={handleSignOutClick}
+              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all"
+            >
+              <LogOut className="h-4 w-4" />
+              Sair da conta
+            </button>
+          </div>
         )}
       </SheetContent>
     </Sheet>

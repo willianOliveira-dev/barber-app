@@ -11,6 +11,9 @@ import {
   MapPinHouse,
   Smartphone,
   MailIcon,
+  Scissors,
+  Info,
+  Phone,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -28,124 +31,159 @@ export default async function BarbershopDetailPage({
 
   return (
     <>
-      <main className="space-y-4">
-        <section className="border-b-secondary flex flex-col items-center border">
-          <div className="container">
-            <div className="relative h-62.5 w-full overflow-hidden rounded-b-2xl p-5">
-              {barbershop?.image ? (
-                <Image
-                  src={barbershop?.image}
-                  alt={barbershop?.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <Image
-                  src="/default.png"
-                  alt="Sem imagem"
-                  fill
-                  className="object-cover"
-                />
-              )}
-              <Button
-                asChild
-                size={"icon"}
-                className="absolute top-5 left-5 z-20"
-                variant="secondary"
-              >
-                <Link href="/">
-                  <ArrowLeft />
-                </Link>
-              </Button>
+      <main className="flex flex-1 flex-col gap-0">
+        <section className="relative h-62.5 w-full overflow-hidden lg:h-95">
+          {barbershop?.image ? (
+            <Image
+              src={barbershop.image}
+              alt={barbershop.name}
+              fill
+              className="object-cover"
+              priority
+            />
+          ) : (
+            <Image
+              src="/default.png"
+              alt="Sem imagem"
+              fill
+              className="object-cover"
+            />
+          )}
 
-              <div className="absolute top-5 right-5 z-20">
-                <Menu categories={categories} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 p-5">
-              <h1 className="text-lg font-bold">{barbershop?.name}</h1>
-              <div className="space-y-1.5">
-                <p className="flex items-center gap-1 text-xs">
-                  <MapPinHouse className="text-primary" size={16} />
+          <div className="from-background via-background/30 absolute inset-0 bg-linear-to-t to-transparent" />
+
+          <div className="absolute top-4 right-4 left-4 z-20 flex items-center justify-between">
+            <Button
+              asChild
+              size="icon"
+              variant="secondary"
+              className="border-border bg-card/80 hover:border-primary/30 rounded-xl border backdrop-blur-sm"
+            >
+              <Link href="/">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Menu categories={categories} />
+          </div>
+
+          <div className="absolute right-0 bottom-0 left-0 z-10 p-5 lg:p-8">
+            <div className="container mx-auto">
+              <h1 className="text-foreground text-2xl leading-tight font-bold lg:text-4xl">
+                {barbershop?.name}
+              </h1>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <span className="text-muted-foreground flex items-center gap-1 text-xs">
+                  <MapPinHouse className="text-primary h-3.5 w-3.5" />
                   {barbershop?.address}
-                </p>
-                <p className="flex items-center gap-1 text-xs">
-                  <span>
-                    <StarIcon className="fill-primary text-primary" size={16} />
-                  </span>
-                  5,0 (889 avaliação)
-                </p>
+                </span>
+                <span className="border-primary/20 bg-primary/10 text-primary flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold">
+                  <StarIcon className="fill-primary h-3 w-3" />
+                  5,0 · 889 avaliações
+                </span>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="flex flex-col items-center p-5">
-          <div className="container flex flex-col gap-2">
-            <h2 className="text-xs font-bold text-gray-400 uppercase">
-              Sobre nós
-            </h2>
-            <p className="text-xs">
-              {barbershop?.description ?? "Sem descrição"}
-            </p>
-          </div>
-        </section>
+        <div className="container mx-auto flex flex-col gap-8 px-5 py-8 lg:flex-row lg:items-start lg:gap-12 lg:px-8 xl:px-12">
+          <div className="flex flex-col gap-8 lg:flex-1">
+            <section className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                  <Info className="text-primary h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold tracking-wide uppercase">
+                    Sobre <span className="text-primary">nós</span>
+                  </h2>
+                </div>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                {barbershop?.description ?? "Sem descrição"}
+              </p>
+            </section>
 
-        <section className="flex items-center justify-center p-5">
-          <div className="container flex flex-col gap-4">
-            <h2 className="text-xs font-bold text-gray-400 uppercase">
-              Serviços
-            </h2>
+            <section className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                  <Scissors className="text-primary h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold tracking-wide uppercase">
+                    Serviços <span className="text-primary">disponíveis</span>
+                  </h2>
+                  <p className="text-muted-foreground text-xs">
+                    {barbershop?.services.length ?? 0} serviços
+                  </p>
+                </div>
+              </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {barbershop?.services.map((service) => {
-                return (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                {barbershop?.services.map((service) => (
                   <BarbershopServiceItem
                     key={service.id}
                     barbershopName={barbershop.name}
                     service={service}
                   />
-                )
-              })}
-            </div>
+                ))}
+              </div>
+            </section>
           </div>
-        </section>
 
-        <section className="flex items-center justify-center p-5">
-          <div className="container flex flex-col gap-4">
-            <h2 className="text-xs font-bold text-gray-400 uppercase">
-              Contato
-            </h2>
-            <div className="flex flex-col gap-2">
-              {barbershop?.phone ? (
-                <div className="flex items-center justify-between gap-4">
-                  <p className="flex items-center gap-1 text-xs">
-                    <span>
-                      <Smartphone size={16} />
-                    </span>
-                    {barbershop.phone}
-                  </p>
-                  <Copy message={barbershop.phone} />
+          <aside className="flex flex-col gap-4 lg:w-70 lg:shrink-0 xl:w-75">
+            <div className="border-border bg-card rounded-2xl border p-5">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                  <Phone className="text-primary h-4 w-4" />
                 </div>
-              ) : (
-                <p className="text-xs">Sem telefone</p>
-              )}
-              {barbershop?.email ? (
-                <div className="flex items-center justify-between gap-4">
-                  <p className="flex items-center gap-1 text-xs">
-                    <span>
-                      <MailIcon size={16} />
-                    </span>
-                    {barbershop.email}
+                <div>
+                  <h2 className="text-sm font-semibold tracking-wide uppercase">
+                    Contato
+                  </h2>
+                  <p className="text-muted-foreground text-xs">
+                    Fale com a barbearia
                   </p>
-                  <Copy message={barbershop.email} />
                 </div>
-              ) : (
-                <p className="text-xs">Sem email</p>
-              )}
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {barbershop?.phone ? (
+                  <div className="border-border bg-background/50 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5">
+                    <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                      <Smartphone className="text-primary h-3.5 w-3.5 shrink-0" />
+                      <span>{barbershop.phone}</span>
+                    </div>
+                    <Copy message={barbershop.phone} />
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-xs">Sem telefone</p>
+                )}
+
+                {barbershop?.email ? (
+                  <div className="border-border bg-background/50 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5">
+                    <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
+                      <MailIcon className="text-primary h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{barbershop.email}</span>
+                    </div>
+                    <Copy message={barbershop.email} />
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-xs">Sem email</p>
+                )}
+              </div>
             </div>
-          </div>
-        </section>
+
+            <div className="border-border bg-card rounded-2xl border p-5">
+              <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                <span className="block h-2 w-2 animate-pulse rounded-full bg-green-400" />
+                <span>Aberto agora</span>
+              </div>
+              <p className="text-muted-foreground mt-1.5 text-xs">
+                Agende seu horário online, sem precisar ligar.
+              </p>
+            </div>
+          </aside>
+        </div>
       </main>
       <Footer />
     </>
