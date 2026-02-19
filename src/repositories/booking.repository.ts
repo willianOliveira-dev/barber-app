@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, lt, or } from "drizzle-orm"
+import { and, desc, eq, gt, lt, or, sql } from "drizzle-orm"
 import { booking } from "../db/schemas"
 import { db } from "../db/connection"
 import { InferSelectModel } from "drizzle-orm"
@@ -11,6 +11,7 @@ export type BookingWithRelations = BaseBooking & {
   barbershop: {
     id: string
     name: string
+    slug: string
     image: string | null
     address: string
     city: string
@@ -45,15 +46,15 @@ export interface CursorPaginationResponse {
 }
 
 export class BookingRepository {
-  async findLatestByUser(
-    userId: string,
-  ): Promise<BookingWithRelations | undefined> {
-    return db.query.booking.findFirst({
+  async findLatestByUser(userId: string): Promise<BookingWithRelations[]> {
+    return db.query.booking.findMany({
+      limit: 3,
       with: {
         barbershop: {
           columns: {
             id: true,
             name: true,
+            slug: true,
             image: true,
             address: true,
             city: true,
@@ -80,7 +81,7 @@ export class BookingRepository {
           },
         },
       },
-      where: and(eq(booking.userId, userId), eq(booking.status, "confirmed")),
+      where: and(eq(booking.userId, userId), eq(booking.status, "completed")),
       orderBy: desc(booking.scheduledAt),
     })
   }
@@ -128,6 +129,7 @@ export class BookingRepository {
           columns: {
             id: true,
             name: true,
+            slug: true,
             image: true,
             address: true,
             city: true,
@@ -177,6 +179,58 @@ export class BookingRepository {
     }
   }
 
+  // async rebookFromLatest(userId: string, newScheduledAt: Date) {
+  //   const latest = await this.findLatestByUser(userId)
+
+  //   if (!latest) {
+  //     return null
+  //   }
+
+  //   const endTime = new Date(
+  //     newScheduledAt.getTime() + latest.service.durationMinutes * 60000,
+  //   )
+
+  //   const [newBooking] = await db
+  //     .insert(booking)
+  //     .values({
+  //       userId,
+
+  //       serviceId: latest.service.id,
+
+  //       barbershopId: latest.barbershop.id,
+
+  //       scheduledAt: newScheduledAt,
+
+  //       endTime,
+
+  //       status: "confirmed",
+  //     })
+  //     .returning()
+
+  //   return newBooking
+  // }
+
+  async findRecommendedServices(userId: string, limit: number = 3) {
+    const result = await db
+      .select({
+        serviceId: booking.serviceId,
+        count: sql<number>`count(*)`,
+      })
+      .from(booking)
+      .where(and(eq(booking.userId, userId), eq(booking.status, "completed")))
+      .groupBy(booking.serviceId)
+      .orderBy(desc(sql`count(*)`))
+      .limit(limit)
+
+    if (!result.length) return []
+
+    const serviceIds = result.map((r) => r.serviceId)
+
+    return await db.query.barbershopService.findMany({
+      where: (service, { inArray }) => inArray(service.id, serviceIds),
+    })
+  }
+
   async updateStatus(id: string, status: BookingStatus) {
     return await db
       .update(booking)
@@ -205,6 +259,7 @@ export class BookingRepository {
           columns: {
             id: true,
             name: true,
+            slug: true,
             image: true,
             address: true,
             city: true,

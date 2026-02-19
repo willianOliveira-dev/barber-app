@@ -13,13 +13,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet"
+import { type BookingWithRelations } from "@/src/repositories/booking.repository"
+import Image from "next/image"
 import { BookingSummary } from "./booking-summary"
 import { Copy } from "./copy"
 import { MailIcon, Smartphone } from "lucide-react"
 import { Button } from "./ui/button"
 import { CancelBookingDialog } from "./cancel-booking-dialog"
-import { type BookingWithRelations } from "@/src/repositories/booking.repository"
-import Image from "next/image"
 
 interface BookingItemProps {
   booking: BookingWithRelations
@@ -46,41 +46,60 @@ export function BookingItem({ booking }: BookingItemProps) {
 
   return (
     <Sheet>
-      <SheetTrigger asChild className="cursor-pointer">
+      <SheetTrigger asChild>
         <Card
           className={twMerge(
-            "border-r-indigo-500 p-0",
+            `group border-border/40 from-background to-muted/40 relative cursor-pointer overflow-hidden border bg-linear-to-br p-0 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`,
             bookingStatusMap.border,
           )}
         >
           <CardContent className="flex justify-between p-0">
-            <div className="flex flex-col gap-4 p-6">
-              <Badge className={twMerge("w-fit", bookingStatusMap.background)}>
+            <div className="flex flex-col gap-5 p-6">
+              <Badge
+                className={twMerge(
+                  `w-fit px-3 py-1 font-semibold text-white shadow-sm`,
+                  bookingStatusMap.background,
+                )}
+              >
                 {bookingStatusMap.label}
               </Badge>
-              <div className="space-y-4">
-                <h3 className="font-semibold">{booking.service.name}</h3>
-                <div className="flex items-center gap-4">
+
+              <div className="space-y-3">
+                <h3 className="group-hover:text-primary text-lg font-bold tracking-tight transition-colors">
+                  {booking.service.name}
+                </h3>
+
+                <div className="flex items-center gap-3">
                   <ProfileBarbershop
                     image={booking.barbershop.image}
                     name={booking.barbershop.name}
                   />
-                  <p className="text-sm">{booking.barbershop.name}</p>
+
+                  <p className="text-muted-foreground text-sm font-medium">
+                    {booking.barbershop.name}
+                  </p>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-center justify-center border-l-2 border-gray-400/10 p-6">
-              <p className="text-sm capitalize">
-                {format(booking.scheduledAt, "MMMM", { locale: ptBR })}
+
+            <div className="border-border/50 bg-muted/20 flex flex-col items-center justify-center border-l px-7 py-6">
+              <p className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
+                {format(booking.scheduledAt, "MMM", { locale: ptBR })}
               </p>
-              <p className="text-2xl">
+
+              <p className="text-primary text-3xl font-bold tracking-tight">
                 {format(booking.scheduledAt, "dd", { locale: ptBR })}
               </p>
-              <p className="text-sm">
+
+              <p className="text-muted-foreground text-sm font-medium">
                 {format(booking.scheduledAt, "HH:mm", { locale: ptBR })}
               </p>
             </div>
           </CardContent>
+
+          <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100">
+            <div className="from-primary/10 to-primary/10 absolute inset-0 bg-linear-to-r via-transparent" />
+          </div>
         </Card>
       </SheetTrigger>
       <SheetContent>
