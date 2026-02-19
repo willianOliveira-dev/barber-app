@@ -52,6 +52,7 @@ export function Search() {
               <FormControl>
                 <Input
                   {...field}
+                  id="search-input"
                   type="text"
                   name="search"
                   placeholder="Faça sua busca..."

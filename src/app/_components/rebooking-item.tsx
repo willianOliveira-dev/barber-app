@@ -18,12 +18,12 @@ export function RebookItem({ booking, className }: RebookItemProps) {
   return (
     <Card
       className={twMerge(
-        "hover:border-primary/10 w-full overflow-hidden rounded-2xl border border-white/5 bg-white/5 backdrop-blur-sm transition-all hover:bg-white/10 hover:shadow-lg",
+        "hover:border-primary/10 w-full overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-2 backdrop-blur-sm transition-all hover:bg-white/10 hover:shadow-lg",
         className,
       )}
     >
       <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col items-start justify-center gap-4">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <Avatar className="ring-primary/20 ring-offset-card size-11 shrink-0 rounded-xl ring-2 ring-offset-1">
               {booking.barbershop.image ? (
@@ -43,7 +43,7 @@ export function RebookItem({ booking, className }: RebookItemProps) {
               )}
             </Avatar>
 
-            <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5">
               <h3 className="text-foreground truncate text-sm leading-tight font-semibold">
                 {booking.barbershop.name}
               </h3>
@@ -69,7 +69,7 @@ export function RebookItem({ booking, className }: RebookItemProps) {
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-col items-end gap-2">
+          <div className="flex shrink-0 flex-col items-start gap-2">
             <span className="text-primary text-sm font-bold whitespace-nowrap">
               {priceFormat.formatToPrice(booking.service.priceInCents)}
             </span>
