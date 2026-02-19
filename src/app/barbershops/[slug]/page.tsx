@@ -14,6 +14,7 @@ import {
   Scissors,
   Info,
   Phone,
+  Clock,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -28,6 +29,16 @@ export default async function BarbershopDetailPage({
   const { slug } = await params
   const barbershop = await barbershopRepo.findBySlug(slug)
   const categories = await categoryRepo.findAll()
+
+  const dayMap: Record<string, string> = {
+    monday: "Segunda-feira",
+    tuesday: "Terça-feira",
+    wednesday: "Quarta-feira",
+    thursday: "Quinta-feira",
+    friday: "Sexta-feira",
+    saturday: "Sábado",
+    sunday: "Domingo",
+  }
 
   return (
     <>
@@ -76,7 +87,11 @@ export default async function BarbershopDetailPage({
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <span className="text-muted-foreground flex items-center gap-1 text-xs">
                   <MapPinHouse className="text-primary h-3.5 w-3.5" />
-                  {barbershop?.address}
+                  {barbershop?.address}, {barbershop?.streetNumber}
+                  {barbershop?.complement
+                    ? ` - ${barbershop.complement}`
+                    : ""}{" "}
+                  — {barbershop?.city}, {barbershop?.state}
                 </span>
                 <span className="border-primary/20 bg-primary/10 text-primary flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold">
                   <StarIcon className="fill-primary h-3 w-3" />
@@ -132,7 +147,7 @@ export default async function BarbershopDetailPage({
             </section>
           </div>
 
-          <aside className="flex flex-col gap-4 lg:w-70 lg:shrink-0 xl:w-75">
+          <aside className="flex flex-col gap-4 lg:w-80 lg:shrink-0 xl:w-85">
             <div className="border-border bg-card rounded-2xl border p-5">
               <div className="mb-4 flex items-center gap-3">
                 <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
@@ -143,45 +158,119 @@ export default async function BarbershopDetailPage({
                     Contato
                   </h2>
                   <p className="text-muted-foreground text-xs">
-                    Fale com a barbearia
+                    Fale com a gente
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-3">
-                {barbershop?.phone ? (
+                {barbershop?.phone && (
                   <div className="border-border bg-background/50 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5">
                     <div className="text-muted-foreground flex items-center gap-2 text-xs">
                       <Smartphone className="text-primary h-3.5 w-3.5 shrink-0" />
-                      <span>{barbershop.phone}</span>
+                      <span className="font-medium">{barbershop.phone}</span>
                     </div>
                     <Copy message={barbershop.phone} />
                   </div>
-                ) : (
-                  <p className="text-muted-foreground text-xs">Sem telefone</p>
                 )}
-
-                {barbershop?.email ? (
+                {barbershop?.email && (
                   <div className="border-border bg-background/50 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5">
                     <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
                       <MailIcon className="text-primary h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate">{barbershop.email}</span>
+                      <span className="truncate font-medium">
+                        {barbershop.email}
+                      </span>
                     </div>
                     <Copy message={barbershop.email} />
                   </div>
-                ) : (
-                  <p className="text-muted-foreground text-xs">Sem email</p>
+                )}
+
+                {!barbershop?.phone && !barbershop?.email && (
+                  <p className="text-muted-foreground text-xs">Sem contato</p>
                 )}
               </div>
             </div>
 
             <div className="border-border bg-card rounded-2xl border p-5">
-              <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                <span className="block h-2 w-2 animate-pulse rounded-full bg-green-400" />
-                <span>Aberto agora</span>
+              <div className="mb-4 flex items-center gap-3">
+                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                  <Clock className="text-primary h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold tracking-wide uppercase">
+                    Horários
+                  </h2>
+                  <p className="text-muted-foreground text-xs">
+                    Programação semanal
+                  </p>
+                </div>
               </div>
-              <p className="text-muted-foreground mt-1.5 text-xs">
-                Agende seu horário online, sem precisar ligar.
+
+              <div className="flex flex-col gap-2">
+                {barbershop && barbershop.hours.length > 0 ? (
+                  barbershop.hours
+                    .sort((a, b) => {
+                      const days = [
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday",
+                        "sunday",
+                      ]
+                      return (
+                        days.indexOf(a.dayOfWeek) - days.indexOf(b.dayOfWeek)
+                      )
+                    })
+                    .map((hour) => (
+                      <div
+                        key={hour.id}
+                        className="flex items-center justify-between text-xs"
+                      >
+                        <span className="text-muted-foreground">
+                          {dayMap[hour.dayOfWeek]}
+                        </span>
+                        {hour.isOpen ? (
+                          <span className="text-foreground font-medium">
+                            {hour.openingTime} — {hour.closingTime}
+                          </span>
+                        ) : (
+                          <span className="text-destructive font-semibold uppercase">
+                            Fechado
+                          </span>
+                        )}
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-muted-foreground text-xs">
+                    Horários não informados
+                  </p>
+                )}
+              </div>
+
+              <hr className="border-border my-4" />
+
+              <div className="flex items-center gap-2 text-xs">
+                {barbershop?.statusHistory?.[0]?.isOpen !== false ? (
+                  <>
+                    <span className="block h-2 w-2 animate-pulse rounded-full bg-green-500" />
+                    <span className="text-foreground font-semibold">
+                      Aberto agora
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="bg-destructive block h-2 w-2 rounded-full" />
+                    <span className="text-destructive font-semibold">
+                      Fechado no momento
+                    </span>
+                  </>
+                )}
+              </div>
+              <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
+                {barbershop?.statusHistory?.[0]?.reason ||
+                  "Agende seu horário online com antecedência."}
               </p>
             </div>
           </aside>

@@ -81,21 +81,32 @@ class BarbershopRepository {
   }
 
   async findBySlug(slug: string) {
-    const _barbershop = await db.query.barbershop.findFirst({
+    const result = await db.query.barbershop.findFirst({
       where: eq(barbershop.slug, slug),
+      with: {
+        services: {
+          with: {
+            category: true,
+          },
+        },
+        hours: true,
+        statusHistory: {
+          limit: 1,
+          orderBy: (status, { desc }) => [desc(status.updatedAt)],
+        },
+        owner: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     })
 
-    if (!_barbershop) return null
+    if (!result) return null
 
-    const services = await db
-      .select()
-      .from(barbershopService)
-      .where(eq(barbershopService.barbershopId, _barbershop.id))
-
-    return {
-      ..._barbershop,
-      services,
-    }
+    return result
   }
 
   async findById(id: string) {
