@@ -1,20 +1,28 @@
 import { Heart } from "lucide-react"
+import Link from "next/link"
+import { FaScissors } from "react-icons/fa6"
 
 export function Footer() {
   return (
-    <footer className="bg-card flex items-center justify-center border-t p-4">
-      <div className="flex flex-col items-center justify-center gap-1.5 text-sm text-gray-400">
-        <p>&copy; 2026 Copyrigth RazerBarber</p>
-        <span className="hidden">|</span>
-        <p className="flex items-center gap-1">
-          Feito com <Heart className="fill-red-400 text-red-400" /> por
-          <a
-            className="hover:text-primary font-semibold transition-colors duration-300"
-            target="_blank"
+    <footer className="border-border bg-card border-t">
+      <div className="mx-auto flex max-w-screen-2xl flex-col items-center justify-between gap-4 px-5 py-6 sm:flex-row lg:px-8 xl:px-12">
+        <div className="text-muted-foreground flex items-center gap-2">
+          <div className="bg-primary/10 flex h-6 w-6 items-center justify-center rounded-md">
+            <FaScissors className="text-primary h-3 w-3" />
+          </div>
+          <span className="text-xs font-medium">&copy; 2026 RazorBarber</span>
+        </div>
+
+        <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          Feito com <Heart className="h-3.5 w-3.5 fill-red-400 text-red-400" />{" "}
+          por{" "}
+          <Link
             href="https://github.com/willianOliveira-dev"
+            target="_blank"
+            className="text-foreground hover:text-primary font-semibold transition-colors"
           >
             Willian
-          </a>
+          </Link>
         </p>
       </div>
     </footer>
