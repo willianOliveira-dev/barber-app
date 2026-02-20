@@ -52,19 +52,21 @@ export function BookingSheet({
     const fetchSlots = async () => {
       if (!isOpen) return
       setIsLoadingSlots(true)
-      try {
-        const availableSlots = await getAvailableSlotsAction({
-          barbershopId: service.barbershopId,
-          serviceId: service.id,
-          date: selectedDate ?? new Date(),
-        })
-        setSlots(availableSlots.slots)
-      } catch (error) {
-        console.log(error)
+      const availableSlots = await getAvailableSlotsAction({
+        barbershopId: service.barbershopId,
+        serviceId: service.id,
+        date: selectedDate ?? new Date(),
+      })
+      if (!availableSlots.success) {
         toast.error("Erro ao buscar horários disponíveis")
-      } finally {
-        setIsLoadingSlots(false)
+        return
       }
+
+      const data = availableSlots.data ? availableSlots.data : { slots: [] }
+
+      setSlots(data.slots)
+
+      setIsLoadingSlots(false)
     }
     fetchSlots()
   }, [isOpen, service.barbershopId, service.id])
@@ -75,19 +77,22 @@ export function BookingSheet({
       setIsLoadingSlots(true)
       setSelectedSlot(undefined)
 
-      try {
-        const availableSlots = await getAvailableSlotsAction({
-          barbershopId: service.barbershopId,
-          serviceId: service.id,
-          date: selectedDate,
-        })
-        setSlots(availableSlots.slots)
-      } catch (error) {
-        console.error("Erro ao buscar slots:", error)
+      const availableSlots = await getAvailableSlotsAction({
+        barbershopId: service.barbershopId,
+        serviceId: service.id,
+        date: selectedDate,
+      })
+
+      if (!availableSlots.success) {
         toast.error("Erro ao buscar horários disponíveis")
-      } finally {
-        setIsLoadingSlots(false)
+        return
       }
+
+      const data = availableSlots.data ? availableSlots.data : { slots: [] }
+
+      setSlots(data.slots)
+
+      setIsLoadingSlots(false)
     }
 
     fetchSlots()

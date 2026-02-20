@@ -1,11 +1,11 @@
 "use server"
-import { user } from "@/src/db/schemas"
 import {
   bookingRepo,
   type BookingStatus,
 } from "@/src/repositories/booking.repository"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../../_lib/auth.lib"
+import { ActionResponse } from "../../_common/http/response/action.response"
 
 interface GetBookingActionParams {
   cursor?: {
@@ -22,10 +22,12 @@ export async function getBookingsAction(params: GetBookingActionParams) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
-      return {
-        success: false,
-        message: "Não autorizado",
-      }
+      console.error("Usuário não autenticado")
+      return ActionResponse.fail({
+        error: "USER_UNAUTHENTICADED",
+        message: "Usuário não autenticado",
+        statusCode: 401,
+      })
     }
     const cursor = params.cursor
       ? {
@@ -42,16 +44,17 @@ export async function getBookingsAction(params: GetBookingActionParams) {
       limit,
       status,
     )
-
-    return {
-      success: true,
+    return ActionResponse.success({
       data: result,
-    }
+      message: "Operação realizada com sucesso",
+      statusCode: 200,
+    })
   } catch (err) {
-    console.error(err)
-    return {
-      success: false,
-      message: "Erro ao buscar agendamentos",
-    }
+    console.error("[getBookingsAction] Error:", err)
+    return ActionResponse.fail({
+      error: "INTERNAL_SERVER_ERROR",
+      message: "Erro interno do servidor",
+      statusCode: 500,
+    })
   }
 }

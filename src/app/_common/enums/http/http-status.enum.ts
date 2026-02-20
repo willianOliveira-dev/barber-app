@@ -1,4 +1,3 @@
-// ✅ Status tradicionais (1xx, 2xx, 3xx)
 export enum HttpStatusCode {
   // 1xx Informational
   Continue = 100,

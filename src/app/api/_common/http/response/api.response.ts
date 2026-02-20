@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server"
-import { HttpErrorCode, HttpStatusCode } from "./enums/http-status.enum"
-import { HttpErrorName, HttpStatusName } from "./enums/http-status-name.enum"
+import {
+  HttpErrorCode,
+  HttpStatusCode,
+} from "../../enums/http/http-status.enum"
+import {
+  HttpErrorName,
+  HttpStatusName,
+} from "../../enums/http/http-status-name.enum"
 
-export class ApiResponse<T> {
+export class ApiResponse<T = null> {
   success: boolean
   statusCode: number
   httpStatusName: string

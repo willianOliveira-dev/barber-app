@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, lt, or, sql } from "drizzle-orm"
+import { and, desc, eq, lt, or, sql } from "drizzle-orm"
 import { booking } from "../db/schemas"
 import { db } from "../db/connection"
 import { InferSelectModel } from "drizzle-orm"
