@@ -1,35 +1,30 @@
 "use client"
-
-import { useState } from "react"
 import { Card, CardContent, CardHeader } from "./ui/card"
 import { BookingSheet } from "./booking-sheet"
-import { ServiceDetailsDialog } from "./service-details-dialog"
 import { BarbershopService } from "@/src/db/types"
-import Image from "next/image"
 import { priceFormat } from "../_utils/price-format.util"
 import { useSession } from "next-auth/react"
-import Link from "next/link"
 import { Button } from "./ui/button"
 import { LogIn } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 
 interface BarbershopServicesItemProps {
   service: BarbershopService
+  barbershopSlug: string
   barbershopName: string
 }
 
 export function BarbershopServiceItem({
   service,
+  barbershopSlug,
   barbershopName,
 }: BarbershopServicesItemProps) {
   const { status } = useSession()
-  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
-    <>
-      <Card
-        className="border-border bg-card hover:border-primary/20 flex cursor-pointer flex-row items-center gap-4 overflow-hidden border p-4 transition-colors"
-        onClick={() => setDialogOpen(true)}
-      >
+    <Link href={`/barbershops/${barbershopSlug}/services/${service.slug}`}>
+      <Card className="border-border bg-card hover:border-primary/20 flex cursor-pointer flex-row items-center gap-4 overflow-hidden border p-4 transition-colors">
         <CardHeader className="relative size-22 shrink-0 overflow-hidden rounded-xl p-0">
           {service.image ? (
             <Image
@@ -87,13 +82,6 @@ export function BarbershopServiceItem({
           </div>
         </CardContent>
       </Card>
-
-      <ServiceDetailsDialog
-        service={service}
-        barbershopName={barbershopName}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
-    </>
+    </Link>
   )
 }

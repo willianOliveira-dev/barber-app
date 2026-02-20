@@ -139,6 +139,7 @@ export default async function BarbershopDetailPage({
                 {barbershop?.services.map((service) => (
                   <BarbershopServiceItem
                     key={service.id}
+                    barbershopSlug={barbershop.slug}
                     barbershopName={barbershop.name}
                     service={service}
                   />
