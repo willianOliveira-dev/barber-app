@@ -105,7 +105,7 @@ export function BookingSheet({
           Fazer Reserva
         </Button>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="overflow-y-scroll [&::-webkit-scrollbar]:hidden">
         <SheetHeader>
           <SheetTitle>Fazer Reserva</SheetTitle>
         </SheetHeader>

@@ -102,7 +102,7 @@ export function BookingItem({ booking }: BookingItemProps) {
           </div>
         </Card>
       </SheetTrigger>
-      <SheetContent>
+      <SheetContent className="overflow-y-scroll [&::-webkit-scrollbar]:hidden">
         <SheetHeader>
           <SheetTitle>Informações da reserva</SheetTitle>
         </SheetHeader>

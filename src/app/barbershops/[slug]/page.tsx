@@ -84,16 +84,24 @@ export default async function BarbershopDetailPage({
               <h1 className="text-foreground text-2xl leading-tight font-bold lg:text-4xl">
                 {barbershop?.name}
               </h1>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <span className="text-muted-foreground flex items-center gap-1 text-xs">
-                  <MapPinHouse className="text-primary h-3.5 w-3.5" />
-                  {barbershop?.address}, {barbershop?.streetNumber}
-                  {barbershop?.complement
-                    ? ` - ${barbershop.complement}`
-                    : ""}{" "}
-                  — {barbershop?.city}, {barbershop?.state}
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <div className="flex items-center gap-1.5">
+                  <MapPinHouse className="text-primary h-4 w-4 shrink-0" />
+                  <span className="text-muted-foreground text-xs lg:text-sm">
+                    {barbershop?.address}, {barbershop?.streetNumber}
+                    {barbershop?.complement
+                      ? ` • ${barbershop.complement}`
+                      : ""}
+                  </span>
+                </div>
+
+                <div className="bg-border hidden h-1 w-1 rounded-full sm:block" />
+
+                <span className="text-muted-foreground text-xs lg:text-sm">
+                  {barbershop?.city} — {barbershop?.state}
                 </span>
-                <span className="border-primary/20 bg-primary/10 text-primary flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold">
+
+                <span className="border-primary/20 bg-primary/10 text-primary flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold">
                   <StarIcon className="fill-primary h-3 w-3" />
                   5,0 · 889 avaliações
                 </span>

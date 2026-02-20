@@ -30,24 +30,24 @@ import {
 import { cn } from "../_lib/utils.lib"
 import { InferSelectModel } from "drizzle-orm"
 import { category } from "@/src/db/schemas"
+import { Session } from "next-auth"
 
 interface HeaderClientProps {
   categories: InferSelectModel<typeof category>[]
+  user?: Session["user"]
 }
 
-const navigationLinks = [
-  { name: "Início", href: "/", icon: HomeIcon },
-  { name: "Barbearias", href: "/barbershops", icon: FaScissors },
-  { name: "Agendamentos", href: "/bookings", icon: CalendarHeart },
-]
-
-export function HeaderClient({ categories }: HeaderClientProps) {
+export function HeaderClient({ categories, user }: HeaderClientProps) {
   const pathname = usePathname()
-  const { data: session } = useSession()
-  const user = session?.user
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href)
+
+  const navigationLinks = [
+    { name: "Início", href: "/", icon: HomeIcon },
+    { name: "Barbearias", href: "/barbershops", icon: FaScissors },
+    { name: "Agendamentos", href: "/bookings", icon: CalendarHeart },
+  ]
 
   return (
     <header className="border-border bg-card/80 sticky top-0 z-50 w-full border-b backdrop-blur-md">
