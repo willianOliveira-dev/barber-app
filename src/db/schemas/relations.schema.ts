@@ -9,12 +9,15 @@ import { availableTimeSlot } from "./available-time-slot.schema"
 import { barbershopStatus } from "./barbershop-status.schema"
 import { account } from "./account.schema"
 import { session } from "./session.schema"
+import { review, reviewLike } from "./review.schema"
 
 export const userRelations = relations(user, ({ many }) => ({
   bookings: many(booking),
-  barbershops: many(barbershop), // Caso o usuário seja dono de várias
+  barbershops: many(barbershop),
   accounts: many(account),
   sessions: many(session),
+  reviews: many(review),
+  reviewLikes: many(reviewLike),
 }))
 
 export const accountRelations = relations(account, ({ one }) => ({
@@ -37,6 +40,7 @@ export const barbershopRelations = relations(barbershop, ({ many, one }) => ({
   hours: many(barbershopHour),
   statusHistory: many(barbershopStatus),
   timeSlots: many(availableTimeSlot),
+  reviews: many(review),
   owner: one(user, {
     fields: [barbershop.ownerId],
     references: [user.id],
@@ -97,6 +101,10 @@ export const bookingRelations = relations(booking, ({ one }) => ({
     fields: [booking.id],
     references: [availableTimeSlot.bookingId],
   }),
+  review: one(review, {
+    fields: [booking.id],
+    references: [review.bookingId],
+  }),
 }))
 
 export const availableTimeSlotRelations = relations(
@@ -116,3 +124,30 @@ export const availableTimeSlotRelations = relations(
     }),
   }),
 )
+
+export const reviewRelations = relations(review, ({ one, many }) => ({
+  user: one(user, {
+    fields: [review.userId],
+    references: [user.id],
+  }),
+  barbershop: one(barbershop, {
+    fields: [review.barbershopId],
+    references: [barbershop.id],
+  }),
+  booking: one(booking, {
+    fields: [review.bookingId],
+    references: [booking.id],
+  }),
+  likes: many(reviewLike),
+}))
+
+export const reviewLikeRelations = relations(reviewLike, ({ one }) => ({
+  review: one(review, {
+    fields: [reviewLike.reviewId],
+    references: [review.id],
+  }),
+  user: one(user, {
+    fields: [reviewLike.userId],
+    references: [user.id],
+  }),
+}))

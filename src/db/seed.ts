@@ -14,57 +14,76 @@ import {
   barbershopStatus,
   availableTimeSlot,
   category,
+  review,
+  reviewLike,
 } from "./schemas"
 
 const client = neon(env.DATABASE_URL)
 const db = drizzle(client)
 
 const BARBERSHOP_IMAGES = [
-  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1632106061261-8d8b6c7f1f5c?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1512690459411-b9245aed614b?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=800&auto=format&fit=crop",
 ]
 
 const SERVICE_IMAGES = {
   corte: [
-    "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1621607512214-68297480165e?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1621607512214-68297480165e?w=600&auto=format&fit=crop",
   ],
   barba: [
-    "https://images.unsplash.com/photo-1621604048884-c818a0e57e59?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1621604048884-c818a0e57e59?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=600&auto=format&fit=crop",
   ],
   degrade: [
-    "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&auto=format&fit=crop",
   ],
   sobrancelha: [
-    "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=600&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=600&auto=format&fit=crop",
   ],
   combo: [
-    "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&auto=format&fit=crop",
   ],
   massagem: [
-    "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=600&auto=format&fit=crop",
   ],
   hidratacao: [
-    "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=600&auto=format&fit=crop",
   ],
 }
+
+const BRAZILIAN_CITIES = [
+  // Rio de Janeiro
+  { city: "São João de Meriti", state: "RJ", lat: -22.804, lng: -43.372 },
+  { city: "Duque de Caxias", state: "RJ", lat: -22.785, lng: -43.311 },
+  { city: "Maricá", state: "RJ", lat: -22.919, lng: -42.818 },
+  { city: "Rio de Janeiro", state: "RJ", lat: -22.906, lng: -43.172 },
+  { city: "Belford Roxo", state: "RJ", lat: -22.764, lng: -43.399 },
+  { city: "Niterói", state: "RJ", lat: -22.883, lng: -43.103 },
+  { city: "Mesquita", state: "RJ", lat: -22.794, lng: -43.432 },
+  // Outros estados
+  { city: "São Paulo", state: "SP", lat: -23.55, lng: -46.633 },
+  { city: "Belo Horizonte", state: "MG", lat: -19.917, lng: -43.939 },
+  { city: "Curitiba", state: "PR", lat: -25.429, lng: -49.271 },
+  { city: "Porto Alegre", state: "RS", lat: -30.033, lng: -51.23 },
+  { city: "Salvador", state: "BA", lat: -12.971, lng: -38.511 },
+  { city: "Fortaleza", state: "CE", lat: -3.731, lng: -38.527 },
+  { city: "Recife", state: "PE", lat: -8.053, lng: -34.881 },
+  { city: "Brasília", state: "DF", lat: -15.794, lng: -47.882 },
+]
 
 const BARBERSHOP_NAMES = [
   "Barbearia Corleone",
@@ -84,34 +103,16 @@ const BARBERSHOP_NAMES = [
   "Barbearia do Centro",
   "Estilo Masculino",
   "Barbeiros Unidos",
-  "Cabelo & Cia",
   "Lounge do Barbeiro",
   "Barbearia VIP",
   "Brothers Barber Shop",
-  "Rei da Barba",
-  "Barberia Moderna",
-  "Studio do Corte",
-  "Barbearia Elegance",
-]
-
-const BRAZILIAN_CITIES = [
-  { city: "São Paulo", state: "SP", lat: -23.55052, lng: -46.633308 },
-  { city: "Rio de Janeiro", state: "RJ", lat: -22.906847, lng: -43.172896 },
-  { city: "Belo Horizonte", state: "MG", lat: -19.916681, lng: -43.934493 },
-  { city: "Curitiba", state: "PR", lat: -25.428954, lng: -49.267137 },
-  { city: "Porto Alegre", state: "RS", lat: -30.034647, lng: -51.217658 },
-  { city: "Brasília", state: "DF", lat: -15.793889, lng: -47.882778 },
-  { city: "Salvador", state: "BA", lat: -12.971599, lng: -38.501301 },
-  { city: "Fortaleza", state: "CE", lat: -3.731862, lng: -38.526669 },
-  { city: "Recife", state: "PE", lat: -8.047562, lng: -34.877002 },
-  { city: "Florianópolis", state: "SC", lat: -27.5935, lng: -48.55854 },
 ]
 
 async function seed() {
   try {
     console.log("🧹 Limpando banco de dados...")
     await db.execute(
-      sql`TRUNCATE TABLE ${availableTimeSlot}, ${booking}, ${barbershopHour}, ${barbershopStatus}, ${barbershopService}, ${barbershop}, ${category}, ${user} CASCADE`,
+      sql`TRUNCATE TABLE ${reviewLike}, ${review}, ${availableTimeSlot}, ${booking}, ${barbershopHour}, ${barbershopStatus}, ${barbershopService}, ${barbershop}, ${category}, ${user} CASCADE`,
     )
 
     console.log("📁 Criando categorias de serviços...")
@@ -123,7 +124,7 @@ async function seed() {
           "Serviços de corte masculino com máquina, tesoura e acabamento profissional.",
         icon: "/icons/hair.svg",
         image:
-          "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&h=300&fit=crop",
+          "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&auto=format&fit=crop",
       },
       {
         name: "Barba",
@@ -132,7 +133,7 @@ async function seed() {
           "Aparar, desenhar e cuidados especiais para barba com navalha e produtos premium.",
         icon: "/icons/beard.svg",
         image:
-          "https://images.unsplash.com/photo-1621604048884-c818a0e57e59?w=400&h=300&fit=crop",
+          "https://images.unsplash.com/photo-1621604048884-c818a0e57e59?w=400&auto=format&fit=crop",
       },
       {
         name: "Acabamento",
@@ -141,7 +142,7 @@ async function seed() {
           "Ajustes precisos no contorno do cabelo e barba (pezinho) para um visual limpo e renovado.",
         icon: "/icons/razor.svg",
         image:
-          "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&h=300&fit=crop",
+          "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=400&auto=format&fit=crop",
       },
       {
         name: "Sobrancelha",
@@ -150,7 +151,7 @@ async function seed() {
           "Design e modelagem de sobrancelhas masculinas para um olhar marcante.",
         icon: "/icons/eyebrow.svg",
         image:
-          "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=400&h=300&fit=crop",
+          "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=400&auto=format&fit=crop",
       },
       {
         name: "Massagem",
@@ -159,7 +160,7 @@ async function seed() {
           "Momento de relaxamento focado no alívio de tensões musculares e bem-estar físico e mental.",
         icon: "/icons/towel.svg",
         image:
-          "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&h=300&fit=crop",
+          "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&auto=format&fit=crop",
       },
       {
         name: "Hidratação",
@@ -168,7 +169,7 @@ async function seed() {
           "Tratamentos capilares, hidratação e cuidados especiais para cabelo e couro cabeludo.",
         icon: "/icons/huge.svg",
         image:
-          "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop",
+          "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&auto=format&fit=crop",
       },
     ]
 
@@ -177,8 +178,8 @@ async function seed() {
       .values(categoriesToInsert)
       .returning()
 
-    console.log("👥 Criando 50 usuários...")
-    const usersToInsert = Array.from({ length: 50 }).map(() => {
+    console.log("👥 Criando 25 usuários...")
+    const usersToInsert = Array.from({ length: 25 }).map(() => {
       const firstName = faker.person.firstName()
       const lastName = faker.person.lastName()
 
@@ -198,20 +199,18 @@ async function seed() {
       .values(usersToInsert)
       .returning()
 
-    console.log("💈 Criando 25 barbearias...")
+    console.log("💈 Criando 18 barbearias nas regiões solicitadas...")
 
-    const barbershopsToInsert = Array.from({ length: 25 }).map((_, i) => {
-      const location = faker.helpers.arrayElement(BRAZILIAN_CITIES)
+    const barbershopsToInsert = Array.from({ length: 18 }).map((_, i) => {
+      const location = BRAZILIAN_CITIES[i % BRAZILIAN_CITIES.length]
       const baseName = BARBERSHOP_NAMES[i % BARBERSHOP_NAMES.length]
-      const suffix = i >= BARBERSHOP_NAMES.length ? ` - ${location.city}` : ""
-      const fullName = `${baseName}${suffix}`
-      const slug = `${faker.helpers.slugify(fullName).toLowerCase()}-${faker.string.nanoid(4)}`
+      const slug = `${faker.helpers.slugify(baseName).toLowerCase()}-${faker.string.nanoid(4)}`
       const streetNumber = faker.number.int({ min: 1, max: 9999 }).toString()
 
       return {
-        name: fullName,
+        name: `${baseName} - ${location.city}`,
         slug,
-        description: `Localizada em ${location.city}, a ${baseName} é referência em cortes masculinos modernos e tradicionais. Ambiente acolhedor com profissionais experientes e atendimento premium.`,
+        description: `Localizada em ${location.city}, a ${baseName} é referência em cortes masculinos modernos e tradicionais. Ambiente acolhedor com profissionais experientes.`,
         image: BARBERSHOP_IMAGES[i % BARBERSHOP_IMAGES.length],
         ownerId: insertedUsers[i % insertedUsers.length].id,
         address: faker.location.streetAddress(),
@@ -228,10 +227,10 @@ async function seed() {
           ? `https://www.${faker.helpers.slugify(baseName).toLowerCase()}.com.br`
           : null,
         latitude: (
-          location.lat + faker.number.float({ min: -0.05, max: 0.05 })
+          location.lat + faker.number.float({ min: -0.02, max: 0.02 })
         ).toFixed(6),
         longitude: (
-          location.lng + faker.number.float({ min: -0.05, max: 0.05 })
+          location.lng + faker.number.float({ min: -0.02, max: 0.02 })
         ).toFixed(6),
         isActive: true,
       }
@@ -349,11 +348,12 @@ async function seed() {
 
     let totalBookings = 0
     let totalTimeSlots = 0
+    const allBookings: any[] = []
 
     for (const shop of insertedBarbershops) {
       console.log(`💈 ${shop.name}...`)
 
-      const numServices = faker.number.int({ min: 4, max: 6 })
+      const numServices = faker.number.int({ min: 3, max: 5 })
       const selectedTemplates = faker.helpers.arrayElements(
         serviceTemplates,
         numServices,
@@ -384,9 +384,7 @@ async function seed() {
         .values(services)
         .returning()
 
-      const createdSlotsByService = new Map<string, any[]>()
-
-      for (let day = 0; day < 14; day++) {
+      for (let day = 0; day < 7; day++) {
         const date = new Date()
         date.setDate(date.getDate() + day)
 
@@ -396,7 +394,6 @@ async function seed() {
 
         for (const service of insertedServices) {
           const timeSlotsForService = []
-
           let currentTime = new Date(date)
           currentTime.setHours(8, 0, 0, 0)
 
@@ -412,18 +409,13 @@ async function seed() {
             const now = new Date()
             const isPast = currentTime < now
             const isToday = currentTime.toDateString() === now.toDateString()
-            const daysFromNow = Math.floor(
-              (currentTime.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-            )
 
-            let availabilityProbability = 0.85
+            let availabilityProbability = 0.95
 
             if (isPast) {
-              availabilityProbability = 0.2
+              availabilityProbability = 0.1
             } else if (isToday) {
-              availabilityProbability = 0.4
-            } else if (daysFromNow <= 7) {
-              availabilityProbability = 0.6
+              availabilityProbability = 0.7
             }
 
             timeSlotsForService.push({
@@ -436,7 +428,7 @@ async function seed() {
               bookingId: null,
             })
 
-            currentTime = new Date(currentTime.getTime() + serviceDurationMs)
+            currentTime = new Date(currentTime.getTime() + 60 * 60 * 1000)
           }
 
           if (timeSlotsForService.length > 0) {
@@ -447,60 +439,126 @@ async function seed() {
 
             totalTimeSlots += insertedSlots.length
 
-            if (!createdSlotsByService.has(service.id)) {
-              createdSlotsByService.set(service.id, [])
+            for (const slot of insertedSlots) {
+              if (!slot.isAvailable) {
+                const endTime = new Date(slot.startTime)
+                endTime.setMinutes(
+                  endTime.getMinutes() + service.durationMinutes,
+                )
+
+                const now = new Date()
+                let status: "confirmed" | "completed" | "cancelled"
+
+                if (slot.startTime < now) {
+                  status = faker.helpers.arrayElement([
+                    "completed",
+                    "completed",
+                    "cancelled",
+                  ])
+                } else {
+                  status = "confirmed"
+                }
+
+                const randomUser =
+                  insertedUsers[
+                    Math.floor(Math.random() * insertedUsers.length)
+                  ]
+
+                const insertedBooking = await db
+                  .insert(booking)
+                  .values({
+                    userId: randomUser.id,
+                    serviceId: service.id,
+                    barbershopId: shop.id,
+                    scheduledAt: slot.startTime,
+                    endTime: endTime,
+                    status: status,
+                  })
+                  .returning()
+
+                await db
+                  .update(availableTimeSlot)
+                  .set({
+                    bookingId: insertedBooking[0].id,
+                  })
+                  .where(eq(availableTimeSlot.id, slot.id))
+
+                allBookings.push({
+                  ...insertedBooking[0],
+                  userId: randomUser.id,
+                })
+
+                totalBookings++
+              }
             }
-            createdSlotsByService.get(service.id)!.push(...insertedSlots)
           }
         }
       }
+    }
 
-      for (const service of insertedServices) {
-        const slotsForService = createdSlotsByService.get(service.id) || []
-        const occupiedSlots = slotsForService.filter(
-          (slot) => !slot.isAvailable,
-        )
+    console.log("⭐ Criando Avaliações...")
+    const reviewsToInsert: any[] = []
+    const completedBookings = allBookings.filter(
+      (b) => b.status === "completed",
+    )
 
-        for (const occupiedSlot of occupiedSlots) {
-          const endTime = new Date(occupiedSlot.startTime)
-          endTime.setMinutes(endTime.getMinutes() + service.durationMinutes)
+    const bookingsWithReview = completedBookings.slice(
+      0,
+      Math.floor(completedBookings.length * 0.3),
+    )
 
-          const now = new Date()
-          let status: "confirmed" | "completed" | "cancelled"
+    for (const bookingItem of bookingsWithReview) {
+      const hasComment = faker.datatype.boolean({ probability: 0.7 })
+      const rating = faker.number.int({ min: 3, max: 5 })
 
-          if (occupiedSlot.startTime < now) {
-            status = faker.helpers.arrayElement([
-              "completed",
-              "completed",
-              "completed",
-              "cancelled",
-            ])
-          } else {
-            status = "confirmed"
-          }
+      reviewsToInsert.push({
+        userId: bookingItem.userId,
+        barbershopId: bookingItem.barbershopId,
+        bookingId: bookingItem.id,
+        rating: rating,
+        comment: hasComment ? faker.lorem.paragraph({ min: 1, max: 3 }) : null,
+        response: null,
+        respondedAt: null,
+        createdAt: faker.date.between({
+          from: bookingItem.scheduledAt,
+          to: new Date(),
+        }),
+        updatedAt: new Date(),
+      })
+    }
 
-          const insertedBooking = await db
-            .insert(booking)
-            .values({
-              userId: faker.helpers.arrayElement(insertedUsers).id,
-              serviceId: service.id,
-              barbershopId: shop.id,
-              scheduledAt: occupiedSlot.startTime,
-              endTime: endTime,
-              status: status,
-            })
-            .returning()
+    const insertedReviews = await db
+      .insert(review)
+      .values(reviewsToInsert)
+      .returning()
 
-          await db
-            .update(availableTimeSlot)
-            .set({
-              bookingId: insertedBooking[0].id,
-            })
-            .where(eq(availableTimeSlot.id, occupiedSlot.id))
+    console.log("👍 Criando likes nas reviews...")
+    const reviewLikesToInsert: any[] = []
+    const usedUserReviewPairs = new Set<string>()
 
-          totalBookings++
+    for (const reviewItem of insertedReviews) {
+      const numLikes = faker.number.int({ min: 0, max: 5 })
+
+      for (let i = 0; i < numLikes; i++) {
+        const randomUser = faker.helpers.arrayElement(insertedUsers)
+        const key = `${reviewItem.id}-${randomUser.id}`
+
+        if (
+          !usedUserReviewPairs.has(key) &&
+          randomUser.id !== reviewItem.userId
+        ) {
+          usedUserReviewPairs.add(key)
+          reviewLikesToInsert.push({
+            reviewId: reviewItem.id,
+            userId: randomUser.id,
+            createdAt: faker.date.recent(),
+          })
         }
       }
+    }
+
+    if (reviewLikesToInsert.length > 0) {
+      await db.insert(reviewLike).values(reviewLikesToInsert)
     }
 
     console.log("\n✅ Seed finalizado!")
@@ -508,8 +566,15 @@ async function seed() {
     console.log(`   • ${insertedCategories.length} categorias`)
     console.log(`   • ${insertedUsers.length} usuários`)
     console.log(`   • ${insertedBarbershops.length} barbearias`)
+    console.log(`   • ${insertedReviews.length} reviews`)
+    console.log(`   • ${reviewLikesToInsert.length} likes`)
     console.log(`   • ${totalTimeSlots} time slots`)
     console.log(`   • ${totalBookings} agendamentos`)
+    console.log(`\n📍 Cidades atendidas:`)
+    const cities = [
+      ...new Set(insertedBarbershops.map((b) => `${b.city}-${b.state}`)),
+    ]
+    cities.forEach((city) => console.log(`   • ${city}`))
   } catch (error) {
     console.error("❌ Erro:", error)
     throw error

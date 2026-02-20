@@ -5,10 +5,7 @@ import { BarbershopItem } from "./_components/barbershop-item"
 import { Footer } from "./_components/footer"
 import { Search } from "./_components/search"
 import { categoryRepo } from "@/src/repositories/category.repository"
-import {
-  bookingRepo,
-  BookingWithRelations,
-} from "../repositories/booking.repository"
+import { bookingRepo } from "../repositories/booking.repository"
 import { authOptions } from "./_lib/auth.lib"
 import { getServerSession } from "next-auth"
 import { ptBR } from "date-fns/locale"
@@ -25,6 +22,7 @@ import {
   MapPin,
 } from "lucide-react"
 import { NearbyBarbershopsHomeSection } from "./_components/nearby-barbershop-home-section"
+import { BookingWithRelations } from "../db/types/booking.type"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)

@@ -42,23 +42,25 @@ export function useUserLocation(
 
   const onError = useCallback((err: GeolocationPositionError) => {
     const messages: Record<number, string> = {
-      1: "Location access denied. Please enable location permissions.",
-      2: "Location unavailable. Check your device settings.",
-      3: "Location request timed out. Please try again.",
+      1: "Acesso à localização negado. Por favor, ative as permissões.",
+      2: "Localização indisponível. Verifique as configurações do dispositivo.",
+      3: "Tempo limite esgotado. Por favor, tente novamente.",
     }
     setState({
       coordinates: null,
       loading: false,
-      error: messages[err.code] ?? "An unknown location error occurred.",
+      error:
+        messages[err.code] ??
+        "Ocorreu um erro desconhecido ao obter a localização.",
     })
   }, [])
 
   const fetchLocation = useCallback(() => {
-    if (!navigator?.geolocation) {
+    if (typeof window === "undefined" || !navigator?.geolocation) {
       setState({
         coordinates: null,
         loading: false,
-        error: "Geolocation is not supported by your browser.",
+        error: "Geolocalização não é suportada pelo seu navegador.",
       })
       return
     }
@@ -83,7 +85,9 @@ export function useUserLocation(
 
   useEffect(() => {
     const cleanup = fetchLocation()
-    return cleanup
+    return () => {
+      if (typeof cleanup === "function") cleanup()
+    }
   }, [fetchLocation])
 
   return { ...state, refetch: fetchLocation }

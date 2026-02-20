@@ -18,6 +18,9 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { ReviewStats } from "../../_components/reviews-stats"
+import { ReviewList } from "../../_components/review-list"
+import { getReviewStatsAction } from "../_actions/get-review-stats.action"
 
 interface BarbershopPageProps {
   params: Promise<{ slug: string }>
@@ -28,6 +31,7 @@ export default async function BarbershopDetailPage({
 }: BarbershopPageProps) {
   const { slug } = await params
   const barbershop = await barbershopRepo.findBySlug(slug)
+  const reviewStats = await getReviewStatsAction(barbershop!.id)
   const categories = await categoryRepo.findAll()
 
   const dayMap: Record<string, string> = {
@@ -103,7 +107,8 @@ export default async function BarbershopDetailPage({
 
                 <span className="border-primary/20 bg-primary/10 text-primary flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold">
                   <StarIcon className="fill-primary h-3 w-3" />
-                  5,0 · 889 avaliações
+                  {reviewStats.data?.averageRating.toFixed(1)} ·{" "}
+                  {reviewStats.data?.totalReviews} avaliações
                 </span>
               </div>
             </div>
@@ -153,6 +158,11 @@ export default async function BarbershopDetailPage({
                   />
                 ))}
               </div>
+            </section>
+            
+            <section className="flex flex-col gap-4">
+              <ReviewStats barbershopId={barbershop!.id} />
+              <ReviewList barbershopId={barbershop!.id} />
             </section>
           </div>
 

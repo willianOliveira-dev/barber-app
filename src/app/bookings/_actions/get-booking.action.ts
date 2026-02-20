@@ -22,7 +22,7 @@ export async function getBookingsAction(params: GetBookingActionParams) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
-      console.error("Usuário não autenticado")
+      console.error("[GetBookingsAction] Error: Usuário não autenticado")
       return ActionResponse.fail({
         error: "USER_UNAUTHENTICADED",
         message: "Usuário não autenticado",

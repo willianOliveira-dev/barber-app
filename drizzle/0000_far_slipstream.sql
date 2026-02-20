@@ -151,6 +151,27 @@ CREATE TABLE "category" (
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "review" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"userId" uuid NOT NULL,
+	"barbershopId" uuid NOT NULL,
+	"bookingId" uuid NOT NULL,
+	"rating" integer NOT NULL,
+	"comment" text,
+	"response" text,
+	"respondedAt" timestamp with time zone,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "review_rating_check" CHECK ("review"."rating" >= 1 AND "review"."rating" <= 5)
+);
+--> statement-breakpoint
+CREATE TABLE "review_like" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"reviewId" uuid NOT NULL,
+	"userId" uuid NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "barbershop" ADD CONSTRAINT "barbershop_ownerId_user_id_fk" FOREIGN KEY ("ownerId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_service" ADD CONSTRAINT "barbershop_service_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_service" ADD CONSTRAINT "barbershop_service_categoryId_category_id_fk" FOREIGN KEY ("categoryId") REFERENCES "public"."category"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -165,6 +186,11 @@ ALTER TABLE "available_time_slot" ADD CONSTRAINT "available_time_slot_serviceId_
 ALTER TABLE "available_time_slot" ADD CONSTRAINT "available_time_slot_bookingId_booking_id_fk" FOREIGN KEY ("bookingId") REFERENCES "public"."booking"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_hour" ADD CONSTRAINT "barbershop_hour_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_status" ADD CONSTRAINT "barbershop_status_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "review" ADD CONSTRAINT "review_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "review" ADD CONSTRAINT "review_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "review" ADD CONSTRAINT "review_bookingId_booking_id_fk" FOREIGN KEY ("bookingId") REFERENCES "public"."booking"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "review_like" ADD CONSTRAINT "review_like_reviewId_review_id_fk" FOREIGN KEY ("reviewId") REFERENCES "public"."review"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "review_like" ADD CONSTRAINT "review_like_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "user_email_index" ON "user" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "user_role_index" ON "user" USING btree ("role");--> statement-breakpoint
 CREATE INDEX "user_barbershop_index" ON "user" USING btree ("barbershopId");--> statement-breakpoint
@@ -190,4 +216,13 @@ CREATE INDEX "available_time_slot_availability_index" ON "available_time_slot" U
 CREATE INDEX "barbershop_hours_index" ON "barbershop_hour" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "barbershop_status_index" ON "barbershop_status" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "category_name_index" ON "category" USING btree ("name");--> statement-breakpoint
-CREATE UNIQUE INDEX "category_slug_unique" ON "category" USING btree ("slug");
+CREATE UNIQUE INDEX "category_slug_unique" ON "category" USING btree ("slug");--> statement-breakpoint
+CREATE INDEX "review_user_index" ON "review" USING btree ("userId");--> statement-breakpoint
+CREATE INDEX "review_barbershop_index" ON "review" USING btree ("barbershopId");--> statement-breakpoint
+CREATE INDEX "review_booking_index" ON "review" USING btree ("bookingId");--> statement-breakpoint
+CREATE INDEX "review_rating_index" ON "review" USING btree ("rating");--> statement-breakpoint
+CREATE INDEX "review_created_at_index" ON "review" USING btree ("createdAt");--> statement-breakpoint
+CREATE UNIQUE INDEX "review_booking_unique" ON "review" USING btree ("bookingId");--> statement-breakpoint
+CREATE INDEX "review_like_review_index" ON "review_like" USING btree ("reviewId");--> statement-breakpoint
+CREATE INDEX "review_like_user_index" ON "review_like" USING btree ("userId");--> statement-breakpoint
+CREATE UNIQUE INDEX "review_like_review_user_unique" ON "review_like" USING btree ("reviewId","userId");

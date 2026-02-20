@@ -6,12 +6,14 @@ import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { StarIcon } from "lucide-react"
 import Link from "next/link"
+import { getReviewStatsAction } from "../barbershops/_actions/get-review-stats.action"
 
 interface BarbershopItemProps {
   barbershop: InferSelectModel<typeof barbershop>
 }
 
-export function BarbershopItem({ barbershop }: BarbershopItemProps) {
+export async function BarbershopItem({ barbershop }: BarbershopItemProps) {
+  const reviewStats = await getReviewStatsAction(barbershop.id)
   return (
     <Card className="group border-border bg-card hover:border-primary/20 w-full overflow-hidden border pt-0 transition-colors">
       <CardHeader className="relative h-37.5 w-full p-0">
@@ -35,11 +37,14 @@ export function BarbershopItem({ barbershop }: BarbershopItemProps) {
         <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
 
         <Badge
-          className="absolute top-2 left-2 flex items-center gap-1 border border-white/10 bg-black/50 px-2 py-0.5 backdrop-blur-sm"
+          className="absolute bottom-2 left-2 flex items-center gap-1 border border-white/10 bg-black/50 px-2 py-0.5 backdrop-blur-sm"
           variant="secondary"
         >
           <StarIcon className="fill-primary text-primary h-3 w-3" />
-          <span className="text-xs font-semibold text-white">5,0</span>
+          <span className="text-xs font-semibold text-white">
+            {reviewStats.data?.averageRating.toFixed(1)} (
+            {reviewStats.data?.totalReviews})
+          </span>
         </Badge>
       </CardHeader>
 

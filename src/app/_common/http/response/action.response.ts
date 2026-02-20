@@ -1,5 +1,3 @@
-import { headers } from "next/headers"
-
 export class ActionResponse {
   static async fail({
     error,
@@ -10,15 +8,12 @@ export class ActionResponse {
     message: string
     statusCode?: number
   }) {
-    const headersList = await headers()
-    const path = headersList.get("referer")
     return {
       success: false,
       statusCode,
       message,
       data: null,
       error,
-      path,
       method: "POST",
       timestamp: new Date(),
     }
