@@ -2,10 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { getBookingsAction } from "../_actions/get-booking.action"
-import {
-  CursorPaginationResponse,
-  type BookingStatus,
-} from "@/src/repositories/booking.repository"
+import { CursorPaginationResponse } from "@/src/repositories/booking.repository"
+import { BookingStatus } from "@/src/db/types/booking.type"
 
 interface UseBookingsParams {
   status?: BookingStatus | BookingStatus[]
@@ -32,32 +30,27 @@ export function useBookings({
       setIsLoading(true)
       setError(null)
 
-      try {
-        const result = await getBookingsAction({
-          cursor: reset ? undefined : (cursor ?? undefined),
-          limit,
-          status,
-        })
+      const result = await getBookingsAction({
+        cursor: reset ? undefined : (cursor ?? undefined),
+        limit,
+        status,
+      })
 
-        if (!result.success) {
-          setError(result.message ?? "Erro desconhecido")
-          return
-        }
-
-        if (reset) {
-          setData(result.data!.bookings)
-        } else {
-          setData((prev) => [...prev, ...result.data!.bookings])
-        }
-
-        setCursor(result.data!.meta.nextCursor)
-        setHasMore(result.data!.meta.hasMore)
-      } catch (err) {
-        setError("Erro ao carregar agendamentos")
-        console.error(err)
-      } finally {
-        setIsLoading(false)
+      if (!result.success) {
+        setError(result.message ?? "Erro desconhecido")
+        return
       }
+
+      if (reset) {
+        setData(result.data!.bookings)
+      } else {
+        setData((prev) => [...prev, ...result.data!.bookings])
+      }
+
+      setCursor(result.data!.meta.nextCursor)
+      setHasMore(result.data!.meta.hasMore)
+
+      setIsLoading(false)
     },
     [cursor, limit, status],
   )

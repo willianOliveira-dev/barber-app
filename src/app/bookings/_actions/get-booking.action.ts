@@ -1,11 +1,9 @@
 "use server"
-import {
-  bookingRepo,
-  type BookingStatus,
-} from "@/src/repositories/booking.repository"
+import { bookingRepo } from "@/src/repositories/booking.repository"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../../_lib/auth.lib"
 import { ActionResponse } from "../../_common/http/response/action.response"
+import { BookingStatus } from "@/src/db/types/booking.type"
 
 interface GetBookingActionParams {
   cursor?: {

@@ -1,7 +1,8 @@
 import { categoryRepo } from "@/src/repositories/category.repository"
-import { HeaderClient } from "./header-client"
 import { authOptions } from "../_lib/auth.lib"
 import { getServerSession } from "next-auth"
+import HeaderClient from "./header-client"
+
 
 export async function Header() {
   const categories = await categoryRepo.findAll()

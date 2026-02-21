@@ -37,7 +37,7 @@ interface HeaderClientProps {
   user?: Session["user"]
 }
 
-export function HeaderClient({ categories, user }: HeaderClientProps) {
+export default function HeaderClient({ categories, user }: HeaderClientProps) {
   const pathname = usePathname()
 
   const isActive = (href: string) =>
