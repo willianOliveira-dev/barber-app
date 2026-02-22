@@ -1,6 +1,5 @@
 import { Header } from "./_components/header"
 import { Sidebar } from "./_components/sidebar"
-import { barbershopRepo } from "@/src/repositories/barbershop.repository"
 import { BarbershopItem } from "./_components/barbershop-item"
 import { Footer } from "./_components/footer"
 import { Search } from "./_components/search"
@@ -19,16 +18,20 @@ import {
   ArrowRight,
   TrendingUp,
   Clock,
+  Scissors,
   MapPin,
 } from "lucide-react"
 import { NearbyBarbershopsHomeSection } from "./_components/nearby-barbershop-home-section"
 import { BookingWithRelations } from "../db/types/booking.type"
+import { barbershopSv } from "../services/barbershop.service"
+import { FeaturedBarbershopCard } from "./_components/featured-barbershop-item"
 
 export default async function Home() {
   const session = await getServerSession(authOptions)
   const user = session?.user
   const userId = user?.id
-  const barbershops = await barbershopRepo.findAll()
+  const popularbarbershops = await barbershopSv.getPopularBarbershops()
+  const recommendedBarbershops = await barbershopSv.getRecommendedBarbershops()
   const categories = await categoryRepo.findAll()
 
   let latestBookings: BookingWithRelations[] = []
@@ -78,8 +81,8 @@ export default async function Home() {
             <Search />
           </div>
 
-          <section className="pt-3 pb-1 lg:hidden">
-            <div className="scroll-container scroll-snap scroll-fade flex gap-2 px-5">
+          <section className="px-5 py-6 pt-3 pb-1 lg:hidden">
+            <div className="scroll-container scroll-snap scroll-fade -mx-5 flex gap-2 overflow-x-auto px-5 pb-2">
               {categories.map((category) => (
                 <Link
                   key={category.id}
@@ -99,48 +102,62 @@ export default async function Home() {
           </section>
 
           <div className="space-y-10 px-5 py-6 lg:space-y-12 lg:px-8 lg:py-10 xl:px-12">
-            <section className="border-primary/20 from-primary/20 via-primary/5 relative overflow-hidden rounded-2xl border bg-linear-to-br to-transparent p-6 lg:p-10">
-              <div
-                className="pointer-events-none absolute inset-0 overflow-hidden"
-                aria-hidden
-              >
-                <div className="border-primary/10 absolute -top-20 -right-20 h-64 w-64 rounded-full border" />
-                <div className="border-primary/10 absolute -right-10 -bottom-10 h-40 w-40 rounded-full border" />
+            <section className="relative overflow-hidden rounded-2xl lg:rounded-3xl">
+              <div className="absolute inset-0 h-full w-full">
+                <Image
+                  src="/images/barbershop-hero.png"
+                  alt="Barbearia Hero"
+                  fill
+                  priority
+                  loading="eager"
+                  className="object-cover object-center"
+                  sizes="(max-width: 1024px) 100vw, 1200px"
+                />
+
+                <div className="absolute inset-0 bg-linear-to-r from-black via-black/70 to-black/40 lg:bg-linear-to-r lg:from-black lg:via-black/60 lg:to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/40 lg:bg-linear-to-t lg:from-black/60" />
               </div>
-              <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-2 lg:space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-primary h-px w-8" />
-                    <span className="text-primary text-xs font-semibold tracking-[0.2em] uppercase">
+
+              <div className="relative z-10 flex min-h-100 flex-col justify-center px-6 py-12 lg:min-h-125 lg:px-16 lg:py-20 xl:px-24">
+                <div className="max-w-2xl space-y-6">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-md">
+                    <Scissors className="text-primary h-4 w-4" />
+                    <span className="text-xs font-semibold tracking-[0.2em] text-white uppercase">
                       Premium
                     </span>
                   </div>
-                  <h2 className="text-2xl leading-tight font-bold lg:text-4xl xl:text-5xl">
+
+                  <h1 className="text-3xl leading-tight font-bold text-white sm:text-4xl lg:text-5xl xl:text-6xl">
                     O melhor corte
                     <br />
                     <span className="text-primary">começa aqui.</span>
-                  </h2>
-                  <p className="text-muted-foreground max-w-sm text-sm lg:text-base">
-                    Encontre barbearias premium perto de você e agende em
-                    segundos.
+                  </h1>
+
+                  <p className="text-base text-gray-300 sm:text-lg lg:text-xl">
+                    Encontre as melhores barbearias da sua cidade e agende seu
+                    horário em segundos. Sem espera, sem complicação.
                   </p>
-                </div>
-                <div className="flex flex-row gap-3 lg:flex-col lg:items-stretch">
-                  <Link
-                    href="/barbershops"
-                    className="bg-primary text-primary-foreground inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-                  >
-                    Explorar barbearias <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/barbershops?nearby=true"
-                    className="border-border bg-card hover:border-primary/40 inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition-colors"
-                  >
-                    <MapPin className="text-primary h-4 w-4" />
-                    Perto de mim
-                  </Link>
+
+                  <div className="flex flex-col gap-3 pt-4 sm:flex-row">
+                    <Link
+                      href="/barbershops"
+                      className="group bg-primary text-primary-foreground shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/30 inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold shadow-lg transition-all hover:shadow-xl"
+                    >
+                      Explorar barbearias
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                    <Link
+                      href="/register-barbershop"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      Ver no mapa
+                    </Link>
+                  </div>
                 </div>
               </div>
+
+              <div className="from-primary via-primary/60 absolute right-0 bottom-0 left-0 h-1 bg-linear-to-r to-transparent" />
             </section>
 
             {latestBookings.length > 0 && (
@@ -166,11 +183,11 @@ export default async function Home() {
                     Ver todos <ArrowRight className="h-3 w-3" />
                   </Link>
                 </div>
-                <div className="scroll-container scroll-fade flex gap-4">
+                <div className="scroll-container scroll-snap scroll-fade -mx-5 flex gap-4 overflow-x-auto px-5 pb-4 lg:mx-0 lg:px-0 lg:pb-0">
                   {latestBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className="scroll-item w-75 shrink-0 lg:w-1/3"
+                      className="scroll-item w-[calc(100vw-2.5rem)] shrink-0 lg:w-1/3"
                     >
                       <RebookItem booking={booking} />
                     </div>
@@ -203,19 +220,76 @@ export default async function Home() {
                   Ver todos <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
-              <div className="scroll-container scroll-snap scroll-fade flex gap-4 lg:hidden">
-                {barbershops.slice(0, 8).map((barbershop) => (
+
+              <div className="scroll-container scroll-snap scroll-fade -mx-5 flex gap-4 overflow-x-auto px-5 pb-4 lg:hidden">
+                {recommendedBarbershops.slice(0, 8).map((barbershop) => (
                   <div
                     key={barbershop.id}
-                    className="scroll-item w-43.75 shrink-0"
+                    className="scroll-item w-[calc(100vw-2.5rem)] shrink-0"
                   >
-                    <BarbershopItem barbershop={barbershop} />
+                    <FeaturedBarbershopCard
+                      barbershop={barbershop}
+                      variant="recommended"
+                    />
                   </div>
                 ))}
               </div>
-              <div className="hidden gap-4 lg:grid lg:grid-cols-3 xl:grid-cols-4">
-                {barbershops.slice(0, 8).map((barbershop) => (
-                  <BarbershopItem key={barbershop.id} barbershop={barbershop} />
+
+              <div className="hidden gap-4 lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {recommendedBarbershops.slice(0, 8).map((barbershop) => (
+                  <FeaturedBarbershopCard
+                    key={barbershop.id}
+                    barbershop={barbershop}
+                    variant="recommended"
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                    <TrendingUp className="text-primary h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold tracking-wide uppercase">
+                      Barbearias <span className="text-primary">Populares</span>
+                    </h3>
+                    <p className="text-muted-foreground text-xs">
+                      Os mais agendados
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/barbershops"
+                  className="text-primary flex items-center gap-1 text-xs font-medium hover:underline"
+                >
+                  Ver todas <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+
+              <div className="scroll-container scroll-snap scroll-fade -mx-5 flex gap-4 overflow-x-auto px-5 pb-4 lg:hidden">
+                {popularbarbershops.slice(0, 8).map((barbershop) => (
+                  <div
+                    key={barbershop.id}
+                    className="scroll-item w-[calc(100vw-2.5rem)] shrink-0"
+                  >
+                    <FeaturedBarbershopCard
+                      barbershop={barbershop}
+                      variant="popular"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden gap-4 lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {popularbarbershops.slice(0, 4).map((barbershop) => (
+                  <FeaturedBarbershopCard
+                    key={barbershop.id}
+                    barbershop={barbershop}
+                    variant="popular"
+                  />
                 ))}
               </div>
             </section>
@@ -246,45 +320,6 @@ export default async function Home() {
                   os melhores da sua cidade.
                 </p>
                 <div className="bg-primary/5 pointer-events-none absolute right-0 bottom-0 h-24 w-24 translate-x-6 translate-y-6 rounded-full transition-transform group-hover:translate-x-4 group-hover:translate-y-4" />
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
-                    <TrendingUp className="text-primary h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold tracking-wide uppercase">
-                      Barbearias <span className="text-primary">Populares</span>
-                    </h3>
-                    <p className="text-muted-foreground text-xs">
-                      Mais agendadas esta semana
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  href="/barbershops"
-                  className="text-primary flex items-center gap-1 text-xs font-medium hover:underline"
-                >
-                  Ver todas <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-              <div className="scroll-container scroll-snap scroll-fade flex gap-4 lg:hidden">
-                {barbershops.slice(0, 8).map((barbershop) => (
-                  <div
-                    key={barbershop.id}
-                    className="scroll-item w-43.75 shrink-0"
-                  >
-                    <BarbershopItem barbershop={barbershop} />
-                  </div>
-                ))}
-              </div>
-              <div className="hidden gap-4 lg:grid lg:grid-cols-3 xl:grid-cols-4">
-                {barbershops.slice(0, 4).map((barbershop) => (
-                  <BarbershopItem key={barbershop.id} barbershop={barbershop} />
-                ))}
               </div>
             </section>
 

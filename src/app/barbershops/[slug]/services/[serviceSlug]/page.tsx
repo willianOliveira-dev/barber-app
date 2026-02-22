@@ -1,4 +1,3 @@
-import { barbershopRepo } from "@/src/repositories/barbershop.repository"
 import { Header } from "@/src/app/_components/header"
 import { Footer } from "@/src/app/_components/footer"
 import { ServiceBookingPanel } from "@/src/app/_components/barbershop-service-panel"
@@ -13,6 +12,7 @@ import {
   Star,
   CheckCircle2,
   Info,
+  House,
 } from "lucide-react"
 import { Badge } from "@/src/app/_components/ui/badge"
 import Image from "next/image"
@@ -20,8 +20,10 @@ import Link from "next/link"
 import { priceFormat } from "@/src/app/_utils/price-format.util"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { barbershopServiceRepo } from "@/src/repositories/barbershop-service.repository"
 import { formatDuration } from "@/src/app/_utils/format-duration.util"
+import { barbershopSv } from "@/src/services/barbershop.service"
+import { barbershopServiceSv } from "@/src/services/barbershop-service.service"
+import { cn } from "@/src/app/_lib/utils.lib"
 
 interface BarbershopServicePageProps {
   params: Promise<{ slug: string; serviceSlug: string }>
@@ -31,14 +33,11 @@ export default async function BarbershopServiceDetailPage({
   params,
 }: BarbershopServicePageProps) {
   const { slug, serviceSlug } = await params
-
-  const barbershop = await barbershopRepo.findBySlug(slug)
-  if (!barbershop) notFound()
-
-  const service = await barbershopServiceRepo.findBySlug(serviceSlug)
-  if (!service) notFound()
-
   const session = await getServerSession(authOptions)
+
+  const barbershop = await barbershopSv.getBarbershopBySlug(slug)
+
+  const service = await barbershopServiceSv.findBySlug(serviceSlug)
 
   const durationLabel = formatDuration(service.durationMinutes)
 
@@ -49,7 +48,7 @@ export default async function BarbershopServiceDetailPage({
       value: durationLabel,
     },
     {
-      icon: Tag,
+      icon: House,
       label: "Barbearia",
       value: barbershop.name,
     },
@@ -60,9 +59,9 @@ export default async function BarbershopServiceDetailPage({
       highlight: service.isActive,
     },
     {
-      icon: Star,
-      label: "Avaliação",
-      value: "5,0 · 889 avaliações",
+      icon: Tag,
+      label: "Categoria",
+      value: service.category?.name ?? "Sem categoria",
     },
     {
       icon: Info,
@@ -183,10 +182,10 @@ export default async function BarbershopServiceDetailPage({
                         <span className="text-xs">{label}</span>
                       </div>
                       <span
-                        className={[
+                        className={cn(
                           "text-xs font-medium",
                           highlight ? "text-green-400" : "text-foreground",
-                        ].join(" ")}
+                        )}
                       >
                         {value}
                       </span>

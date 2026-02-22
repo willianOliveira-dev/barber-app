@@ -1,9 +1,22 @@
+import { and } from "drizzle-orm"
 import { db } from "../db/connection"
 
 export class BarbershopServiceRepo {
   async findBySlug(slug: string) {
-    return await db.query.barbershopService.findFirst({
-      where: (barbershoService, { eq }) => eq(barbershoService.slug, slug),
+    return db.query.barbershopService.findFirst({
+      with: {
+        category: {
+          columns: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      where: (barbershoService, { eq }) =>
+        and(
+          eq(barbershoService.slug, slug),
+          eq(barbershoService.isActive, true),
+        ),
     })
   }
 }

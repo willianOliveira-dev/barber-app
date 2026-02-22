@@ -3,13 +3,36 @@ import { barbershop } from "../schemas"
 
 export type Barbershop = InferSelectModel<typeof barbershop>
 export type NewBarbershop = InferInsertModel<typeof barbershop>
+export type BarbershopWithRatings = {
+  averageRating: number
+  totalReviews: number
+}
 
-export interface Coordinates {
+export type BarbershopSummary = {
+  id: string
+  name: string
+  description: string | null
+  slug: string
+  image: string | null
+  address: string
+  city: string
+  state: string
+  phone: string | null
+  email: string | null
+  latitude: string | null
+  longitude: string | null
+} & BarbershopWithRatings
+
+export type PopularBarbershop = {
+  totalBookings: number
+} & BarbershopSummary
+
+export type BarbershopWithRelations = any & BarbershopWithRatings
+export type Coordinates = {
   lat: number
   lng: number
 }
-
-export interface NearbyBarbershop {
+export type NearbyBarbershop = {
   id: string
   name: string
   slug: string
@@ -23,8 +46,7 @@ export interface NearbyBarbershop {
   image: string | null
   distance: number // quilometros
 }
-
-export interface UserLocationState {
+export type UserLocationState = {
   coordinates: Coordinates | null
   loading: boolean
   error: string | null

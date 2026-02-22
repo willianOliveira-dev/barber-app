@@ -250,10 +250,9 @@ body {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  scroll-padding-left: clamp(1rem, 4vw, 2.5rem);
-  scroll-padding-right: clamp(1rem, 4vw, 2.5rem);
-  /* Reveal hint: deixa ~8px do próximo card visível para indicar scroll */
-  padding-bottom: 6px;
+  scroll-padding-left: 1.25rem;
+  scroll-padding-right: 1.25rem;
+  padding-bottom: 8px;
 }
 
 .scroll-container::-webkit-scrollbar {
@@ -266,8 +265,7 @@ body {
 
 .scroll-item {
   scroll-snap-align: start;
-
-  scroll-margin-left: clamp(1rem, 4vw, 2.5rem);
+  scroll-snap-stop: always;
 }
 
 .scroll-fade {

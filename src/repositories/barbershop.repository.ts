@@ -1,34 +1,149 @@
 import { db } from "../db/connection"
-import { and, countDistinct, eq, ilike, sql } from "drizzle-orm"
+import { and, countDistinct, desc, eq, ilike, sql } from "drizzle-orm"
 import {
   barbershop,
   barbershopHour,
   barbershopService,
+  booking,
   category,
+  review,
+  dayOfWeekEnum,
 } from "../db/schemas"
-import { dayOfWeekEnum } from "../db/schemas"
-import { NearbyBarbershop } from "../db/types"
+import {
+  BarbershopSummary,
+  BarbershopWithRatings,
+  NearbyBarbershop,
+  PopularBarbershop,
+} from "../db/types"
 
 export type DayOfWeekEnum = (typeof dayOfWeekEnum.enumValues)[number]
 
+type RatingSource = {
+  rating: number
+}
+
+export type WithReviews = {
+  reviews: RatingSource[]
+}
 class BarbershopRepository {
+  private get ratingSelection() {
+    return {
+      averageRating: sql<number>`COALESCE(ROUND(AVG(${review.rating})::numeric, 1), 0)::float`,
+      totalReviews: sql<number>`COUNT(${review.id})::int`,
+    }
+  }
+
+  private mapRatings<T extends WithReviews>(
+    result: T | null | undefined,
+  ): (Omit<T, "reviews"> & BarbershopWithRatings) | null {
+    if (!result) return null
+
+    const totalReviews = result.reviews?.length || 0
+    const averageRating =
+      totalReviews > 0
+        ? Number(
+            (
+              result.reviews!.reduce(
+                (acc: number, r: RatingSource) => acc + r.rating,
+                0,
+              ) / totalReviews
+            ).toFixed(1),
+          )
+        : 0
+
+    const { reviews, ...rest } = result
+
+    return {
+      ...rest,
+      totalReviews,
+      averageRating,
+    } as Omit<T, "reviews"> & BarbershopWithRatings
+  }
+
   async findAll() {
-    return db.select().from(barbershop) ?? []
+    const data = await db
+      .select({
+        id: barbershop.id,
+        name: barbershop.name,
+        slug: barbershop.slug,
+        image: barbershop.image,
+        address: barbershop.address,
+        city: barbershop.city,
+        ...this.ratingSelection,
+      })
+      .from(barbershop)
+      .leftJoin(review, eq(review.barbershopId, barbershop.id))
+      .groupBy(barbershop.id)
+
+    return data ?? []
+  }
+
+  async findPopular(limit: number = 4): Promise<PopularBarbershop[]> {
+    const safeLimit = Math.min(limit, 4)
+    return await db
+      .select({
+        id: barbershop.id,
+        name: barbershop.name,
+        description: barbershop.description,
+        slug: barbershop.slug,
+        image: barbershop.image,
+        address: barbershop.address,
+        city: barbershop.city,
+        state: barbershop.state,
+        phone: barbershop.phone,
+        email: barbershop.email,
+        latitude: barbershop.latitude,
+        longitude: barbershop.longitude,
+        ...this.ratingSelection,
+        totalBookings: sql<number>`COUNT(DISTINCT ${booking.id})::int`,
+      })
+      .from(barbershop)
+      .leftJoin(booking, eq(booking.barbershopId, barbershop.id))
+      .leftJoin(review, eq(review.barbershopId, barbershop.id))
+      .where(eq(barbershop.isActive, true))
+      .groupBy(barbershop.id)
+      .orderBy(desc(sql`COUNT(${booking.id})`))
+      .limit(safeLimit)
+  }
+
+  async findRecommended(limit: number = 8): Promise<BarbershopSummary[]> {
+    const result = await db
+      .select({
+        id: barbershop.id,
+        name: barbershop.name,
+        description: barbershop.description,
+        slug: barbershop.slug,
+        image: barbershop.image,
+        address: barbershop.address,
+        city: barbershop.city,
+        state: barbershop.state,
+        phone: barbershop.phone,
+        email: barbershop.email,
+        latitude: barbershop.latitude,
+        longitude: barbershop.longitude,
+        ...this.ratingSelection,
+      })
+      .from(barbershop)
+      .leftJoin(review, eq(review.barbershopId, barbershop.id))
+      .where(eq(barbershop.isActive, true))
+      .groupBy(barbershop.id)
+      .orderBy(
+        desc(this.ratingSelection.averageRating),
+        desc(sql`COUNT(${review.id})`),
+      )
+      .limit(limit)
+
+    return result
   }
 
   async findNearbyBarbershops(
     userLat: number,
     userLng: number,
-    radiusKm: number = 100,
+    radiusKm: number = 50,
   ): Promise<NearbyBarbershop[]> {
     const MAX_RESULTS = 50
-    const latDelta = radiusKm / 111.0 // ~111 km por grau de latitude
+    const latDelta = radiusKm / 111.0
     const lngDelta = radiusKm / (111.0 * Math.cos((userLat * Math.PI) / 180))
-
-    const minLat = userLat - latDelta
-    const maxLat = userLat + latDelta
-    const minLng = userLng - lngDelta
-    const maxLng = userLng + lngDelta
 
     const rows = await db
       .select({
@@ -43,6 +158,7 @@ class BarbershopRepository {
         zipCode: barbershop.zipCode,
         phone: barbershop.phone,
         image: barbershop.image,
+        ...this.ratingSelection,
         distance: sql<number>`
         calculate_distance(
           ${userLat}::double precision,
@@ -53,22 +169,16 @@ class BarbershopRepository {
       `.as("distance"),
       })
       .from(barbershop)
+      .leftJoin(review, eq(review.barbershopId, barbershop.id))
       .where(
         sql`
-        ${barbershop.isActive}    = true
+        ${barbershop.isActive} = true
         AND ${barbershop.deletedAt} IS NULL
-        AND ${barbershop.latitude}  IS NOT NULL
-        AND ${barbershop.longitude} IS NOT NULL
-        AND ${barbershop.latitude}  BETWEEN ${minLat} AND ${maxLat}
-        AND ${barbershop.longitude} BETWEEN ${minLng} AND ${maxLng}
-        AND calculate_distance(
-              ${userLat}::double precision,
-              ${userLng}::double precision,
-              ${barbershop.latitude}::double precision,
-              ${barbershop.longitude}::double precision
-            ) <= ${radiusKm}
+        AND ${barbershop.latitude} BETWEEN ${userLat - latDelta} AND ${userLat + latDelta}
+        AND ${barbershop.longitude} BETWEEN ${userLng - lngDelta} AND ${userLng + lngDelta}
       `,
       )
+      .groupBy(barbershop.id)
       .orderBy(sql`distance ASC`)
       .limit(MAX_RESULTS)
 
@@ -82,37 +192,33 @@ class BarbershopRepository {
 
   async findBySlug(slug: string) {
     const result = await db.query.barbershop.findFirst({
-      where: eq(barbershop.slug, slug),
+      where: and(eq(barbershop.slug, slug), eq(barbershop.isActive, true)),
       with: {
         services: {
-          with: {
-            category: true,
-          },
+          where: eq(barbershopService.isActive, true),
+          with: { category: { columns: { id: true, name: true } } },
         },
         hours: true,
+        reviews: true,
         statusHistory: {
           limit: 1,
           orderBy: (status, { desc }) => [desc(status.updatedAt)],
         },
-        owner: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        owner: { columns: { id: true, name: true, email: true } },
       },
     })
 
-    if (!result) return null
-
-    return result
+    return this.mapRatings(result)
   }
 
   async findById(id: string) {
-    return db.query.barbershop.findFirst({
+    const result = await db.query.barbershop.findFirst({
       where: eq(barbershop.id, id),
+      with: {
+        reviews: true,
+      },
     })
+    return this.mapRatings(result)
   }
 
   async findWithPagination(
@@ -122,18 +228,12 @@ class BarbershopRepository {
     limit: number = 12,
   ) {
     const safeLimit = Math.min(limit, 12)
+    const filters = [eq(barbershop.isActive, true)]
 
-    const filters = []
+    if (search) filters.push(ilike(barbershop.name, `%${search}%`))
+    if (categorySlug) filters.push(eq(category.slug, categorySlug))
 
-    if (search) {
-      filters.push(ilike(barbershop.name, `%${search}%`))
-    }
-
-    if (categorySlug) {
-      filters.push(eq(category.slug, categorySlug))
-    }
-
-    const whereClause = filters.length > 0 ? and(...filters) : undefined
+    const whereClause = and(...filters)
 
     const totalResult = await db
       .select({ count: countDistinct(barbershop.id) })
@@ -144,25 +244,38 @@ class BarbershopRepository {
       )
       .leftJoin(category, eq(barbershopService.categoryId, category.id))
       .where(whereClause)
+      .orderBy()
 
     const total = Number(totalResult[0]?.count ?? 0)
     const totalPages = Math.max(1, Math.ceil(total / safeLimit))
     const safePage = Math.min(page, totalPages)
     const offset = (safePage - 1) * safeLimit
 
-    const data = await db
-      .selectDistinct({ barbershop })
+    const barbershops = await db
+      .select({
+        id: barbershop.id,
+        name: barbershop.name,
+        slug: barbershop.slug,
+        image: barbershop.image,
+        address: barbershop.address,
+        city: barbershop.city,
+        ...this.ratingSelection,
+      })
       .from(barbershop)
+      .leftJoin(review, eq(review.barbershopId, barbershop.id))
       .leftJoin(
         barbershopService,
         eq(barbershop.id, barbershopService.barbershopId),
       )
       .leftJoin(category, eq(barbershopService.categoryId, category.id))
       .where(whereClause)
+      .groupBy(barbershop.id)
       .limit(safeLimit)
       .offset(offset)
-
-    const barbershops = data.map((item) => item.barbershop)
+      .orderBy(
+        desc(this.ratingSelection.averageRating),
+        desc(barbershop.createdAt),
+      )
 
     return {
       barbershops,

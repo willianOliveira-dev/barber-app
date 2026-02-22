@@ -1,4 +1,5 @@
 "use client"
+
 import { useEffect, useState } from "react"
 import { MapPin } from "lucide-react"
 import { getNearbyBarbershops } from "../barbershops/_actions/get-nearby-barbershops"
@@ -53,31 +54,34 @@ export function NearbyBarbershopsHomeSection() {
         </div>
       </div>
 
-      <div className="scroll-container scroll-snap scroll-fade flex gap-4 lg:hidden">
+      <div className="scroll-container scroll-snap scroll-fade -mx-5 flex gap-4 overflow-x-auto px-5 pb-4 lg:hidden">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="scroll-item border-border bg-card h-64 w-43.75 shrink-0 animate-pulse rounded-2xl border"
+                className="scroll-item border-border bg-card h-95 w-[calc(100vw-2.5rem)] shrink-0 animate-pulse rounded-2xl border"
               />
             ))
           : barbershops.slice(0, 4).map((barbershop) => (
-              <div key={barbershop.id} className="scroll-item w-43.75 shrink-0">
+              <div
+                key={barbershop.id}
+                className="scroll-item w-[calc(100vw-2.5rem)] shrink-0"
+              >
                 <NearbyBarbershopCard barbershop={barbershop} />
               </div>
             ))}
       </div>
 
-      <div className="hidden gap-4 lg:grid lg:grid-cols-3 xl:grid-cols-4">
+      <div className="hidden gap-4 lg:grid lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="border-border bg-card h-64 animate-pulse rounded-2xl border"
+                className="border-border bg-card h-95 animate-pulse rounded-2xl border"
               />
             ))
           : barbershops
-              .slice(0, 8)
+              .slice(0, 4)
               .map((barbershop) => (
                 <NearbyBarbershopCard
                   key={barbershop.id}

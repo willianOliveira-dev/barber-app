@@ -1,96 +1,100 @@
 "use client"
 
-import { Card, CardContent, CardHeader } from "./ui/card"
+import { Card } from "./ui/card"
 import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
-import { NavigationIcon, PhoneIcon } from "lucide-react"
+import { Navigation, Phone, MapPin, ArrowRight, Route } from "lucide-react"
 import { distanceFormat } from "../_utils/distance.util"
 import type { NearbyBarbershop } from "@/src/db/types"
+import { cn } from "../_lib/utils.lib"
 import Image from "next/image"
 import Link from "next/link"
-import { cn } from "../_lib/utils.lib"
 
 interface NearbyBarbershopCardProps {
   barbershop: NearbyBarbershop
-  isSelected?: boolean
-  onClick?: (barbershop: NearbyBarbershop) => void
 }
 
 export function NearbyBarbershopCard({
   barbershop,
-  isSelected = false,
-  onClick,
 }: NearbyBarbershopCardProps) {
-  const { name, address, city, state, zipCode, phone, image, distance } =
+  const { name, address, city, state, zipCode, phone, image, distance, slug } =
     barbershop
 
   return (
     <Card
-      onClick={() => onClick?.(barbershop)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onClick?.(barbershop)}
-      aria-pressed={isSelected}
-      className={cn(
-        "group border-border bg-card flex h-full w-full flex-col overflow-hidden border pt-0 transition-colors",
-        isSelected ? "border-primary/40" : "hover:border-primary/20",
-      )}
+      className="group hover:shadow-primary/15 relative h-95 w-full overflow-hidden rounded-2xl border-0 shadow-lg transition-all duration-500 hover:shadow-2xl"
     >
-      <CardHeader className="relative h-37.5 w-full shrink-0 p-0">
-        {image ? (
-          <Image
-            quality={75}
-            alt={name}
-            src={image}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            fill
-          />
-        ) : (
-          <Image
-            src="/default.png"
-            alt="Sem imagem"
-            fill
-            className="object-cover"
-          />
-        )}
-        <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
-        <Badge
-          className="absolute top-2 left-2 flex items-center gap-1 border border-white/10 bg-black/50 px-2 py-0.5 backdrop-blur-sm"
-          variant="secondary"
-        >
-          <NavigationIcon className="fill-primary text-primary h-3 w-3" />
-          <span className="text-xs font-semibold text-white">
-            {distanceFormat.formatDistance(distance)}
-          </span>
-        </Badge>
-      </CardHeader>
+      <div className="absolute inset-0 h-full w-full">
+        <Image
+          quality={85}
+          alt={name}
+          src={image || "/default.png"}
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
+          fill
+        />
 
-      <CardContent className="flex flex-1 flex-col justify-between p-3">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-foreground truncate text-sm font-semibold">
-            {name}
-          </h2>
-          <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
-            {address}, {city}, {state}
-            {zipCode ? ` — ${zipCode}` : ""}
-          </p>
-          {phone && (
-            <p className="text-muted-foreground flex items-center gap-1 text-xs">
-              <PhoneIcon className="h-3 w-3 shrink-0" />
-              {phone}
+        <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent opacity-95" />
+      </div>
+
+      <Badge
+        className="bg-primary/95 absolute top-4 left-4 z-10 flex items-center gap-1.5 border-0 px-3 py-1.5 shadow-lg backdrop-blur-md"
+        variant="secondary"
+      >
+        <Route className="text-primary-foreground h-3.5 w-3.5" />
+        <span className="text-primary-foreground text-sm font-bold">
+          {distanceFormat.formatDistance(distance)}
+        </span>
+        <span className="text-primary-foreground/80 text-xs">de você</span>
+      </Badge>
+
+      <div className="absolute top-4 right-4 z-10 rounded-xl bg-white/95 p-2 shadow-lg backdrop-blur-md">
+        <Navigation className="text-primary h-5 w-5" />
+      </div>
+
+      <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col gap-4 p-5">
+        <h2 className="group-hover:text-primary/90 text-xl leading-tight font-bold text-white drop-shadow-lg transition-colors">
+          {name}
+        </h2>
+
+        <div className="space-y-2">
+          <div className="flex items-start gap-2 text-gray-300">
+            <MapPin className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+            <p className="text-sm leading-relaxed">
+              {address}
+              {city && city}
+              {state && state}
+              {zipCode && <span className="text-gray-400"> — {zipCode}</span>}
             </p>
+          </div>
+
+          {phone && (
+            <div className="flex items-center gap-2 text-gray-300">
+              <Phone className="text-primary h-4 w-4 shrink-0" />
+              <p className="text-sm">{phone}</p>
+            </div>
           )}
         </div>
 
         <Button
           asChild
-          variant="secondary"
-          size="sm"
-          className="hover:border-primary/30 hover:text-primary mt-3 w-full rounded-lg text-xs"
+          variant="default"
+          size="lg"
+          className="group/btn bg-primary hover:bg-primary/90 hover:shadow-primary/30 h-12 w-full rounded-xl font-semibold shadow-lg transition-all duration-300 hover:shadow-xl"
         >
-          <Link href={`/barbershops/${barbershop.slug}`}>Reservar</Link>
+          <Link
+            href={`/barbershops/${slug}`}
+            className="flex items-center justify-center gap-2"
+          >
+            <Navigation className="h-5 w-5" />
+            <span>Ver no Mapa</span>
+            <ArrowRight className="h-5 w-5 -translate-x-2 opacity-0 transition-all duration-300 group-hover/btn:translate-x-0 group-hover/btn:opacity-100" />
+          </Link>
         </Button>
-      </CardContent>
+      </div>
+
+      <div className="from-primary via-primary/60 absolute right-0 bottom-0 left-0 h-1 origin-left scale-x-0 bg-linear-to-r to-transparent transition-transform duration-500 group-hover:scale-x-100" />
     </Card>
   )
 }

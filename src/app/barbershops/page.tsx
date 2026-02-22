@@ -1,15 +1,15 @@
-import { barbershopRepo } from "@/src/repositories/barbershop.repository"
 import { BarbershopItem } from "../_components/barbershop-item"
 import { Header } from "../_components/header"
 import { Search } from "../_components/search"
 import { Footer } from "../_components/footer"
 import { AppPagination } from "../_components/pagination"
 import { NoResultsCard } from "../_components/no-results-card"
-import { categoryRepo } from "@/src/repositories/category.repository"
 import { LayoutGrid, SlidersHorizontal } from "lucide-react"
+import { twMerge } from "tailwind-merge"
+import { categorySv } from "@/src/services/category.service"
+import { barbershopSv } from "@/src/services/barbershop.service"
 import Image from "next/image"
 import Link from "next/link"
-import { twMerge } from "tailwind-merge"
 
 interface BarbershopsPageProps {
   searchParams: Promise<{
@@ -30,14 +30,14 @@ export default async function BarbershopsPage({
     limit = 12,
   } = await searchParams
 
-  const { barbershops, meta } = await barbershopRepo.findWithPagination(
+  const { barbershops, meta } = await barbershopSv.getBarbershopsWithPagination(
     search,
     category,
     page,
     limit,
   )
 
-  const categories = await categoryRepo.findAll()
+  const categories = await categorySv.getCategories()
 
   const categoriesWithAll = [
     { id: "all", name: "Todos", slug: "todos", icon: "/icons/all.svg" },
@@ -91,8 +91,8 @@ export default async function BarbershopsPage({
             </div>
           </section>
 
-          <section className="border-border border-b">
-            <div className="scroll-container scroll-fade flex items-center gap-1 px-5 py-3 lg:px-8 xl:px-12">
+          <section className="border-border border-b px-5 py-3">
+            <div className="scroll-container scroll-fade -mx-5 flex items-center gap-2 overflow-x-auto px-5 py-3 lg:mx-0 lg:px-8 xl:px-12">
               {categoriesWithAll.map((cat) => {
                 const isActive =
                   cat.slug.toLowerCase() === activeCategory.toLowerCase()
@@ -101,9 +101,9 @@ export default async function BarbershopsPage({
                     key={cat.id}
                     href={createCategoryLink(cat.slug)}
                     className={twMerge(
-                      "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium whitespace-nowrap transition-all",
+                      "scroll-item flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-medium whitespace-nowrap transition-all",
                       isActive
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground shadow-md"
                         : "border-border text-muted-foreground hover:border-primary/30 hover:text-primary border",
                     )}
                   >
@@ -161,14 +161,14 @@ export default async function BarbershopsPage({
                 </div>
               </div>
 
-              <div className="border-border bg-card text-muted-foreground flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs">
+              <div className="border-border bg-card text-muted-foreground hidden items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs sm:flex">
                 <SlidersHorizontal className="text-primary h-3.5 w-3.5" />
                 {limit} por página
               </div>
             </div>
 
             {barbershops.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                 {barbershops.map((barbershop) => (
                   <BarbershopItem key={barbershop.id} barbershop={barbershop} />
                 ))}

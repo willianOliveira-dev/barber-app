@@ -3,8 +3,6 @@ import { Copy } from "@/src/app/_components/copy"
 import { Footer } from "@/src/app/_components/footer"
 import { Menu } from "@/src/app/_components/menu"
 import { Button } from "@/src/app/_components/ui/button"
-import { barbershopRepo } from "@/src/repositories/barbershop.repository"
-import { categoryRepo } from "@/src/repositories/category.repository"
 import {
   ArrowLeft,
   StarIcon,
@@ -21,6 +19,8 @@ import Link from "next/link"
 import { ReviewStats } from "../../_components/reviews-stats"
 import { ReviewList } from "../../_components/review-list"
 import { getReviewStatsAction } from "../_actions/get-review-stats.action"
+import { barbershopSv } from "@/src/services/barbershop.service"
+import { categorySv } from "@/src/services/category.service"
 
 interface BarbershopPageProps {
   params: Promise<{ slug: string }>
@@ -30,9 +30,9 @@ export default async function BarbershopDetailPage({
   params,
 }: BarbershopPageProps) {
   const { slug } = await params
-  const barbershop = await barbershopRepo.findBySlug(slug)
-  const reviewStats = await getReviewStatsAction(barbershop!.id)
-  const categories = await categoryRepo.findAll()
+  const barbershop = await barbershopSv.getBarbershopBySlug(slug)
+  const reviewStats = await getReviewStatsAction(barbershop.id)
+  const categories = await categorySv.getCategories()
 
   const dayMap: Record<string, string> = {
     monday: "Segunda-feira",
@@ -48,7 +48,7 @@ export default async function BarbershopDetailPage({
     <>
       <main className="flex flex-1 flex-col gap-0">
         <section className="relative h-62.5 w-full overflow-hidden lg:h-95">
-          {barbershop?.image ? (
+          {barbershop.image ? (
             <Image
               src={barbershop.image}
               alt={barbershop.name}
@@ -86,23 +86,21 @@ export default async function BarbershopDetailPage({
           <div className="absolute right-0 bottom-0 left-0 z-10 p-5 lg:p-8">
             <div className="container mx-auto">
               <h1 className="text-foreground text-2xl leading-tight font-bold lg:text-4xl">
-                {barbershop?.name}
+                {barbershop.name}
               </h1>
               <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                 <div className="flex items-center gap-1.5">
                   <MapPinHouse className="text-primary h-4 w-4 shrink-0" />
                   <span className="text-muted-foreground text-xs lg:text-sm">
-                    {barbershop?.address}, {barbershop?.streetNumber}
-                    {barbershop?.complement
-                      ? ` • ${barbershop.complement}`
-                      : ""}
+                    {barbershop.address}, {barbershop.streetNumber}
+                    {barbershop.complement ? ` • ${barbershop.complement}` : ""}
                   </span>
                 </div>
 
                 <div className="bg-border hidden h-1 w-1 rounded-full sm:block" />
 
                 <span className="text-muted-foreground text-xs lg:text-sm">
-                  {barbershop?.city} — {barbershop?.state}
+                  {barbershop.city} — {barbershop.state}
                 </span>
 
                 <span className="border-primary/20 bg-primary/10 text-primary flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold">
@@ -129,7 +127,7 @@ export default async function BarbershopDetailPage({
                 </div>
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                {barbershop?.description ?? "Sem descrição"}
+                {barbershop.description ?? "Sem descrição"}
               </p>
             </section>
 
@@ -143,13 +141,13 @@ export default async function BarbershopDetailPage({
                     Serviços <span className="text-primary">disponíveis</span>
                   </h2>
                   <p className="text-muted-foreground text-xs">
-                    {barbershop?.services.length ?? 0} serviços
+                    {barbershop.services.length ?? 0} serviços
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-                {barbershop?.services.map((service) => (
+                {barbershop.services.map((service) => (
                   <BarbershopServiceItem
                     key={service.id}
                     barbershopSlug={barbershop.slug}
@@ -159,10 +157,10 @@ export default async function BarbershopDetailPage({
                 ))}
               </div>
             </section>
-            
+
             <section className="flex flex-col gap-4">
-              <ReviewStats barbershopId={barbershop!.id} />
-              <ReviewList barbershopId={barbershop!.id} />
+              <ReviewStats barbershopId={barbershop.id} />
+              <ReviewList barbershopId={barbershop.id} />
             </section>
           </div>
 
@@ -183,7 +181,7 @@ export default async function BarbershopDetailPage({
               </div>
 
               <div className="flex flex-col gap-3">
-                {barbershop?.phone && (
+                {barbershop.phone && (
                   <div className="border-border bg-background/50 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5">
                     <div className="text-muted-foreground flex items-center gap-2 text-xs">
                       <Smartphone className="text-primary h-3.5 w-3.5 shrink-0" />
@@ -192,7 +190,7 @@ export default async function BarbershopDetailPage({
                     <Copy message={barbershop.phone} />
                   </div>
                 )}
-                {barbershop?.email && (
+                {barbershop.email && (
                   <div className="border-border bg-background/50 flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5">
                     <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
                       <MailIcon className="text-primary h-3.5 w-3.5 shrink-0" />
@@ -204,7 +202,7 @@ export default async function BarbershopDetailPage({
                   </div>
                 )}
 
-                {!barbershop?.phone && !barbershop?.email && (
+                {!barbershop.phone && !barbershop.email && (
                   <p className="text-muted-foreground text-xs">Sem contato</p>
                 )}
               </div>
@@ -226,7 +224,7 @@ export default async function BarbershopDetailPage({
               </div>
 
               <div className="flex flex-col gap-2">
-                {barbershop && barbershop.hours.length > 0 ? (
+                {barbershop.hours.length > 0 ? (
                   barbershop.hours
                     .sort((a, b) => {
                       const days = [
@@ -271,7 +269,7 @@ export default async function BarbershopDetailPage({
               <hr className="border-border my-4" />
 
               <div className="flex items-center gap-2 text-xs">
-                {barbershop?.statusHistory?.[0]?.isOpen !== false ? (
+                {barbershop.statusHistory?.[0]?.isOpen !== false ? (
                   <>
                     <span className="block h-2 w-2 animate-pulse rounded-full bg-green-500" />
                     <span className="text-foreground font-semibold">
@@ -288,7 +286,7 @@ export default async function BarbershopDetailPage({
                 )}
               </div>
               <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
-                {barbershop?.statusHistory?.[0]?.reason ||
+                {barbershop.statusHistory?.[0]?.reason ||
                   "Agende seu horário online com antecedência."}
               </p>
             </div>
