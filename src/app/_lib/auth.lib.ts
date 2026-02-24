@@ -1,11 +1,11 @@
 import { userRepo } from "@/src/repositories/user.repository"
-import { type AuthOptions } from "next-auth"
 import { bcryptUtil } from "../_utils/bcrypt.util"
 import { signInSchema } from "./zod.lib"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { Adapter } from "next-auth/adapters"
 import { db } from "@/src/db/connection"
 import { env } from "@/src/config/env"
+import { type AuthOptions } from "next-auth"
 
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
@@ -70,6 +70,7 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id
+        token.role = user.role
         token.emailVerified = user.emailVerified
         return token
       }
@@ -81,6 +82,7 @@ export const authOptions: AuthOptions = {
 
         if (latestUser) {
           token.emailVerified = latestUser.emailVerified
+          token.role = latestUser.role
         }
       }
 
@@ -90,9 +92,9 @@ export const authOptions: AuthOptions = {
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub
+        session.user.role = token.role
         session.user.emailVerified = token.emailVerified
       }
-
       return session
     },
   },
