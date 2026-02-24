@@ -1,4 +1,4 @@
-export class DistanceFormat {
+export class DistanceFormatter {
   /**
    * Formata uma distância em quilômetros para uma string legível.
    * < 1 km → exibida em metros (ex.: "350 m")
@@ -19,6 +19,6 @@ export class DistanceFormat {
   }
 }
 
-export const distanceFormat = new DistanceFormat()
+export const distanceFormat = new DistanceFormatter()
 
 

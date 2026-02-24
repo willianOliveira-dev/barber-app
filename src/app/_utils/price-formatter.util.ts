@@ -1,4 +1,4 @@
-export class PriceFormat {
+export class PriceFormatter {
   private convertCurrency(price: number) {
     return Intl.NumberFormat("pt-BR", {
       currency: "BRL",
@@ -31,4 +31,4 @@ export class PriceFormat {
   }
 }
 
-export const priceFormat = new PriceFormat()
+export const priceFormatter = new PriceFormatter()
