@@ -1,7 +1,6 @@
 import { Header } from "@/src/app/_components/header"
 import { Footer } from "@/src/app/_components/footer"
-import { ServiceBookingPanel } from "@/src/app/_components/barbershop-service-panel"
-import { notFound } from "next/navigation"
+import { BarbershopServiceBookingPanel } from "@/src/app/_components/barbershop-service-booking-panel"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/src/app/_lib/auth.lib"
 import {
@@ -9,7 +8,6 @@ import {
   Clock,
   Tag,
   CalendarCheck,
-  Star,
   CheckCircle2,
   Info,
   House,
@@ -17,7 +15,7 @@ import {
 import { Badge } from "@/src/app/_components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
-import { priceFormat } from "@/src/app/_utils/price-format.util"
+import { priceFormatter } from "@/src/app/_utils/price-formatter.util"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { formatDuration } from "@/src/app/_utils/format-duration.util"
@@ -144,7 +142,7 @@ export default async function BarbershopServiceDetailPage({
                       Valor
                     </p>
                     <p className="text-primary text-xl font-bold">
-                      {priceFormat.formatToPrice(service.priceInCents)}
+                      {priceFormatter.formatToPrice(service.priceInCents)}
                     </p>
                   </div>
                 </div>
@@ -229,7 +227,10 @@ export default async function BarbershopServiceDetailPage({
 
             <div className="lg:col-span-1">
               <div className="lg:sticky lg:top-24">
-                <ServiceBookingPanel
+                <BarbershopServiceBookingPanel
+                  barbershopIsOpen={
+                    barbershop.status ? barbershop.status.isOpen : false
+                  }
                   service={service}
                   barbershopName={barbershop.name}
                   isAuthenticated={!!session?.user}

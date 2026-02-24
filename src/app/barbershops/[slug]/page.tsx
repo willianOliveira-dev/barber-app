@@ -13,6 +13,7 @@ import {
   Info,
   Phone,
   Clock,
+  Megaphone,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -21,6 +22,8 @@ import { ReviewList } from "../../_components/review-list"
 import { getReviewStatsAction } from "../_actions/get-review-stats.action"
 import { barbershopSv } from "@/src/services/barbershop.service"
 import { categorySv } from "@/src/services/category.service"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 
 interface BarbershopPageProps {
   params: Promise<{ slug: string }>
@@ -48,23 +51,13 @@ export default async function BarbershopDetailPage({
     <>
       <main className="flex flex-1 flex-col gap-0">
         <section className="relative h-62.5 w-full overflow-hidden lg:h-95">
-          {barbershop.image ? (
-            <Image
-              src={barbershop.image}
-              alt={barbershop.name}
-              fill
-              className="object-cover"
-              priority
-            />
-          ) : (
-            <Image
-              src="/default.png"
-              alt="Sem imagem"
-              fill
-              className="object-cover"
-            />
-          )}
-
+          <Image
+            src={barbershop.image || "/images/default.png"}
+            alt={barbershop.image ? barbershop.name : "Sem imagem"}
+            fill
+            className="object-cover"
+            priority
+          />
           <div className="from-background via-background/30 absolute inset-0 bg-linear-to-t to-transparent" />
 
           <div className="absolute top-4 right-4 left-4 z-20 flex items-center justify-between">
@@ -92,8 +85,9 @@ export default async function BarbershopDetailPage({
                 <div className="flex items-center gap-1.5">
                   <MapPinHouse className="text-primary h-4 w-4 shrink-0" />
                   <span className="text-muted-foreground text-xs lg:text-sm">
-                    {barbershop.address}, {barbershop.streetNumber}
-                    {barbershop.complement ? ` • ${barbershop.complement}` : ""}
+                    {`${barbershop.address}${barbershop.streetNumber ? `, ${barbershop.streetNumber}` : ""}`}
+                    {barbershop.neighborhood && ` - ${barbershop.neighborhood}`}
+                    {barbershop.complement && ` (${barbershop.complement})`}
                   </span>
                 </div>
 
@@ -149,6 +143,9 @@ export default async function BarbershopDetailPage({
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                 {barbershop.services.map((service) => (
                   <BarbershopServiceItem
+                    barbershopIsOpen={
+                      barbershop.status ? barbershop.status.isOpen : false
+                    }
                     key={service.id}
                     barbershopSlug={barbershop.slug}
                     barbershopName={barbershop.name}
@@ -269,7 +266,7 @@ export default async function BarbershopDetailPage({
               <hr className="border-border my-4" />
 
               <div className="flex items-center gap-2 text-xs">
-                {barbershop.statusHistory?.[0]?.isOpen !== false ? (
+                {barbershop.status && barbershop.status.isOpen ? (
                   <>
                     <span className="block h-2 w-2 animate-pulse rounded-full bg-green-500" />
                     <span className="text-foreground font-semibold">
@@ -277,18 +274,51 @@ export default async function BarbershopDetailPage({
                     </span>
                   </>
                 ) : (
-                  <>
-                    <span className="bg-destructive block h-2 w-2 rounded-full" />
-                    <span className="text-destructive font-semibold">
-                      Fechado no momento
-                    </span>
-                  </>
+                  <div className="flex flex-col items-start justify-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-destructive block h-2 w-2 rounded-full" />
+                      <span className="text-destructive font-semibold">
+                        Fechado no momento
+                      </span>
+                    </div>
+                  </div>
                 )}
               </div>
-              <p className="text-muted-foreground mt-2 text-[10px] leading-relaxed">
-                {barbershop.statusHistory?.[0]?.reason ||
-                  "Agende seu horário online com antecedência."}
-              </p>
+
+              {barbershop.status?.reason ? (
+                <div className="group border-primary/10 bg-secondary/30 hover:bg-secondary/50 relative mt-4 overflow-hidden rounded-xl border p-3 transition-all">
+                  <div className="bg-primary absolute top-0 left-0 h-full w-1" />
+
+                  <div className="flex items-start gap-3">
+                    <div className="bg-primary/10 text-primary rounded-full p-2">
+                      <Megaphone size={14} className="animate-pulse" />
+                    </div>
+
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-primary/80 text-[10px] font-bold tracking-widest uppercase">
+                        Comunicado
+                      </span>
+                      <p className="text-foreground/80 text-xs leading-relaxed font-medium">
+                        {barbershop.status.reason}
+                      </p>
+                      {barbershop.status?.closedUntil && (
+                        <span className="text-muted-foreground text-[10px] font-semibold">
+                          Voltaremos no dia{" "}
+                          {format(
+                            new Date(barbershop.status.closedUntil),
+                            "dd/MM/yyyy",
+                            { locale: ptBR },
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-[10px] font-medium tracking-tight">
+                  Agendamento online disponível
+                </p>
+              )}
             </div>
           </aside>
         </div>
