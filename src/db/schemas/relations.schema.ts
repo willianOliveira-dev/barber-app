@@ -38,7 +38,7 @@ export const barbershopRelations = relations(barbershop, ({ many, one }) => ({
   bookings: many(booking),
   services: many(barbershopService),
   hours: many(barbershopHour),
-  statusHistory: many(barbershopStatus),
+  status: one(barbershopStatus),
   timeSlots: many(availableTimeSlot),
   reviews: many(review),
   owner: one(user, {
@@ -59,6 +59,7 @@ export const barbershopStatusRelations = relations(
   ({ one }) => ({
     barbershop: one(barbershop, {
       fields: [barbershopStatus.barbershopId],
+
       references: [barbershop.id],
     }),
   }),
