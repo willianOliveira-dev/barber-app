@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, or, sql } from "drizzle-orm"
+import { and, desc, eq, lt, or, sql, gte, lte } from "drizzle-orm"
 import { booking } from "../db/schemas"
 import { db } from "../db/connection"
 import { BookingStatus, BookingWithRelations } from "../db/types/booking.type"
@@ -149,36 +149,21 @@ export class BookingRepository {
     }
   }
 
-  // async rebookFromLatest(userId: string, newScheduledAt: Date) {
-  //   const latest = await this.findLatestByUser(userId)
+  async findByDateAndBarbershop(barbershopId: string, date: Date) {
+    const startOfDay = new Date(date)
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date(date)
+    endOfDay.setHours(23, 59, 59, 999)
 
-  //   if (!latest) {
-  //     return null
-  //   }
-
-  //   const endTime = new Date(
-  //     newScheduledAt.getTime() + latest.service.durationMinutes * 60000,
-  //   )
-
-  //   const [newBooking] = await db
-  //     .insert(booking)
-  //     .values({
-  //       userId,
-
-  //       serviceId: latest.service.id,
-
-  //       barbershopId: latest.barbershop.id,
-
-  //       scheduledAt: newScheduledAt,
-
-  //       endTime,
-
-  //       status: "confirmed",
-  //     })
-  //     .returning()
-
-  //   return newBooking
-  // }
+    return await db.query.booking.findMany({
+      where: and(
+        eq(booking.barbershopId, barbershopId),
+        eq(booking.status, "confirmed"),
+        gte(booking.scheduledAt, startOfDay),
+        lte(booking.scheduledAt, endOfDay),
+      ),
+    })
+  }
 
   async findRecommendedServices(userId: string, limit: number = 3) {
     const result = await db
