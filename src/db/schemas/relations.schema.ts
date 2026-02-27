@@ -8,6 +8,8 @@ import { barbershopHour } from "./barbershop-hour.schema"
 import { barbershopStatus } from "./barbershop-status.schema"
 import { account } from "./account.schema"
 import { review, reviewLike } from "./review.schema"
+import { conversation } from "./conversation.schema"
+import { message } from "./message.schema"
 
 export const userRelations = relations(user, ({ many }) => ({
   bookings: many(booking),
@@ -21,6 +23,36 @@ export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
     references: [user.id],
+  }),
+}))
+
+export const conversationRelations = relations(
+  conversation,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [conversation.userId],
+      references: [user.id],
+    }),
+    barbershop: one(barbershop, {
+      fields: [conversation.barbershopId],
+      references: [barbershop.id],
+    }),
+    messages: many(message),
+  }),
+)
+
+export const messageRelations = relations(message, ({ one }) => ({
+  conversation: one(conversation, {
+    fields: [message.conversationId],
+    references: [conversation.id],
+  }),
+  senderUser: one(user, {
+    fields: [message.senderUserId],
+    references: [user.id],
+  }),
+  senderBarbershop: one(barbershop, {
+    fields: [message.senderBarbershopId],
+    references: [barbershop.id],
   }),
 }))
 
