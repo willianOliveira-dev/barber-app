@@ -1,7 +1,7 @@
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { CalendarIcon, ClockIcon, Scissors, Tag } from "lucide-react"
-import { priceFormat } from "../_utils/price-format.util"
+import { priceFormatter } from "../_utils/price-formatter.util"
 import { Card, CardContent } from "./ui/card"
 
 interface BookingSummaryProps {
@@ -50,7 +50,7 @@ export function BookingSummary({
             </h3>
           </div>
           <span className="text-primary shrink-0 text-sm font-bold">
-            {priceFormat.formatToPrice(servicePrice)}
+            {priceFormatter.formatToPrice(servicePrice)}
           </span>
         </div>
 

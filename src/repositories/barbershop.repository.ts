@@ -1,5 +1,15 @@
 import { db } from "../db/connection"
-import { and, countDistinct, desc, eq, ilike, sql } from "drizzle-orm"
+import {
+  and,
+  asc,
+  count,
+  countDistinct,
+  desc,
+  eq,
+  ilike,
+  isNull,
+  sql,
+} from "drizzle-orm"
 import {
   barbershop,
   barbershopHour,
@@ -7,24 +17,35 @@ import {
   booking,
   category,
   review,
+  barbershopStatus,
   dayOfWeekEnum,
 } from "../db/schemas"
-import {
+import type {
+  Barbershop,
+  BarbershopDetails,
+  BarbershopHour,
+  BarbershopService,
+  BarbershopStatus,
   BarbershopSummary,
   BarbershopWithRatings,
+  CreateBarbershopData,
   NearbyBarbershop,
+  PaginationMeta,
   PopularBarbershop,
+  WithReviews,
+  RatingSource,
+  BarbershopSearchResult,
+  BarbershopOwnerResult,
+  BarbershopServiceResult,
+  UpdateBarbershopData,
+  CrateBarbershopHoursData,
+  UpdateBarbershopHoursData,
+  CreateBarbershopStatusData,
+  UpdateBarbershopStatusData,
 } from "../db/types"
 
 export type DayOfWeekEnum = (typeof dayOfWeekEnum.enumValues)[number]
 
-type RatingSource = {
-  rating: number
-}
-
-export type WithReviews = {
-  reviews: RatingSource[]
-}
 class BarbershopRepository {
   private get ratingSelection() {
     return {
@@ -60,27 +81,83 @@ class BarbershopRepository {
     } as Omit<T, "reviews"> & BarbershopWithRatings
   }
 
-  async findAll() {
-    const data = await db
-      .select({
-        id: barbershop.id,
-        name: barbershop.name,
-        slug: barbershop.slug,
-        image: barbershop.image,
-        address: barbershop.address,
-        city: barbershop.city,
-        ...this.ratingSelection,
-      })
-      .from(barbershop)
-      .leftJoin(review, eq(review.barbershopId, barbershop.id))
-      .groupBy(barbershop.id)
+  async create(
+    data: CreateBarbershopData,
+    hours?: CrateBarbershopHoursData[],
+    status?: CreateBarbershopStatusData,
+  ): Promise<Barbershop> {
+    const [createdBarbershop] = await db
+      .insert(barbershop)
+      .values(data)
+      .returning()
 
-    return data ?? []
+    if (hours) {
+      const hoursToInsert = hours.map((hour) => ({
+        barbershopId: createdBarbershop.id,
+        dayOfWeek: hour.dayOfWeek,
+        openingTime: hour.openingTime,
+        closingTime: hour.closingTime,
+        isOpen: hour.isOpen,
+      }))
+      await db.insert(barbershopHour).values(hoursToInsert)
+    }
+
+    await db.insert(barbershopStatus).values({
+      barbershopId: createdBarbershop.id,
+      isOpen: status?.isOpen ?? true,
+      reason: status?.reason ?? null,
+      closedUntil: status?.closedUntil ?? null,
+    })
+
+    return createdBarbershop
   }
 
+  async update(
+    barbershopId: string,
+    data: UpdateBarbershopData,
+    hours: UpdateBarbershopHoursData[],
+    status: UpdateBarbershopStatusData,
+  ): Promise<Barbershop> {
+    const [updatedBarbershop] = await db
+      .update(barbershop)
+      .set(data)
+      .where(eq(barbershop.id, barbershopId))
+      .returning()
+
+    if (hours && hours.length > 0) {
+      await Promise.all(
+        hours.map((hour) =>
+          db
+            .update(barbershopHour)
+            .set({
+              openingTime: hour.openingTime,
+              closingTime: hour.closingTime,
+              isOpen: hour.isOpen,
+            })
+            .where(
+              and(
+                eq(barbershopHour.barbershopId, updatedBarbershop.id),
+                eq(barbershopHour.dayOfWeek, hour.dayOfWeek),
+              ),
+            ),
+        ),
+      )
+    }
+
+    await db
+      .update(barbershopStatus)
+      .set({
+        isOpen: status?.isOpen ?? true,
+        reason: status?.reason ?? null,
+        closedUntil: status?.closedUntil ?? null,
+      })
+      .where(eq(barbershopStatus.barbershopId, updatedBarbershop.id))
+
+    return updatedBarbershop
+  }
   async findPopular(limit: number = 4): Promise<PopularBarbershop[]> {
     const safeLimit = Math.min(limit, 4)
-    return await db
+    return (await db
       .select({
         id: barbershop.id,
         name: barbershop.name,
@@ -88,6 +165,10 @@ class BarbershopRepository {
         slug: barbershop.slug,
         image: barbershop.image,
         address: barbershop.address,
+        streetNumber: barbershop.streetNumber,
+        neighborhood: barbershop.neighborhood,
+        complement: barbershop.complement,
+        zipCode: barbershop.zipCode,
         city: barbershop.city,
         state: barbershop.state,
         phone: barbershop.phone,
@@ -103,7 +184,7 @@ class BarbershopRepository {
       .where(eq(barbershop.isActive, true))
       .groupBy(barbershop.id)
       .orderBy(desc(sql`COUNT(${booking.id})`))
-      .limit(safeLimit)
+      .limit(safeLimit)) as PopularBarbershop[]
   }
 
   async findRecommended(limit: number = 8): Promise<BarbershopSummary[]> {
@@ -116,6 +197,10 @@ class BarbershopRepository {
         image: barbershop.image,
         address: barbershop.address,
         city: barbershop.city,
+        streetNumber: barbershop.streetNumber,
+        neighborhood: barbershop.neighborhood,
+        complement: barbershop.complement,
+        zipCode: barbershop.zipCode,
         state: barbershop.state,
         phone: barbershop.phone,
         email: barbershop.email,
@@ -133,7 +218,7 @@ class BarbershopRepository {
       )
       .limit(limit)
 
-    return result
+    return result as BarbershopSummary[]
   }
 
   async findNearbyBarbershops(
@@ -150,6 +235,8 @@ class BarbershopRepository {
         id: barbershop.id,
         name: barbershop.name,
         slug: barbershop.slug,
+        description: barbershop.description,
+        email: barbershop.email,
         latitude: barbershop.latitude,
         longitude: barbershop.longitude,
         address: barbershop.address,
@@ -157,16 +244,15 @@ class BarbershopRepository {
         state: barbershop.state,
         zipCode: barbershop.zipCode,
         phone: barbershop.phone,
+        streetNumber: barbershop.streetNumber,
+        neighborhood: barbershop.neighborhood,
+        complement: barbershop.complement,
         image: barbershop.image,
         ...this.ratingSelection,
-        distance: sql<number>`
-        calculate_distance(
-          ${userLat}::double precision,
-          ${userLng}::double precision,
-          ${barbershop.latitude}::double precision,
-          ${barbershop.longitude}::double precision
-        )
-      `.as("distance"),
+        distance:
+          sql<number>`calculate_distance(${userLat}, ${userLng}, ${barbershop.latitude}, ${barbershop.longitude})`.as(
+            "distance",
+          ),
       })
       .from(barbershop)
       .leftJoin(review, eq(review.barbershopId, barbershop.id))
@@ -187,46 +273,153 @@ class BarbershopRepository {
       latitude: Number(row.latitude),
       longitude: Number(row.longitude),
       distance: Number(row.distance),
-    })) as NearbyBarbershop[]
+    })) as unknown as NearbyBarbershop[]
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string): Promise<BarbershopDetails | null> {
     const result = await db.query.barbershop.findFirst({
       where: and(eq(barbershop.slug, slug), eq(barbershop.isActive, true)),
       with: {
         services: {
-          where: eq(barbershopService.isActive, true),
+          where: and(
+            eq(barbershopService.isActive, true),
+            isNull(barbershopService.deletedAt),
+          ),
           with: { category: { columns: { id: true, name: true } } },
         },
         hours: true,
         reviews: true,
-        statusHistory: {
-          limit: 1,
-          orderBy: (status, { desc }) => [desc(status.updatedAt)],
-        },
+        status: true,
         owner: { columns: { id: true, name: true, email: true } },
       },
     })
 
-    return this.mapRatings(result)
+    return this.mapRatings(result) as unknown as BarbershopDetails | null
   }
 
-  async findById(id: string) {
-    const result = await db.query.barbershop.findFirst({
-      where: eq(barbershop.id, id),
-      with: {
-        reviews: true,
+  async findServicesByBarbershop(
+    barbershopId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ services: BarbershopServiceResult[]; meta: PaginationMeta }> {
+    const safeLimit = Math.min(limit, 50)
+    const whereClause = and(
+      eq(barbershopService.barbershopId, barbershopId),
+      isNull(barbershopService.deletedAt),
+    )
+
+    const totalResult = await db
+      .select({ count: count(barbershopService.id) })
+      .from(barbershopService)
+      .where(whereClause)
+
+    const total = Number(totalResult[0]?.count ?? 0)
+    const totalPages = Math.max(1, Math.ceil(total / safeLimit))
+    const safePage = Math.min(page, totalPages)
+    const offset = (safePage - 1) * safeLimit
+
+    const services = await db
+      .select({
+        id: barbershopService.id,
+        name: barbershopService.name,
+        slug: barbershopService.slug,
+        barbershopId: barbershopService.barbershopId,
+        description: barbershopService.description,
+        durationMinutes: barbershopService.durationMinutes,
+        priceInCents: barbershopService.priceInCents,
+        image: barbershopService.image,
+        isActive: barbershopService.isActive,
+        category: {
+          id: category.id,
+          name: category.name,
+        },
+      })
+      .from(barbershopService)
+      .leftJoin(category, eq(barbershopService.categoryId, category.id))
+      .where(whereClause)
+      .limit(safeLimit)
+      .offset(offset)
+      .orderBy(asc(barbershopService.name))
+
+    return {
+      services,
+      meta: {
+        total,
+        page: safePage,
+        totalPages,
+        limit: safeLimit,
+        hasNextPage: safePage < totalPages,
+        hasPreviousPage: safePage > 1,
       },
-    })
-    return this.mapRatings(result)
+    }
   }
 
-  async findWithPagination(
+  async findBarbershopsByOwner(
+    ownerId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    barbershops: BarbershopOwnerResult[]
+    meta: PaginationMeta
+  }> {
+    const safeLimit = Math.min(limit, 10)
+    const whereClause = eq(barbershop.ownerId, ownerId)
+
+    const totalResult = await db
+      .select({ count: count(barbershop.id) })
+      .from(barbershop)
+      .where(whereClause)
+
+    const total = Number(totalResult[0]?.count ?? 0)
+    const totalPages = Math.max(1, Math.ceil(total / safeLimit))
+    const safePage = Math.min(page, totalPages)
+    const offset = (safePage - 1) * safeLimit
+
+    const barbershops = await db
+      .select({
+        id: barbershop.id,
+        name: barbershop.name,
+        slug: barbershop.slug,
+        image: barbershop.image,
+        address: barbershop.address,
+        streetNumber: barbershop.streetNumber,
+        state: barbershop.state,
+        isActive: barbershop.isActive,
+        servicesCount: count(barbershopService.id).mapWith(Number),
+      })
+      .from(barbershop)
+      .leftJoin(
+        barbershopService,
+        and(
+          eq(barbershop.id, barbershopService.barbershopId),
+          isNull(barbershopService.deletedAt),
+        ),
+      )
+      .where(whereClause)
+      .groupBy(barbershop.id)
+      .limit(safeLimit)
+      .offset(offset)
+      .orderBy(desc(barbershop.createdAt))
+
+    return {
+      barbershops,
+      meta: {
+        total,
+        page: safePage,
+        totalPages,
+        limit: safeLimit,
+        hasNextPage: safePage < totalPages,
+        hasPreviousPage: safePage > 1,
+      },
+    }
+  }
+
+  async findBarbershopsBySearch(
     search?: string,
     categorySlug?: string,
     page: number = 1,
     limit: number = 12,
-  ) {
+  ): Promise<{ barbershops: BarbershopSearchResult[]; meta: PaginationMeta }> {
     const safeLimit = Math.min(limit, 12)
     const filters = [eq(barbershop.isActive, true)]
 
@@ -240,11 +433,14 @@ class BarbershopRepository {
       .from(barbershop)
       .leftJoin(
         barbershopService,
-        eq(barbershop.id, barbershopService.barbershopId),
+        and(
+          eq(barbershop.id, barbershopService.barbershopId),
+          eq(barbershopService.isActive, true),
+          isNull(barbershopService.deletedAt),
+        ),
       )
       .leftJoin(category, eq(barbershopService.categoryId, category.id))
       .where(whereClause)
-      .orderBy()
 
     const total = Number(totalResult[0]?.count ?? 0)
     const totalPages = Math.max(1, Math.ceil(total / safeLimit))
@@ -265,7 +461,11 @@ class BarbershopRepository {
       .leftJoin(review, eq(review.barbershopId, barbershop.id))
       .leftJoin(
         barbershopService,
-        eq(barbershop.id, barbershopService.barbershopId),
+        and(
+          eq(barbershop.id, barbershopService.barbershopId),
+          eq(barbershopService.isActive, true),
+          isNull(barbershopService.deletedAt),
+        ),
       )
       .leftJoin(category, eq(barbershopService.categoryId, category.id))
       .where(whereClause)
@@ -290,7 +490,9 @@ class BarbershopRepository {
     }
   }
 
-  async findServiceById(serviceId: string) {
+  async findServiceById(
+    serviceId: string,
+  ): Promise<BarbershopService | undefined> {
     return db.query.barbershopService.findFirst({
       where: eq(barbershopService.id, serviceId),
     })
@@ -299,7 +501,7 @@ class BarbershopRepository {
   async findHoursByBarbershopAndDay(
     barbershopId: string,
     dayOfWeek: DayOfWeekEnum,
-  ) {
+  ): Promise<BarbershopHour | undefined> {
     return await db.query.barbershopHour.findFirst({
       where: and(
         eq(barbershopHour.dayOfWeek, dayOfWeek),

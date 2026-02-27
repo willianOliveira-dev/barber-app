@@ -1,9 +1,16 @@
-import { and } from "drizzle-orm"
-import { db } from "../db/connection"
+import { db } from "@/src/db/connection"
+import type {
+  BarbershopService,
+  BarbershopServiceDetails,
+  CreateBarbershopServiceData,
+  UpdateBarbershopServiceData,
+} from "../db/types"
+import { barbershopService, booking } from "../db/schemas"
+import { eq, isNull } from "drizzle-orm"
 
 export class BarbershopServiceRepo {
-  async findBySlug(slug: string) {
-    return db.query.barbershopService.findFirst({
+  async findBySlug(slug: string): Promise<BarbershopServiceDetails | null> {
+    const result = await db.query.barbershopService.findFirst({
       with: {
         category: {
           columns: {
@@ -12,12 +19,56 @@ export class BarbershopServiceRepo {
           },
         },
       },
-      where: (barbershoService, { eq }) =>
+      where: (table, { eq, and }) =>
         and(
-          eq(barbershoService.slug, slug),
-          eq(barbershoService.isActive, true),
+          eq(table.slug, slug),
+          eq(table.isActive, true),
+          isNull(table.deletedAt),
         ),
     })
+
+    return result ?? null
+  }
+
+  async create(data: CreateBarbershopServiceData): Promise<BarbershopService> {
+    const [createdService] = await db
+      .insert(barbershopService)
+      .values(data)
+      .returning()
+    return createdService
+  }
+
+  async update(
+    id: string,
+    data: UpdateBarbershopServiceData,
+  ): Promise<BarbershopService | null> {
+    const [updatedService] = await db
+      .update(barbershopService)
+      .set(data)
+      .where(eq(barbershopService.id, id))
+      .returning()
+
+    return updatedService ?? null
+  }
+  async hasBooking(serviceId: string): Promise<boolean> {
+    const result = await db
+      .select({ id: booking.id })
+      .from(booking)
+      .where(eq(booking.serviceId, serviceId))
+      .limit(1)
+    return result.length > 0
+  }
+
+  async delete(id: string): Promise<BarbershopService | null> {
+    const [deletedService] = await db
+      .update(barbershopService)
+      .set({
+        isActive: false,
+        deletedAt: new Date(),
+      })
+      .where(eq(barbershopService.id, id))
+      .returning()
+    return deletedService ?? null
   }
 }
 

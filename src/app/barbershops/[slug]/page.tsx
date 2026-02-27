@@ -19,11 +19,11 @@ import Image from "next/image"
 import Link from "next/link"
 import { ReviewStats } from "../../_components/reviews-stats"
 import { ReviewList } from "../../_components/review-list"
-import { getReviewStatsAction } from "../_actions/get-review-stats.action"
-import { barbershopSv } from "@/src/services/barbershop.service"
-import { categorySv } from "@/src/services/category.service"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { getBarbershopBySlug } from "../_actions/get-barbershop-by-slug.action"
+import { twMerge } from "tailwind-merge"
+import { getCategories } from "../_actions/get-categories.action"
 
 interface BarbershopPageProps {
   params: Promise<{ slug: string }>
@@ -33,9 +33,17 @@ export default async function BarbershopDetailPage({
   params,
 }: BarbershopPageProps) {
   const { slug } = await params
-  const barbershop = await barbershopSv.getBarbershopBySlug(slug)
-  const reviewStats = await getReviewStatsAction(barbershop.id)
-  const categories = await categorySv.getCategories()
+  const [barbershopResponse, categoriesResponse] = await Promise.all([
+    getBarbershopBySlug(slug),
+    getCategories(),
+  ])
+
+  const barbershop = barbershopResponse.data
+
+  const categories =
+    categoriesResponse.success && "data" in categoriesResponse
+      ? categoriesResponse.data
+      : []
 
   const dayMap: Record<string, string> = {
     monday: "Segunda-feira",
@@ -53,7 +61,7 @@ export default async function BarbershopDetailPage({
         <section className="relative h-62.5 w-full overflow-hidden lg:h-95">
           <Image
             src={barbershop.image || "/images/default.png"}
-            alt={barbershop.image ? barbershop.name : "Sem imagem"}
+            alt={barbershop.name}
             fill
             className="object-cover"
             priority
@@ -99,8 +107,8 @@ export default async function BarbershopDetailPage({
 
                 <span className="border-primary/20 bg-primary/10 text-primary flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold">
                   <StarIcon className="fill-primary h-3 w-3" />
-                  {reviewStats.data?.averageRating.toFixed(1)} ·{" "}
-                  {reviewStats.data?.totalReviews} avaliações
+                  {barbershop.averageRating.toFixed(1)} ·{" "}
+                  {barbershop.totalReviews} avaliações
                 </span>
               </div>
             </div>
@@ -114,11 +122,9 @@ export default async function BarbershopDetailPage({
                 <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
                   <Info className="text-primary h-4 w-4" />
                 </div>
-                <div>
-                  <h2 className="text-sm font-semibold tracking-wide uppercase">
-                    Sobre <span className="text-primary">nós</span>
-                  </h2>
-                </div>
+                <h2 className="text-sm font-semibold tracking-wide uppercase">
+                  Sobre <span className="text-primary">nós</span>
+                </h2>
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed">
                 {barbershop.description ?? "Sem descrição"}
@@ -135,7 +141,7 @@ export default async function BarbershopDetailPage({
                     Serviços <span className="text-primary">disponíveis</span>
                   </h2>
                   <p className="text-muted-foreground text-xs">
-                    {barbershop.services.length ?? 0} serviços
+                    {barbershop.services.length} serviços
                   </p>
                 </div>
               </div>
@@ -143,10 +149,8 @@ export default async function BarbershopDetailPage({
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                 {barbershop.services.map((service) => (
                   <BarbershopServiceItem
-                    barbershopIsOpen={
-                      barbershop.status ? barbershop.status.isOpen : false
-                    }
                     key={service.id}
+                    barbershopIsOpen={barbershop.status?.isOpen ?? false}
                     barbershopSlug={barbershop.slug}
                     barbershopName={barbershop.name}
                     service={service}
@@ -167,14 +171,9 @@ export default async function BarbershopDetailPage({
                 <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
                   <Phone className="text-primary h-4 w-4" />
                 </div>
-                <div>
-                  <h2 className="text-sm font-semibold tracking-wide uppercase">
-                    Contato
-                  </h2>
-                  <p className="text-muted-foreground text-xs">
-                    Fale com a gente
-                  </p>
-                </div>
+                <h2 className="text-sm font-semibold tracking-wide uppercase">
+                  Contato
+                </h2>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -198,10 +197,6 @@ export default async function BarbershopDetailPage({
                     <Copy message={barbershop.email} />
                   </div>
                 )}
-
-                {!barbershop.phone && !barbershop.email && (
-                  <p className="text-muted-foreground text-xs">Sem contato</p>
-                )}
               </div>
             </div>
 
@@ -210,19 +205,14 @@ export default async function BarbershopDetailPage({
                 <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
                   <Clock className="text-primary h-4 w-4" />
                 </div>
-                <div>
-                  <h2 className="text-sm font-semibold tracking-wide uppercase">
-                    Horários
-                  </h2>
-                  <p className="text-muted-foreground text-xs">
-                    Programação semanal
-                  </p>
-                </div>
+                <h2 className="text-sm font-semibold tracking-wide uppercase">
+                  Horários
+                </h2>
               </div>
 
               <div className="flex flex-col gap-2">
                 {barbershop.hours.length > 0 ? (
-                  barbershop.hours
+                  [...barbershop.hours]
                     .sort((a, b) => {
                       const days = [
                         "monday",
@@ -245,15 +235,17 @@ export default async function BarbershopDetailPage({
                         <span className="text-muted-foreground">
                           {dayMap[hour.dayOfWeek]}
                         </span>
-                        {hour.isOpen ? (
-                          <span className="text-foreground font-medium">
-                            {hour.openingTime} — {hour.closingTime}
-                          </span>
-                        ) : (
-                          <span className="text-destructive font-semibold uppercase">
-                            Fechado
-                          </span>
-                        )}
+                        <span
+                          className={
+                            hour.isOpen
+                              ? "text-foreground font-medium"
+                              : "text-destructive font-semibold uppercase"
+                          }
+                        >
+                          {hour.isOpen
+                            ? `${hour.openingTime} — ${hour.closingTime}`
+                            : "Fechado"}
+                        </span>
                       </div>
                     ))
                 ) : (
@@ -266,44 +258,42 @@ export default async function BarbershopDetailPage({
               <hr className="border-border my-4" />
 
               <div className="flex items-center gap-2 text-xs">
-                {barbershop.status && barbershop.status.isOpen ? (
-                  <>
-                    <span className="block h-2 w-2 animate-pulse rounded-full bg-green-500" />
-                    <span className="text-foreground font-semibold">
-                      Aberto agora
-                    </span>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-start justify-center gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-destructive block h-2 w-2 rounded-full" />
-                      <span className="text-destructive font-semibold">
-                        Fechado no momento
-                      </span>
-                    </div>
-                  </div>
-                )}
+                <span
+                  className={twMerge(
+                    "block h-2 w-2 rounded-full",
+                    barbershop.status?.isOpen
+                      ? "animate-pulse bg-green-500"
+                      : "bg-destructive",
+                  )}
+                />
+                <span
+                  className={
+                    barbershop.status?.isOpen
+                      ? "text-foreground font-semibold"
+                      : "text-destructive font-semibold"
+                  }
+                >
+                  {barbershop.status?.isOpen
+                    ? "Aberto agora"
+                    : "Fechado no momento"}
+                </span>
               </div>
 
-              {barbershop.status?.reason ? (
-                <div className="group border-primary/10 bg-secondary/30 hover:bg-secondary/50 relative mt-4 overflow-hidden rounded-xl border p-3 transition-all">
+              {barbershop.status?.reason && (
+                <div className="border-primary/10 bg-secondary/30 relative mt-4 overflow-hidden rounded-xl border p-3">
                   <div className="bg-primary absolute top-0 left-0 h-full w-1" />
-
                   <div className="flex items-start gap-3">
-                    <div className="bg-primary/10 text-primary rounded-full p-2">
-                      <Megaphone size={14} className="animate-pulse" />
-                    </div>
-
+                    <Megaphone size={14} className="text-primary mt-1 min-h-0 shrink-0" />
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-primary/80 text-[10px] font-bold tracking-widest uppercase">
+                      <span className="text-primary/80 text-[10px] font-bold uppercase">
                         Comunicado
                       </span>
-                      <p className="text-foreground/80 text-xs leading-relaxed font-medium">
+                      <p className="text-foreground/80 text-xs font-medium">
                         {barbershop.status.reason}
                       </p>
-                      {barbershop.status?.closedUntil && (
-                        <span className="text-muted-foreground text-[10px] font-semibold">
-                          Voltaremos no dia{" "}
+                      {barbershop.status.closedUntil && (
+                        <span className="text-muted-foreground text-[10px]">
+                          Voltaremos em{" "}
                           {format(
                             new Date(barbershop.status.closedUntil),
                             "dd/MM/yyyy",
@@ -314,10 +304,6 @@ export default async function BarbershopDetailPage({
                     </div>
                   </div>
                 </div>
-              ) : (
-                <p className="text-muted-foreground text-[10px] font-medium tracking-tight">
-                  Agendamento online disponível
-                </p>
               )}
             </div>
           </aside>

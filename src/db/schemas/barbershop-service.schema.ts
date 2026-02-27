@@ -38,6 +38,7 @@ export const barbershopService = pgTable(
     updatedAt: timestamp("updatedAt", { mode: "date", withTimezone: true })
       .notNull()
       .defaultNow(),
+    deletedAt: timestamp("deletedAt", { mode: "date", withTimezone: true }),
   },
   (table) => ({
     nameIndex: index("services_name_index").on(table.name),

@@ -63,7 +63,11 @@ export function FeaturedBarbershopCard({
           <div className="flex items-center gap-1.5 text-sm text-gray-300">
             <MapPin className="text-primary h-3.5 w-3.5" />
             <span className="line-clamp-1">
-              {barbershop.address}, {barbershop.city}
+              {`${barbershop.address}${barbershop.streetNumber ? `, ${barbershop.streetNumber}` : ""}`}
+              {barbershop.neighborhood && ` - ${barbershop.neighborhood}`}
+              {barbershop.complement && ` (${barbershop.complement})`}
+              <br />
+              {`${barbershop.city} - ${barbershop.state}`}
             </span>
           </div>
         </div>

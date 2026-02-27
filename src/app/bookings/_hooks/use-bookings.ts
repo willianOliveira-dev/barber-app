@@ -41,15 +41,15 @@ export function useBookings({
         return
       }
 
-      if (reset) {
-        setData(result.data!.bookings)
-      } else {
-        setData((prev) => [...prev, ...result.data!.bookings])
+      if ("data" in result && result.data) {
+        if (reset) {
+          setData(result.data.bookings)
+        } else {
+          setData((prev) => [...prev, ...result.data.bookings])
+        }
+        setCursor(result.data.meta.nextCursor as { id: string; scheduledAt: Date } | null)
+        setHasMore(result.data.meta.hasMore)
       }
-
-      setCursor(result.data!.meta.nextCursor)
-      setHasMore(result.data!.meta.hasMore)
-
       setIsLoading(false)
     },
     [cursor, limit, status],

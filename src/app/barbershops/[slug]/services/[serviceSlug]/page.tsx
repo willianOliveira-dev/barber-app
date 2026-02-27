@@ -1,27 +1,28 @@
-import { Header } from "@/src/app/_components/header"
-import { Footer } from "@/src/app/_components/footer"
-import { BarbershopServiceBookingPanel } from "@/src/app/_components/barbershop-service-booking-panel"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/src/app/_lib/auth.lib"
+import { format } from "date-fns"
+import { Header } from "@/src/app/_components/header"
 import {
   ArrowLeft,
-  Clock,
-  Tag,
   CalendarCheck,
   CheckCircle2,
-  Info,
+  Clock,
   House,
+  Info,
+  Tag,
 } from "lucide-react"
 import { Badge } from "@/src/app/_components/ui/badge"
+import { cn } from "@/src/app/_lib/utils.lib"
+import { BarbershopServiceBookingPanel } from "@/src/app/_components/barbershop-service-booking-panel"
+import { ptBR } from "date-fns/locale"
+import { getBarbershopBySlug } from "../../../_actions/get-barbershop-by-slug.action"
+import { notFound } from "next/navigation"
+import { getBarbershopServiceBySlug } from "../../../_actions/get-barbershop-service-by-slug.action"
+import { formatDuration } from "@/src/app/_utils/format-duration.util"
+import { priceFormatter } from "@/src/app/_utils/price-formatter.util"
+import { Footer } from "react-day-picker"
 import Image from "next/image"
 import Link from "next/link"
-import { priceFormatter } from "@/src/app/_utils/price-formatter.util"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { formatDuration } from "@/src/app/_utils/format-duration.util"
-import { barbershopSv } from "@/src/services/barbershop.service"
-import { barbershopServiceSv } from "@/src/services/barbershop-service.service"
-import { cn } from "@/src/app/_lib/utils.lib"
 
 interface BarbershopServicePageProps {
   params: Promise<{ slug: string; serviceSlug: string }>
@@ -32,10 +33,22 @@ export default async function BarbershopServiceDetailPage({
 }: BarbershopServicePageProps) {
   const { slug, serviceSlug } = await params
   const session = await getServerSession(authOptions)
+  const user = session?.user
 
-  const barbershop = await barbershopSv.getBarbershopBySlug(slug)
+  const [barbershopResponse, barbershopServiceResponse] = await Promise.all([
+    getBarbershopBySlug(slug),
+    getBarbershopServiceBySlug(serviceSlug),
+  ])
 
-  const service = await barbershopServiceSv.findBySlug(serviceSlug)
+  if (!barbershopResponse.success || !barbershopServiceResponse.success) {
+    return notFound()
+  }
+
+  const barbershop = barbershopResponse.data
+  const service =
+    "data" in barbershopServiceResponse ? barbershopServiceResponse.data : null
+
+  if (!service) return notFound()
 
   const durationLabel = formatDuration(service.durationMinutes)
 
@@ -92,24 +105,14 @@ export default async function BarbershopServiceDetailPage({
           <div className="grid gap-8 px-5 py-8 lg:grid-cols-3 lg:px-8 lg:py-10 xl:px-12">
             <div className="flex flex-col gap-6 lg:col-span-2">
               <div className="relative h-65 w-full overflow-hidden rounded-2xl sm:h-85 lg:h-100">
-                {service.image ? (
-                  <Image
-                    src={service.image}
-                    alt={service.name}
-                    fill
-                    quality={90}
-                    className="object-cover"
-                    priority
-                  />
-                ) : (
-                  <Image
-                    src="/default.png"
-                    alt="Sem imagem"
-                    fill
-                    className="object-cover"
-                  />
-                )}
-
+                <Image
+                  src={service.image || "/images/default.png"}
+                  alt={service.image ? service.name : "Sem Imagem"}
+                  fill
+                  quality={90}
+                  className="object-cover"
+                  priority
+                />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent" />
 
                 <div className="absolute top-4 left-4 flex items-center gap-2">
@@ -173,7 +176,7 @@ export default async function BarbershopServiceDetailPage({
                   {metaItems.map(({ icon: Icon, label, value, highlight }) => (
                     <div
                       key={label}
-                      className="flex items-center justify-between gap-4 px-5 py-3.5"
+                      className="flex flex-col items-start justify-center gap-4 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="text-muted-foreground flex items-center gap-2.5">
                         <Icon className="text-primary h-3.5 w-3.5 shrink-0" />
@@ -194,21 +197,15 @@ export default async function BarbershopServiceDetailPage({
 
               <Link
                 href={`/barbershops/${slug}`}
-                className="group border-border bg-card hover:border-primary/20 flex items-center gap-4 rounded-2xl border p-4 transition-colors"
+                className="group border-border bg-card hover:border-primary/20 hidden items-center gap-4 rounded-2xl border p-4 transition-colors sm:flex"
               >
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
-                  {barbershop.image ? (
-                    <Image
-                      src={barbershop.image}
-                      alt={barbershop.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="bg-primary/10 flex h-full w-full items-center justify-center">
-                      <Tag className="text-primary h-5 w-5" />
-                    </div>
-                  )}
+                  <Image
+                    src={barbershop.image || "/images/default.png"}
+                    alt={barbershop.image ? barbershop.name : "Sem Imagem"}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-muted-foreground text-[11px] font-medium tracking-widest uppercase">
@@ -233,7 +230,7 @@ export default async function BarbershopServiceDetailPage({
                   }
                   service={service}
                   barbershopName={barbershop.name}
-                  isAuthenticated={!!session?.user}
+                  isAuthenticated={!!user}
                 />
               </div>
             </div>

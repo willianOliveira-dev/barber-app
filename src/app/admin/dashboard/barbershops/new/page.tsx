@@ -8,7 +8,7 @@ export default function NewBarbershopPage() {
       <section className="border-border border-b px-5 py-8 lg:px-8 xl:px-12">
         <div className="flex items-center gap-4">
           <Link
-            href="/admin/barbershops"
+            href="/admin/dashboard/barbershops"
             className="text-muted-foreground hover:text-primary flex items-center gap-1.5 text-xs transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />

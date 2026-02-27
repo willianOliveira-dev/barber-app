@@ -5,18 +5,8 @@ import { isValidCEP, isValidPhone } from "@brazilian-utils/brazilian-utils"
 
 const barbershopHourDaySchema = z.object({
   isOpen: z.boolean(),
-  openingTime: z
-    .string()
-    .regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, {
-      message: "Use o formato HH:MM",
-    })
-    .or(z.literal("")),
-  closingTime: z
-    .string()
-    .regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, {
-      message: "Use o formato HH:MM",
-    })
-    .or(z.literal("")),
+  openingTime: z.string().optional(),
+  closingTime: z.string().optional(),
 })
 
 const barbershopStatusSchema = z.object({
@@ -41,8 +31,35 @@ const barbershopFormSchema = z.object({
     .min(3, { message: "O nome deve ter no mínimo 3 caracteres" })
     .max(150, { message: "O nome deve ter no máximo 150 caracteres" })
     .nonempty({ message: "O nome é obrigatório" }),
-  image: z.string().optional(),
-  description: z.string().optional(),
+  image: z
+    .union([
+      z.instanceof(File).refine((file) => file.size <= 5 * 1024 * 1024, {
+        message: "Máximo 5MB",
+      }),
+      z
+        .instanceof(File)
+        .refine(
+          (file) =>
+            ["image/jpeg", "image/png", "image/webp"].includes(file.type),
+          {
+            message: "Use JPG, PNG ou WebP",
+          },
+        ),
+      z.string(),
+      z.undefined(),
+      z.null(),
+    ])
+    .optional(),
+  description: z
+    .string()
+    .min(100, {
+      message: "A descrição deve ter no mínimo 100 caracteres",
+    })
+    .max(4000, {
+      message: "A descrição deve ter no máximo 4000 caracteres",
+    })
+    .optional()
+    .or(z.literal("")),
   address: z
     .string()
     .min(3, { message: "O endereço deve ter no mínimo 3 caracteres" })
@@ -95,12 +112,14 @@ const barbershopFormSchema = z.object({
 
 export type NewBarbershopFormData = z.infer<typeof barbershopFormSchema>
 
-export function useNewBarbershopForm() {
+export function useNewBarbershopForm(
+  defaultValues?: Partial<NewBarbershopFormData>,
+) {
   return useForm<NewBarbershopFormData>({
     resolver: zodResolver(barbershopFormSchema),
-    defaultValues: {
+    defaultValues: defaultValues ?? {
       name: "",
-      image: "",
+      image: undefined,
       description: "",
       address: "",
       city: "",
@@ -114,25 +133,19 @@ export function useNewBarbershopForm() {
       email: "",
       website: "",
       hours: {
-        monday: { isOpen: false, openingTime: "00:00", closingTime: "00:00" },
-        tuesday: { isOpen: false, openingTime: "00:00", closingTime: "00:00" },
-        wednesday: {
-          isOpen: false,
-          openingTime: "00:00",
-          closingTime: "00:00",
-        },
-        thursday: { isOpen: false, openingTime: "00:00", closingTime: "00:00" },
-        friday: { isOpen: false, openingTime: "00:00", closingTime: "00:00" },
-        saturday: { isOpen: false, openingTime: "00:00", closingTime: "00:00" },
-        sunday: { isOpen: false, openingTime: "00:00", closingTime: "00:00" },
+        monday: { isOpen: false, openingTime: "", closingTime: "" },
+        tuesday: { isOpen: false, openingTime: "", closingTime: "" },
+        wednesday: { isOpen: false, openingTime: "", closingTime: "" },
+        thursday: { isOpen: false, openingTime: "", closingTime: "" },
+        friday: { isOpen: false, openingTime: "", closingTime: "" },
+        saturday: { isOpen: false, openingTime: "", closingTime: "" },
+        sunday: { isOpen: false, openingTime: "", closingTime: "" },
       },
-
       status: {
         isOpen: true,
         reason: "",
         closedUntil: undefined,
       },
     },
-    mode: "onChange",
   })
 }

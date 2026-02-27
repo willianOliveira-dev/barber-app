@@ -22,7 +22,7 @@ export function NearbyBarbershopsHomeSection() {
       async (position) => {
         const { latitude, longitude } = position.coords
         const result = await getNearbyBarbershops(latitude, longitude)
-        if (result.data) setBarbershops(result.data)
+        if (result.success && "data" in result) setBarbershops(result.data)
         setIsLoading(false)
       },
       () => {

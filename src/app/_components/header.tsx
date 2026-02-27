@@ -1,12 +1,21 @@
-import { authOptions } from "../_lib/auth.lib"
 import { getServerSession } from "next-auth"
-import { categorySv } from "@/src/services/category.service"
+import { authOptions } from "../_lib/auth.lib"
 import HeaderClient from "./header-client"
+import { getCategories } from "../barbershops/_actions/get-categories.action"
 
 export async function Header() {
-  const categories = await categorySv.getCategories()
   const session = await getServerSession(authOptions)
   const user = session ? session.user : undefined
+  const categoriesResponse = await getCategories()
 
-  return <HeaderClient categories={categories} user={user} />
+  return (
+    <HeaderClient
+      user={user}
+      categories={
+        categoriesResponse.success && "data" in categoriesResponse
+          ? categoriesResponse.data
+          : []
+      }
+    />
+  )
 }

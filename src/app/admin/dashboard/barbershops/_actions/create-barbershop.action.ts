@@ -1,4 +1,5 @@
 "use server"
+
 import { z } from "zod"
 import { ActionResponse } from "@/src/app/_common/http/response/action.response"
 import { authOptions } from "@/src/app/_lib/auth.lib"
@@ -7,8 +8,10 @@ import { getServerSession } from "next-auth"
 import { isValidCEP, isValidPhone } from "@brazilian-utils/brazilian-utils"
 import { getCoordsFromAddress } from "@/src/app/_utils/get-coords-from-address.util"
 import { revalidatePath } from "next/cache"
-import slugify from "slugify"
+import { CreateBarbershopData as CreateBarbershop } from "@/src/db/types"
 import { validateOpeningBeforeClosing } from "@/src/app/_utils/validate-opening-before-closing.util"
+import { uploadToCloudinary } from "@/src/app/_lib/cloudinary.lib"
+import slugify from "slugify"
 
 const dayOfWeekEnum = z.enum([
   "monday",
@@ -55,9 +58,17 @@ const createBarbershopSchema = z
       .min(3, { message: "O nome deve ter no mínimo 3 caracteres" })
       .max(150, { message: "O nome deve ter no máximo 150 caracteres" })
       .nonempty({ message: "O nome é obrigatório" }),
-    image: z.string().optional(),
-    slug: z.string().optional(),
-    description: z.string().optional(),
+    slug: z.string().nonempty({ message: "O slug é obrigatório" }),
+    description: z
+      .string()
+      .min(100, {
+        message: "A descrição deve ter no mínimo 100 caracteres",
+      })
+      .max(4000, {
+        message: "A descrição deve ter no máximo 4000 caracteres",
+      })
+      .optional()
+      .or(z.literal("")),
     address: z
       .string()
       .min(3, { message: "O endereço deve ter no mínimo 3 caracteres" })
@@ -110,44 +121,44 @@ const createBarbershopSchema = z
       .default([
         {
           dayOfWeek: "monday",
-          openingTime: "00:00",
-          closingTime: "00:00",
+          openingTime: "",
+          closingTime: "",
           isOpen: false,
         },
         {
           dayOfWeek: "tuesday",
-          openingTime: "00:00",
-          closingTime: "00:00",
+          openingTime: "",
+          closingTime: "",
           isOpen: false,
         },
         {
           dayOfWeek: "wednesday",
-          openingTime: "00:00",
-          closingTime: "00:00",
+          openingTime: "",
+          closingTime: "",
           isOpen: false,
         },
         {
           dayOfWeek: "thursday",
-          openingTime: "00:00",
-          closingTime: "00:00",
+          openingTime: "",
+          closingTime: "",
           isOpen: false,
         },
         {
           dayOfWeek: "friday",
-          openingTime: "00:00",
-          closingTime: "00:00",
+          openingTime: "",
+          closingTime: "",
           isOpen: false,
         },
         {
           dayOfWeek: "saturday",
-          openingTime: "00:00",
-          closingTime: "00:00",
+          openingTime: "",
+          closingTime: "",
           isOpen: false,
         },
         {
           dayOfWeek: "sunday",
-          openingTime: "00:00",
-          closingTime: "00:00",
+          openingTime: "",
+          closingTime: "",
           isOpen: false,
         },
       ]),
@@ -166,7 +177,15 @@ const createBarbershopSchema = z
 
 export type CreateBarbershopData = z.infer<typeof createBarbershopSchema>
 
-export async function createBarbershopAction(data: CreateBarbershopData) {
+interface CreateBarbershopActionParams {
+  data: CreateBarbershopData
+  imageFormData: FormData
+}
+
+export async function createBarbershopAction({
+  data,
+  imageFormData,
+}: CreateBarbershopActionParams) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -200,6 +219,40 @@ export async function createBarbershopAction(data: CreateBarbershopData) {
 
     const { hours, status, ...barbershopData } = safeParse.data
 
+    let imageUrl: string | null = null
+
+    const imageFile = imageFormData.get("image") as File | null
+
+    if (imageFile && imageFile.size > 0) {
+      const MAX_FILE_SIZE = 5 * 1024 * 1024
+      try {
+        if (imageFile.size > MAX_FILE_SIZE) {
+          return ActionResponse.fail({
+            error: "FILE_TOO_LARGE",
+            message: "A imagem deve ter no máximo 5MB",
+            statusCode: 400,
+          })
+        }
+        const buffer = Buffer.from(await imageFile.arrayBuffer())
+        const { secure_url } = await uploadToCloudinary({
+          folder: "barbershops",
+          buffer,
+          publicId: barbershopData.slug,
+        })
+        imageUrl = secure_url
+      } catch (error) {
+        console.error(
+          "[createBarbershopAction] Erro ao fazer upload da imagem",
+          error,
+        )
+        return ActionResponse.fail({
+          error: "INTERNAL_ERROR",
+          message: "Erro ao fazer upload da imagem",
+          statusCode: 500,
+        })
+      }
+    }
+
     const coords = await getCoordsFromAddress({
       address: barbershopData.address,
       streetNumber: barbershopData.streetNumber,
@@ -209,13 +262,16 @@ export async function createBarbershopAction(data: CreateBarbershopData) {
       neighborhood: barbershopData.neighborhood,
     })
 
+    const barbershop: CreateBarbershop = {
+      ...barbershopData,
+      ownerId: session.user.id,
+      latitude: coords.latitude ?? null,
+      longitude: coords.longitude ?? null,
+      ...(imageUrl !== null && { image: imageUrl }),
+    }
+
     const createdBarbershop = await barbershopRepo.create(
-      {
-        ...barbershopData,
-        ownerId: session.user.id,
-        latitude: coords.latitude ?? null,
-        longitude: coords.longitude ?? null,
-      },
+      barbershop,
       hours,
       status,
     )
@@ -233,7 +289,7 @@ export async function createBarbershopAction(data: CreateBarbershopData) {
       },
     })
   } catch (error) {
-    console.error("[createBarbershopAction] Error:", error)
+    console.error("[createBarbershopAction]", error)
     return ActionResponse.fail({
       error: "INTERNAL_SERVER_ERROR",
       message: "Erro ao criar barbearia",

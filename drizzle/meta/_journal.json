@@ -8,6 +8,20 @@
       "when": 1771614764930,
       "tag": "0000_far_slipstream",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771862072986,
+      "tag": "0001_aspiring_photon",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772061685685,
+      "tag": "0002_lumpy_ezekiel_stane",
+      "breakpoints": true
     }
   ]
 }

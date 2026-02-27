@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader } from "./ui/card"
 import { BookingSheet } from "./booking-sheet"
 import { BarbershopService } from "@/src/db/types"
-import { priceFormat } from "../_utils/price-format.util"
+import { priceFormatter } from "../_utils/price-formatter.util"
 import { useSession } from "next-auth/react"
 import { Button } from "./ui/button"
 import { LogIn } from "lucide-react"
@@ -13,12 +13,14 @@ interface BarbershopServicesItemProps {
   service: BarbershopService
   barbershopSlug: string
   barbershopName: string
+  barbershopIsOpen: boolean
 }
 
 export function BarbershopServiceItem({
   service,
   barbershopSlug,
   barbershopName,
+  barbershopIsOpen,
 }: BarbershopServicesItemProps) {
   const { status } = useSession()
 
@@ -31,6 +33,7 @@ export function BarbershopServiceItem({
             alt={service.name}
             src={service.image}
             className="object-cover"
+            loading="eager"
             fill
           />
         ) : (
@@ -39,6 +42,7 @@ export function BarbershopServiceItem({
             alt="Sem imagem"
             fill
             className="object-cover"
+            loading="eager"
           />
         )}
       </CardHeader>
@@ -55,7 +59,7 @@ export function BarbershopServiceItem({
 
         <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
           <span className="text-primary text-sm font-bold whitespace-nowrap">
-            {priceFormat.formatToPrice(service.priceInCents)}
+            {priceFormatter.formatToPrice(service.priceInCents)}
           </span>
 
           <div className="flex w-full shrink-0 flex-col items-stretch gap-3">
@@ -68,11 +72,15 @@ export function BarbershopServiceItem({
               >
                 <Link href="/login">
                   <LogIn className="h-3.5 w-3.5" />
-                  Reservar
+                  Entre para reservar
                 </Link>
               </Button>
             ) : (
-              <BookingSheet barbershopName={barbershopName} service={service} />
+              <BookingSheet
+                barbershopIsOpen={barbershopIsOpen}
+                barbershopName={barbershopName}
+                service={service}
+              />
             )}
             <Button asChild size="sm" className="gap-1.5 rounded-lg">
               <Link

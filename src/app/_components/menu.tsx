@@ -4,14 +4,13 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { signOut, useSession } from "next-auth/react"
+import { useSession } from "next-auth/react"
 
 import {
   MenuIcon,
   HomeIcon,
   CalendarHeart,
   LogIn,
-  LogOut,
   ChevronRight,
 } from "lucide-react"
 import { FaScissors } from "react-icons/fa6"
@@ -27,10 +26,10 @@ import { Button } from "./ui/button"
 import { SkeletonAvatar } from "./skeleton-avatar"
 import { ProfileCard } from "./profile-card"
 import { cn } from "../_lib/utils.lib"
-import { InferSelectModel } from "drizzle-orm"
-import { category } from "@/src/db/schemas"
+import { ButtonSignOut } from "./button-sign-out"
+import { Category } from "@/src/db/types"
 
-export type MenuProps = { categories: InferSelectModel<typeof category>[] }
+export type MenuProps = { categories: Category[] }
 
 export function Menu({ categories }: MenuProps) {
   const { status, data } = useSession()
@@ -39,14 +38,10 @@ export function Menu({ categories }: MenuProps) {
   const pathname = usePathname()
 
   const navigationLinks = [
-    { name: "Início", router: "/", icon: HomeIcon },
-    { name: "Barbearias", router: "/barbershops", icon: FaScissors },
-    { name: "Agendamentos", router: "/bookings", icon: CalendarHeart },
+    { name: "Início", href: "/", icon: HomeIcon },
+    { name: "Barbearias", href: "/barbershops", icon: FaScissors },
+    { name: "Agendamentos", href: "/bookings", icon: CalendarHeart },
   ]
-
-  const handleSignOutClick = async () => {
-    await signOut({ callbackUrl: "/" })
-  }
 
   const createBarbershopCategoryLink = (categorySlug: string) => {
     const params = new URLSearchParams()
@@ -68,7 +63,7 @@ export function Menu({ categories }: MenuProps) {
         </Button>
       </SheetTrigger>
 
-      <SheetContent className="border-border bg-card flex w-75 flex-col gap-0 border-l p-0 sm:w-[320px]">
+      <SheetContent className="border-border bg-card flex flex-col gap-0 border-l p-0">
         <SheetHeader className="border-border border-b px-6 pt-6 pb-5">
           <div className="flex items-center gap-2">
             <div className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-lg">
@@ -118,11 +113,11 @@ export function Menu({ categories }: MenuProps) {
           <nav>
             <ul className="flex flex-col gap-0.5">
               {navigationLinks.map((link) => {
-                const isActive = pathname === link.router
+                const isActive = pathname === link.href
                 return (
                   <li key={link.name}>
                     <Link
-                      href={link.router}
+                      href={link.href}
                       onClick={() => setIsOpenSheet(false)}
                       className={cn(
                         "group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
@@ -188,13 +183,7 @@ export function Menu({ categories }: MenuProps) {
 
         {status === "authenticated" && (
           <div className="border-border border-t px-4 py-4">
-            <button
-              onClick={handleSignOutClick}
-              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all"
-            >
-              <LogOut className="h-4 w-4" />
-              Sair da conta
-            </button>
+            <ButtonSignOut />
           </div>
         )}
       </SheetContent>

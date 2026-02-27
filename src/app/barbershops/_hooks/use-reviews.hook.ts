@@ -41,19 +41,19 @@ export function useReviews({
         limit,
       })
 
-      if (!result.success) {
+      if (!result.success || !("data" in result) || !result.data) {
         setError(result.message ?? "Erro desconhecido")
         return
       }
 
       if (reset) {
-        setData(result.data!.reviews)
+        setData(result.data.reviews)
       } else {
-        setData((prev) => [...prev, ...result.data!.reviews])
+        setData((prev) => [...prev, ...result.data.reviews])
       }
 
-      setCursor(result.data!.meta.nextCursor)
-      setHasMore(result.data!.meta.hasMore)
+      setCursor(result.data.meta.nextCursor)
+      setHasMore(result.data.meta.hasMore)
 
       setIsLoading(false)
     },

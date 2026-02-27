@@ -164,14 +164,14 @@ function ApplyToAllPopover<TFieldValues extends FieldValues>({
 
       setValue(
         `${dayPath}.openingTime` as Path<TFieldValues>,
-        (sourceDay.openingTime || "00:00") as PathValue<
+        (sourceDay.openingTime || "") as PathValue<
           TFieldValues,
           Path<TFieldValues>
         >,
       )
       setValue(
         `${dayPath}.closingTime` as Path<TFieldValues>,
-        (sourceDay.closingTime || "00:00") as PathValue<
+        (sourceDay.closingTime || "") as PathValue<
           TFieldValues,
           Path<TFieldValues>
         >,

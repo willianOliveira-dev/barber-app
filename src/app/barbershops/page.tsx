@@ -6,17 +6,17 @@ import { AppPagination } from "../_components/pagination"
 import { NoResultsCard } from "../_components/no-results-card"
 import { LayoutGrid, SlidersHorizontal } from "lucide-react"
 import { twMerge } from "tailwind-merge"
-import { categorySv } from "@/src/services/category.service"
-import { barbershopSv } from "@/src/services/barbershop.service"
 import Image from "next/image"
 import Link from "next/link"
+import { getBarbershopsWithPagination } from "./_actions/get-barbershops-with-pagination.action"
+import { getCategories } from "./_actions/get-categories.action"
 
 interface BarbershopsPageProps {
   searchParams: Promise<{
     search?: string
-    category: string
-    page?: number
-    limit?: number
+    category?: string
+    page?: string
+    limit?: string
   }>
 }
 
@@ -26,22 +26,29 @@ export default async function BarbershopsPage({
   const {
     search = "",
     category = "",
-    page = 1,
-    limit = 12,
+    page = "1",
+    limit = "12",
   } = await searchParams
 
-  const { barbershops, meta } = await barbershopSv.getBarbershopsWithPagination(
+  const response = await getBarbershopsWithPagination({
     search,
-    category,
-    page,
-    limit,
-  )
+    categorySlug: category,
+    page: Number(page),
+    limit: Number(limit),
+  })
 
-  const categories = await categorySv.getCategories()
+  if (!response.success || !("data" in response)) {
+    return <div>Erro ao carregar barbearias: {response.message}</div>
+  }
+
+  const { barbershops, meta } = response.data
+  const categoriesResponse = await getCategories()
+
+  const categoriesData = (categoriesResponse.success && "data" in categoriesResponse) ? categoriesResponse.data : []
 
   const categoriesWithAll = [
     { id: "all", name: "Todos", slug: "todos", icon: "/icons/all.svg" },
-    ...categories,
+    ...categoriesData,
   ]
 
   const start = (meta.page - 1) * meta.limit + 1
@@ -53,7 +60,7 @@ export default async function BarbershopsPage({
     if (slug.toLowerCase() !== "todos") {
       params.set("category", slug)
       params.set("page", "1")
-      params.set("limit", "12")
+      params.set("limit", limit)
     }
     const query = params.toString()
     return query ? `/barbershops?${query}` : `/barbershops`
@@ -163,7 +170,7 @@ export default async function BarbershopsPage({
 
               <div className="border-border bg-card text-muted-foreground hidden items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs sm:flex">
                 <SlidersHorizontal className="text-primary h-3.5 w-3.5" />
-                {limit} por página
+                {meta.limit} por página
               </div>
             </div>
 

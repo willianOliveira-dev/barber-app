@@ -4,9 +4,8 @@ import { Card } from "./ui/card"
 import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { Navigation, Phone, MapPin, ArrowRight, Route } from "lucide-react"
-import { distanceFormat } from "../_utils/distance.util"
+import { distanceFormat } from "../_utils/distance-formatter.util"
 import type { NearbyBarbershop } from "@/src/db/types"
-import { cn } from "../_lib/utils.lib"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -17,8 +16,7 @@ interface NearbyBarbershopCardProps {
 export function NearbyBarbershopCard({
   barbershop,
 }: NearbyBarbershopCardProps) {
-  const { name, address, city, state, zipCode, phone, image, distance, slug } =
-    barbershop
+  const { name, phone, image, distance, slug } = barbershop
 
   return (
     <Card
@@ -30,7 +28,7 @@ export function NearbyBarbershopCard({
         <Image
           quality={85}
           alt={name}
-          src={image || "/default.png"}
+          src={image || "/images/default.png"}
           className="object-cover transition-transform duration-700 group-hover:scale-110"
           fill
         />
@@ -62,10 +60,11 @@ export function NearbyBarbershopCard({
           <div className="flex items-start gap-2 text-gray-300">
             <MapPin className="text-primary mt-0.5 h-4 w-4 shrink-0" />
             <p className="text-sm leading-relaxed">
-              {address}
-              {city && city}
-              {state && state}
-              {zipCode && <span className="text-gray-400"> — {zipCode}</span>}
+              {`${barbershop.address}${barbershop.streetNumber ? `, ${barbershop.streetNumber}` : ""}`}
+              {barbershop.neighborhood && ` - ${barbershop.neighborhood}`}
+              {barbershop.complement && ` (${barbershop.complement})`}
+              <br />
+              {`${barbershop.city} - ${barbershop.state}`}
             </p>
           </div>
 

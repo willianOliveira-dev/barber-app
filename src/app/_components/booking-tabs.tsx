@@ -6,8 +6,8 @@ import { FaRegCalendarXmark } from "react-icons/fa6"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { useBookings } from "../bookings/_hooks/use-bookings"
 import { BookingList } from "./booking-list"
-import { type BookingStatus } from "@/src/repositories/booking.repository"
 import { twMerge } from "tailwind-merge"
+import { type BookingStatus } from "@/src/db/types/booking.type"
 
 export function BookignsTabs() {
   const [activeTab, setActiveTab] = useState<BookingStatus>("confirmed")

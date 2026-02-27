@@ -10,7 +10,7 @@ import { toast } from "sonner"
 import Image from "next/image"
 import Link from "next/link"
 
-import { LoginFormData, useLoginForm } from "../_hooks/useLoginForm"
+import { LoginFormData, useLoginForm } from "../_hooks/use-login-form.hook"
 import {
   Form,
   FormControl,

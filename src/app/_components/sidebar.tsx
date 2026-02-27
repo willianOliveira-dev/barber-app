@@ -19,7 +19,7 @@ interface SidebarProps {
   today: string
   greeting: string
   userName?: string
-  isLoggedIn: boolean
+  isAutenticated: boolean
   categories: { id: string; name: string; slug: string; icon?: string | null }[]
 }
 
@@ -27,7 +27,7 @@ export function Sidebar({
   today,
   greeting,
   userName,
-  isLoggedIn,
+  isAutenticated,
   categories,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState<boolean>(false)
@@ -96,7 +96,7 @@ export function Sidebar({
               <p className="text-foreground-muted text-[11px] font-medium tracking-[0.18em] uppercase">
                 {today}
               </p>
-              {isLoggedIn && userName ? (
+              {isAutenticated && userName ? (
                 <>
                   <h1 className="text-3xl leading-tight font-bold text-white xl:text-4xl">
                     {greeting},
@@ -199,7 +199,7 @@ export function Sidebar({
             {!collapsed && <span>Barbearias abertas agora</span>}
           </div>
 
-          {isLoggedIn &&
+          {isAutenticated &&
             (collapsed ? (
               <Link
                 href="/bookings"

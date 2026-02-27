@@ -1,9 +1,13 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "8mb",
+    },
+  },
   images: {
-    qualities: [25, 50, 75, 100],
+    qualities: [25, 50, 75, 85, 90, 100],
     remotePatterns: [
       {
         protocol: "https",
@@ -13,6 +17,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com"
+      }
     ],
   },
 }

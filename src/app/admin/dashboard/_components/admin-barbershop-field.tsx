@@ -61,6 +61,7 @@ export interface BarbershopFieldProps<TFieldValues extends FieldValues> {
   isRequired?: boolean
   type?: string
   onChange?: (value: string) => string
+  onBlur?: (value: string) => Promise<string> | string
   placeholder?: string
   icon?: LucideIcon | IconType
   className?: string
@@ -74,6 +75,7 @@ export function BarbershopField<TFieldValues extends FieldValues>({
   inputType = "input",
   isRequired = true,
   onChange,
+  onBlur,
   placeholder,
   icon: Icon,
   className = "",
@@ -103,53 +105,64 @@ export function BarbershopField<TFieldValues extends FieldValues>({
             {(() => {
               const baseStyles =
                 "border-border bg-background/50 text-foreground focus:border-primary/50 focus:ring-primary/20 hover:border-primary/20 transition-all duration-200 focus:ring-1 focus:outline-none rounded-xl border text-sm"
+              switch (inputType) {
+                case "input":
+                  return (
+                    <Input
+                      {...field}
+                      type={type}
+                      placeholder={placeholder}
+                      className={`${baseStyles} h-11 px-4 py-2.5`}
+                      onChange={(e) => {
+                        const rawValue = e.target.value
+                        const valueToSet = onChange
+                          ? onChange(rawValue)
+                          : rawValue
+                        field.onChange(valueToSet)
+                      }}
+                      onBlur={(e) => {
+                        const rawValue = e.target.value
+                        if (onBlur) onBlur(rawValue)
+                        field.onBlur()
+                      }}
+                    />
+                  )
 
-              if (inputType === "select") {
-                return (
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <SelectTrigger className={`${baseStyles} h-11 px-4 w-full`}>
-                      <SelectValue
-                        placeholder={placeholder || "Selecione o estado"}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BRAZILIAN_STATES.map((state) => (
-                        <SelectItem key={state.value} value={state.value}>
-                          {state.label} - {state.value}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )
+                case "textarea":
+                  return (
+                    <Textarea
+                      {...field}
+                      rows={4}
+                      placeholder={placeholder}
+                      className={`${baseStyles} resize-none px-4 py-3`}
+                    />
+                  )
+
+                case "select":
+                  return (
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger
+                        className={`${baseStyles} h-11 w-full px-4`}
+                      >
+                        <SelectValue
+                          placeholder={placeholder || "Selecione o estado"}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BRAZILIAN_STATES.map((state) => (
+                          <SelectItem key={state.value} value={state.value}>
+                            {state.label} - {state.value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )
+                
               }
-
-              if (inputType === "textarea") {
-                return (
-                  <Textarea
-                    {...field}
-                    rows={4}
-                    placeholder={placeholder}
-                    className={`${baseStyles} resize-none px-4 py-3`}
-                  />
-                )
-              }
-
-              return (
-                <Input
-                  {...field}
-                  type={type}
-                  placeholder={placeholder}
-                  className={`${baseStyles} h-11 px-4 py-2.5`}
-                  onChange={(e) => {
-                    const rawValue = e.target.value
-                    const valueToSet = onChange ? onChange(rawValue) : rawValue
-                    field.onChange(valueToSet)
-                  }}
-                />
-              )
             })()}
           </FormControl>
 

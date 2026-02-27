@@ -4,9 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { CalendarIcon, ClockIcon, RotateCcw } from "lucide-react"
-import { BookingWithRelations } from "@/src/repositories/booking.repository"
 import { twMerge } from "tailwind-merge"
-import { priceFormat } from "../_utils/price-format.util"
+import { priceFormatter } from "../_utils/price-formatter.util"
+import { type BookingWithRelations } from "@/src/db/types/booking.type"
 import Link from "next/link"
 
 interface RebookItemProps {
@@ -71,7 +71,7 @@ export function RebookItem({ booking, className }: RebookItemProps) {
 
           <div className="flex shrink-0 flex-col items-start gap-2">
             <span className="text-primary text-sm font-bold whitespace-nowrap">
-              {priceFormat.formatToPrice(booking.service.priceInCents)}
+              {priceFormatter.formatToPrice(booking.service.priceInCents)}
             </span>
             <Button
               variant="secondary"

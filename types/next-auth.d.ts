@@ -4,6 +4,7 @@ interface CustomUser {
   id: string
   name: string
   image: string | null
+  role: string
   email: string
   emailVerified: Date | null
   password: string | null

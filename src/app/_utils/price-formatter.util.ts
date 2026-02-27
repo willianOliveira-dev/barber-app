@@ -11,7 +11,7 @@ export class PriceFormatter {
   }
 
   formatToNumber(price: string) {
-    return Number(price.replace(/\D/g, ""))
+    return Number(price.replace(/[R$\s.]/g, "").replace(",", "."))
   }
 
   priceToCents(price: number) {
@@ -28,6 +28,12 @@ export class PriceFormatter {
 
   formatToPrice(cents: number) {
     return this.convertCurrency(this.centsToPrice(cents))
+  }
+
+  validatePrice = (value: string): boolean => {
+    const cleaned = value.replace(/[R$\s.]/g, "").replace(",", ".")
+    const amount = parseFloat(cleaned)
+    return !isNaN(amount) && amount > 0
   }
 }
 

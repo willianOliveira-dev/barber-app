@@ -1,20 +1,16 @@
 "use client"
 
-import Image from "next/image"
-import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useSession, signOut } from "next-auth/react"
 import {
   HomeIcon,
   CalendarHeart,
   LogIn,
   User,
-  LogOut,
   Settings,
   ChevronDown,
+  LayoutDashboard,
 } from "lucide-react"
 import { FaScissors } from "react-icons/fa6"
-
 import { Menu } from "./menu"
 import { Search } from "./search"
 import { Button } from "./ui/button"
@@ -28,16 +24,18 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { cn } from "../_lib/utils.lib"
-import { InferSelectModel } from "drizzle-orm"
-import { category } from "@/src/db/schemas"
 import { Session } from "next-auth"
+import { ButtonSignOut } from "./button-sign-out"
+import { Category } from "@/src/db/types"
+import Image from "next/image"
+import Link from "next/link"
 
 interface HeaderClientProps {
-  categories: InferSelectModel<typeof category>[]
   user?: Session["user"]
+  categories: Category[]
 }
 
-export default function HeaderClient({ categories, user }: HeaderClientProps) {
+export default function HeaderClient({ user, categories }: HeaderClientProps) {
   const pathname = usePathname()
 
   const isActive = (href: string) =>
@@ -55,7 +53,7 @@ export default function HeaderClient({ categories, user }: HeaderClientProps) {
         <Link href="/" className="shrink-0">
           <Image
             alt="Razor Barber"
-            src="/logo.webp"
+            src="/images/logo.webp"
             width={150}
             height={22}
             className="h-auto w-32.5 lg:w-37.5"
@@ -83,7 +81,6 @@ export default function HeaderClient({ categories, user }: HeaderClientProps) {
                 >
                   <Icon size={15} />
                   {name}
-
                   {active && (
                     <span className="bg-primary h-1 w-1 rounded-full" />
                   )}
@@ -94,11 +91,14 @@ export default function HeaderClient({ categories, user }: HeaderClientProps) {
 
           <div className="bg-border mx-1 hidden h-5 w-px lg:block" />
 
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="flex items-center gap-3">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="border-border bg-background/50 hover:border-primary/30 flex items-center gap-2.5 rounded-xl border px-3 py-1.5 transition-colors focus:outline-none">
+                  <Button
+                    variant="ghost"
+                    className="border-border bg-background/50 hover:border-primary/30 flex items-center gap-2.5 rounded-xl border px-3 py-5 transition-colors focus:outline-none"
+                  >
                     <Avatar className="ring-primary/20 ring-offset-card h-7 w-7 ring-2 ring-offset-1">
                       {user.image ? (
                         <AvatarImage src={user.image} alt={user.name ?? ""} />
@@ -113,11 +113,11 @@ export default function HeaderClient({ categories, user }: HeaderClientProps) {
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <span className="text-foreground text-sm font-medium">
+                    <span className="text-foreground hidden text-xs leading-tight font-semibold sm:block">
                       {user.name?.split(" ")[0]}
                     </span>
                     <ChevronDown className="text-muted-foreground h-3.5 w-3.5" />
-                  </button>
+                  </Button>
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
@@ -145,6 +145,21 @@ export default function HeaderClient({ categories, user }: HeaderClientProps) {
                       Meu perfil
                     </Link>
                   </DropdownMenuItem>
+
+                  {user.role === "barber" && (
+                    <DropdownMenuItem
+                      asChild
+                      className="hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary cursor-pointer rounded-lg px-2 py-2 text-sm"
+                    >
+                      <Link
+                        href="/admin/dashboard"
+                        className="flex items-center gap-2.5"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
 
                   <DropdownMenuItem
                     asChild
@@ -174,12 +189,8 @@ export default function HeaderClient({ categories, user }: HeaderClientProps) {
 
                   <DropdownMenuSeparator className="bg-border my-1" />
 
-                  <DropdownMenuItem
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className="text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive cursor-pointer rounded-lg px-2 py-2 text-sm"
-                  >
-                    <LogOut className="mr-2.5 h-4 w-4" />
-                    Sair da conta
+                  <DropdownMenuItem className="p-0">
+                    <ButtonSignOut />
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

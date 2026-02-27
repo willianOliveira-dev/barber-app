@@ -13,13 +13,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet"
-import { type BookingWithRelations } from "@/src/repositories/booking.repository"
+
 import Image from "next/image"
 import { BookingSummary } from "./booking-summary"
 import { Copy } from "./copy"
 import { MailIcon, Smartphone } from "lucide-react"
 import { Button } from "./ui/button"
 import { CancelBookingDialog } from "./cancel-booking-dialog"
+import { type BookingWithRelations } from "@/src/db/types/booking.type"
 
 interface BookingItemProps {
   booking: BookingWithRelations
@@ -112,7 +113,7 @@ export function BookingItem({ booking }: BookingItemProps) {
             <Image
               alt="Mapa de Barbearia"
               src="/images/map.png"
-              loading="lazy"
+              loading="eager"
               fill
               className="object-cover"
             ></Image>

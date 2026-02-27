@@ -10,16 +10,10 @@ import {
   PaginationPrevious,
 } from "./ui/pagination"
 import { Button } from "./ui/button"
+import { PaginationMeta } from "@/src/db/types"
 
 interface AppPaginationProps {
-  meta: {
-    limit: number
-    total: number
-    page: number
-    totalPages: number
-    hasNextPage: boolean
-    hasPreviousPage: boolean
-  }
+  meta: PaginationMeta
 }
 
 const PAGES_PER_BLOCK = 3

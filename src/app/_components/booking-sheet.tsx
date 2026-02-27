@@ -14,8 +14,6 @@ import {
 import { cn } from "../_lib/utils.lib"
 import { addDays, format } from "date-fns"
 import { getAvailableSlotsAction } from "../barbershops/_actions/get-available-slots.action"
-import { Card, CardContent } from "./ui/card"
-import { priceFormat } from "../_utils/price-format.util"
 import { toast } from "sonner"
 import { type BarbershopService } from "@/src/db/types"
 import { SkeletonSlots } from "./skeleton-slots"
@@ -24,6 +22,7 @@ import { BookingSummary } from "./booking-summary"
 interface BookingSheetClientProps {
   service: BarbershopService
   barbershopName: string
+  barbershopIsOpen: boolean
 }
 
 type Slots = {
@@ -36,6 +35,7 @@ type Slots = {
 export function BookingSheet({
   service,
   barbershopName,
+  barbershopIsOpen
 }: BookingSheetClientProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [slots, setSlots] = useState<Slots[]>([])
@@ -62,7 +62,7 @@ export function BookingSheet({
         return
       }
 
-      const data = availableSlots.data ? availableSlots.data : { slots: [] }
+      const data = "data" in availableSlots ? availableSlots.data : { slots: [] }
 
       setSlots(data.slots)
 
@@ -88,7 +88,7 @@ export function BookingSheet({
         return
       }
 
-      const data = availableSlots.data ? availableSlots.data : { slots: [] }
+      const data = "data" in availableSlots ? availableSlots.data : { slots: [] }
 
       setSlots(data.slots)
 
@@ -101,7 +101,7 @@ export function BookingSheet({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="secondary" size="sm">
+        <Button disabled={!barbershopIsOpen} variant="secondary" size="sm">
           Fazer Reserva
         </Button>
       </SheetTrigger>

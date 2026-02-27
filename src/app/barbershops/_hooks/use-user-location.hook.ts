@@ -1,11 +1,15 @@
 "use client"
-
 import { useState, useEffect, useCallback } from "react"
-import type { UserLocationState } from "@/src/db/types"
 
 interface UseUserLocationOptions {
   watch?: boolean
   geolocationOptions?: PositionOptions
+}
+
+export interface UserLocationState {
+  coordinates: { lat: number; lng: number } | null
+  loading: boolean
+  error: string | null
 }
 
 interface UseUserLocationReturn extends UserLocationState {
@@ -65,7 +69,7 @@ export function useUserLocation(
       return
     }
 
-    setState((prev) => ({ ...prev, loading: true, error: null }))
+    setState((prev: UserLocationState) => ({ ...prev, loading: true, error: null }))
 
     if (watch) {
       const watchId = navigator.geolocation.watchPosition(

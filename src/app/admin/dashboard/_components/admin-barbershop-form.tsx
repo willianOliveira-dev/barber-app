@@ -1,57 +1,98 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Save,
-  Upload,
   Building2,
   MapPin,
   Phone,
-  Image as ImageIcon,
-  Mail,
+  ImageIcon,
   Paperclip,
+  Mail,
+  House,
+  Upload,
+  Loader2,
+  Trash2,
 } from "lucide-react"
-import { Button } from "../../../_components/ui/button"
-import { useRouter } from "next/navigation"
+import { Button } from "@/src/app/_components/ui/button"
+import { Input } from "@/src/app/_components/ui/input"
+import { Switch } from "@/src/app/_components/ui/switch"
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/src/app/_components/ui/form"
-import { Input } from "@/src/app/_components/ui/input"
 import {
-  NewBarbershopFormData,
   useNewBarbershopForm,
+  NewBarbershopFormData,
 } from "../barbershops/_hooks/use-new-barbershop-form.hook"
-import { BsFillHouseHeartFill } from "react-icons/bs"
-import { maskPhone } from "@/src/app/_utils/mask-phone.util"
-import { maskZipCode } from "@/src/app/_utils/mask-zip-code.util"
-import {
-  createBarbershopAction,
-  type CreateBarbershopData,
-} from "../barbershops/_actions/create-barbershop.action"
-import { toast } from "sonner"
-import { useState } from "react"
-import { Label } from "@/src/app/_components/ui/label"
-import { Switch } from "@/src/app/_components/ui/switch"
-import { BarbershopField } from "./admin-barbershop-field"
 import { AdminBarbershopHoursField } from "./admin-barbershop-hours-field"
 import { AdminBarbershopStatusField } from "./admin-barbershop-status-field"
+import {
+  createBarbershopAction,
+  CreateBarbershopData,
+} from "../barbershops/_actions/create-barbershop.action"
+import { toast } from "sonner"
 import { hoursTransformer } from "@/src/app/_utils/hours-transformer.util"
+import { BarbershopField } from "./admin-barbershop-field"
+import { maskZipCode } from "@/src/app/_utils/mask-zip-code.util"
+import { maskPhone } from "@/src/app/_utils/mask-phone.util"
+import { Label } from "@/src/app/_components/ui/label"
+import Image from "next/image"
+import { updateBarbershopAction } from "../barbershops/_actions/update-barbershop.action"
 
 interface AdminBarbershopFormProps {
-  defaultValues?: any
+  defaultValues?: Partial<NewBarbershopFormData>
+  barbershopId?: string
+  isEditing?: boolean
 }
 
 export function AdminBarbershopForm({
   defaultValues,
+  barbershopId,
+  isEditing = false,
 }: AdminBarbershopFormProps) {
-  const form = useNewBarbershopForm()
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const [searchingZipCode, setSearchingZipCode] = useState(false)
+
+  const form = useNewBarbershopForm(defaultValues)
+  const imageFormData = new FormData()
+
+  const imageValue = form.watch("image")
+
+  const imagePreview = useMemo(() => {
+    if (!imageValue) return undefined
+    if (typeof imageValue === "string") return imageValue
+    return URL.createObjectURL(imageValue)
+  }, [imageValue])
+
+  useEffect(
+    () => () => {
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    },
+    [imagePreview],
+  )
+
+  useEffect(() => {
+    if (defaultValues) {
+      form.reset(defaultValues)
+    }
+  }, [])
 
   const handleSubmit = async (data: NewBarbershopFormData) => {
     setIsLoading(true)
+
+    if (data.image && data.image instanceof File) {
+      imageFormData.append("image", data.image)
+    }
 
     const payload: CreateBarbershopData = {
       ...data,
@@ -64,44 +105,200 @@ export function AdminBarbershopForm({
       },
     }
 
-    const res = await createBarbershopAction(payload)
+    const result =
+      isEditing && barbershopId
+        ? await updateBarbershopAction({
+            barbershopId,
+            data: payload,
+            imageFormData,
+          })
+        : await createBarbershopAction({ data: payload, imageFormData })
 
     setIsLoading(false)
 
-    if (!res.success) {
-      toast.error(res.message)
+    if (!result.success) {
+      toast.error(result.message)
       return
     }
-    toast.success("Barbearia criada com sucesso!")
-    form.reset()
+
+    toast.success(result.message)
+
+    if (!isEditing) form.reset()
+
+    router.refresh()
+    router.push("/admin/dashboard/barbershops")
   }
 
-  const router = useRouter()
-  const isEditing = !!defaultValues
+  const handleZipCodeBlur = async (zipCode: string) => {
+    const cleanZipCode = zipCode.replace(/\D/g, "")
+
+    if (cleanZipCode.length !== 8) return zipCode
+
+    const updateFormFields = ({
+      street,
+      neighborhood,
+      city,
+      state,
+      complement,
+    }: {
+      street: string
+      neighborhood: string
+      city: string
+      state: string
+      complement?: string
+    }) => {
+      form.setValue("address", street)
+      form.setValue("neighborhood", neighborhood)
+      form.setValue("city", city)
+      form.setValue("state", state)
+      form.setValue("complement", complement ?? "")
+    }
+    try {
+      setSearchingZipCode(true)
+      const response = await fetch(
+        `https://brasilapi.com.br/api/cep/v1/${cleanZipCode}`,
+      )
+      const data = await response.json()
+
+      if (!response.ok) throw new Error("BrasilAPI falhou")
+
+      updateFormFields({
+        street: data.street,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+      })
+    } catch (error) {
+      console.warn("[handleZipCodeBlur]", error)
+      try {
+        const fallbackResponse = await fetch(
+          `https://viacep.com.br/ws/${cleanZipCode}/json/`,
+        )
+        const fallbackData = await fallbackResponse.json()
+
+        if (!fallbackResponse.ok) return zipCode
+
+        updateFormFields({
+          street: fallbackData.logradouro,
+          neighborhood: fallbackData.bairro,
+          city: fallbackData.localidade,
+          state: fallbackData.uf,
+          complement: fallbackData.complemento,
+        })
+      } catch (error) {
+        console.error("[handleZipCodeBlur] BrasilAPI e ViaCEP falharam", error)
+      }
+    } finally {
+      setSearchingZipCode(false)
+    }
+
+    return zipCode
+  }
 
   return (
     <div className="mx-auto">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="group border-border bg-card hover:border-primary/30 relative overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:shadow-lg">
-              <div className="from-primary via-primary/60 absolute top-0 right-0 left-0 h-1 bg-linear-to-r to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              <div className="border-border border-b px-5 py-4">
-                <div className="flex items-center gap-2">
-                  <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
-                    <Building2 className="text-primary h-4 w-4" />
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="group border-border bg-card relative overflow-hidden rounded-2xl border">
+            <div className="relative h-52 w-full sm:h-64 lg:h-72">
+              {imagePreview ? (
+                <>
+                  <Image
+                    alt="Imagem da Barbearia"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                    src={imagePreview}
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+
+                  <div className="absolute top-4 right-4">
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="hover:bg-destructive h-9 w-9 rounded-xl border border-white/10 bg-black/50 text-white backdrop-blur-sm"
+                      onClick={() => form.setValue("image", undefined)}
+                      type="button"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <h2 className="text-sm font-semibold tracking-wide uppercase">
-                    Informa<span className="text-primary">ções básicas</span>
-                  </h2>
+
+                  <div className="absolute bottom-4 left-5">
+                    <p className="text-[10px] font-semibold tracking-[0.18em] text-white/50 uppercase">
+                      Imagem de capa
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <Label className="group/upload from-primary/5 via-background to-background hover:from-primary/10 flex h-full w-full cursor-pointer flex-col items-center justify-center gap-4 bg-linear-to-br transition-colors">
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <div className="bg-primary/10 group-hover/upload:bg-primary/20 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300">
+                      <Upload className="text-primary h-7 w-7" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-foreground text-sm font-semibold">
+                        Adicionar imagem de capa
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        PNG, JPG ou WebP • Máx. 5MB
+                      </p>
+                    </div>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Input
+                          type="file"
+                          className="hidden"
+                          accept="image/png, image/jpeg, image/webp"
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              const isImage = [
+                                "image/jpeg",
+                                "image/png",
+                                "image/webp",
+                              ].includes(file.type)
+                              if (!isImage) {
+                                toast.warning(
+                                  "Formato de imagem não suportado. Escolha um JPG, PNG ou WebP.",
+                                )
+                                e.target.value = ""
+                                return
+                              }
+                              field.onChange(file)
+                            }
+                          }}
+                        />
+                        <FormMessage className="text-[10px]" />
+                      </FormItem>
+                    )}
+                  />
+                </Label>
+              )}
+            </div>
+
+            <div className="border-border border-t p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                  <Building2 className="text-primary h-4 w-4" />
                 </div>
+                <h2 className="text-sm font-semibold tracking-wide uppercase">
+                  Informa<span className="text-primary">ções básicas</span>
+                </h2>
               </div>
 
-              <div className="flex flex-1 flex-col gap-4 p-5">
+              <div className="flex flex-col gap-4">
                 <BarbershopField
                   label="Nome da barbearia"
                   name="name"
-                  placeholder="Ex: Razor Centro"
+                  placeholder="Ex: Razor Carioca"
                   control={form.control}
                   icon={Building2}
                 />
@@ -135,7 +332,7 @@ export function AdminBarbershopForm({
                         <p className="text-muted-foreground text-[10px]">
                           {field.value
                             ? "Visível na plataforma"
-                            : "Não será exibida na plaforma"}
+                            : "Não será exibida na plataforma"}
                         </p>
                       </div>
                       <FormControl>
@@ -150,10 +347,11 @@ export function AdminBarbershopForm({
                 />
               </div>
             </div>
+          </div>
 
-            <div className="group border-border bg-card hover:border-primary/30 relative overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:shadow-lg">
-              <div className="from-primary via-primary/60 absolute top-0 right-0 left-0 h-1 bg-linear-to-r to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="group border-border bg-card hover:border-primary/30 relative overflow-hidden rounded-2xl border transition-all duration-300">
+              <div className="from-primary via-primary/60 absolute top-0 right-0 left-0 h-px bg-linear-to-r to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="border-border border-b px-5 py-4">
                 <div className="flex items-center gap-2">
                   <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
@@ -164,19 +362,18 @@ export function AdminBarbershopForm({
                   </h2>
                 </div>
               </div>
-
               <div className="flex flex-col gap-4 p-5">
                 <BarbershopField
                   label="Logradouro"
                   name="address"
-                  placeholder="Rua das Flores"
+                  placeholder="Rua Coronel Bernardino de Melo"
                   control={form.control}
-                  icon={BsFillHouseHeartFill}
+                  icon={House}
                 />
                 <BarbershopField
                   label="Bairro"
                   name="neighborhood"
-                  placeholder="Jardim das Flores"
+                  placeholder="Vilar dos Teles"
                   control={form.control}
                   isRequired={false}
                 />
@@ -187,13 +384,21 @@ export function AdminBarbershopForm({
                     placeholder="562"
                     control={form.control}
                   />
-                  <BarbershopField
-                    label="CEP"
-                    name="zipCode"
-                    placeholder="00000-000"
-                    onChange={(val) => maskZipCode(val)}
-                    control={form.control}
-                  />
+                  <div className="relative">
+                    <BarbershopField
+                      label="CEP"
+                      name="zipCode"
+                      placeholder="00000-000"
+                      onChange={(val) => maskZipCode(val)}
+                      onBlur={handleZipCodeBlur}
+                      control={form.control}
+                    />
+                    {searchingZipCode && (
+                      <span className="absolute top-1/2 right-5 translate-y-1/2">
+                        <Loader2 size={16} className="animate-spin" />
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <BarbershopField
                   label="Complemento"
@@ -206,13 +411,13 @@ export function AdminBarbershopForm({
                   <BarbershopField
                     label="Cidade"
                     name="city"
-                    placeholder="São Paulo"
+                    placeholder="São João de Meriti"
                     control={form.control}
                   />
                   <BarbershopField
                     label="Estado"
                     name="state"
-                    placeholder="SP"
+                    placeholder="RJ"
                     inputType="select"
                     control={form.control}
                   />
@@ -220,9 +425,8 @@ export function AdminBarbershopForm({
               </div>
             </div>
 
-            <div className="group border-border bg-card hover:border-primary/30 relative overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:shadow-lg">
-              <div className="from-primary via-primary/60 absolute top-0 right-0 left-0 h-1 bg-linear-to-r to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+            <div className="group border-border bg-card hover:border-primary/30 relative overflow-hidden rounded-2xl border transition-all duration-300">
+              <div className="from-primary via-primary/60 absolute top-0 right-0 left-0 h-px bg-linear-to-r to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="border-border border-b px-5 py-4">
                 <div className="flex items-center gap-2">
                   <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
@@ -233,7 +437,6 @@ export function AdminBarbershopForm({
                   </h2>
                 </div>
               </div>
-
               <div className="flex flex-col gap-4 p-5">
                 <BarbershopField
                   label="Telefone"
@@ -254,48 +457,6 @@ export function AdminBarbershopForm({
                   isRequired={false}
                   icon={Mail}
                 />
-              </div>
-            </div>
-
-            <div className="group border-border bg-card hover:border-primary/30 relative overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:shadow-lg">
-              <div className="from-primary via-primary/60 absolute top-0 right-0 left-0 h-1 bg-linear-to-r to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-              <div className="border-border border-b px-5 py-4">
-                <div className="flex items-center gap-2">
-                  <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
-                    <ImageIcon className="text-primary h-4 w-4" />
-                  </div>
-                  <h2 className="text-sm font-semibold tracking-wide uppercase">
-                    Ima<span className="text-primary">gem</span>
-                  </h2>
-                </div>
-              </div>
-
-              <div className="flex min-h-80 items-center justify-center p-5">
-                <Label className="border-border bg-background hover:border-primary/40 hover:bg-primary/5 group/upload flex w-full max-w-sm cursor-pointer items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all duration-300">
-                  <div className="flex flex-col items-center gap-4 text-center">
-                    <div className="bg-primary/10 group-hover/upload:bg-primary/20 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-300">
-                      <Upload className="text-primary h-7 w-7 transition-transform duration-300 group-hover/upload:-translate-y-0.5 group-hover/upload:scale-110" />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <p className="text-foreground text-sm font-semibold">
-                        Clique para fazer upload
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        PNG, JPG ou WebP • Máx. 5MB
-                      </p>
-                    </div>
-
-                    <div className="border-border bg-background/50 text-muted-foreground flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px]">
-                      <span>Recomendado:</span>
-                      <span className="text-foreground font-medium">
-                        1200x800px
-                      </span>
-                    </div>
-                  </div>
-                  <Input type="file" className="hidden" accept="image/*" />
-                </Label>
               </div>
             </div>
 
@@ -322,7 +483,7 @@ export function AdminBarbershopForm({
               {isLoading ? (
                 <>
                   <span className="border-primary-foreground h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
-                  Enviando...
+                  Salvando...
                 </>
               ) : isEditing ? (
                 "Salvar alterações"

@@ -18,7 +18,7 @@ export function BarbershopItem({ barbershop }: BarbershopItemProps) {
         <Image
           quality={85}
           alt={barbershop.name}
-          src={barbershop.image || "/default.png"}
+          src={barbershop.image || "/images/default.png"}
           className="object-cover transition-transform duration-700 group-hover:scale-110"
           fill
         />

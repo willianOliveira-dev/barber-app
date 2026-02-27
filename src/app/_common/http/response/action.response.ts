@@ -12,7 +12,6 @@ export class ActionResponse {
       success: false,
       statusCode,
       message,
-      data: null,
       error,
       method: "POST",
       timestamp: new Date(),
