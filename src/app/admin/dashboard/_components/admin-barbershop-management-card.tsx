@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@/src/app/_components/ui/button"
 import { Card } from "@/src/app/_components/ui/card"
 import {
   Tooltip,
@@ -13,12 +12,28 @@ import { Eye, Pencil, Scissors, Trash2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { type BarbershopOwnerResult } from "@/src/db/types"
+import { DeleteBarbershopDialog } from "./delete-barbershop-dialog"
+import { useState } from "react"
+import { deleteBarbershopAction } from "../barbershops/_actions/delete-barbershop.action"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export function AdminBarbershopManagementCard({
   barbershop,
 }: {
   barbershop: BarbershopOwnerResult
 }) {
+  const router = useRouter()
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    const result = await deleteBarbershopAction(barbershop.id)
+    result.success ? toast.success(result.message) : toast.error(result.message)
+    if (result.success) router.refresh()
+    setDeleting(false)
+  }
+
   return (
     <TooltipProvider>
       <Card className="group border-border bg-card hover:border-primary/30 relative flex flex-col gap-4 rounded-2xl border p-4 transition-all duration-300 hover:shadow-lg sm:flex-row sm:items-center">
@@ -99,12 +114,10 @@ export function AdminBarbershopManagementCard({
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                className="border-border text-muted-foreground hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive h-9 w-9 flex-1 rounded-lg border transition-all sm:flex-none"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <DeleteBarbershopDialog
+                handleDelete={handleDelete}
+                deleting={deleting}
+              />
             </TooltipTrigger>
             <TooltipContent>Excluir</TooltipContent>
           </Tooltip>

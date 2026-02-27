@@ -128,7 +128,7 @@ export async function createBarbershopServiceAction({
     const createBarbershopService =
       await barbershopServiceRepo.create(barbershopService)
 
-    revalidatePath("/admin/barbershops/*/services")
+    revalidatePath("/admin/dashboard/barbershops/*/services")
 
     return ActionResponse.success({
       message: "Serviço criado com sucesso",

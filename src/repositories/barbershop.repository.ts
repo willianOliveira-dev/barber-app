@@ -25,7 +25,6 @@ import type {
   BarbershopDetails,
   BarbershopHour,
   BarbershopService,
-  BarbershopStatus,
   BarbershopSummary,
   BarbershopWithRatings,
   CreateBarbershopData,
@@ -155,6 +154,34 @@ class BarbershopRepository {
 
     return updatedBarbershop
   }
+
+  async hasBooking(barbershopId: string) {
+    const result = await db
+      .select({ id: booking.id })
+      .from(booking)
+      .where(
+        and(
+          eq(booking.barbershopId, barbershopId),
+          eq(booking.status, "confirmed"),
+        ),
+      )
+      .limit(1)
+    return result.length > 0
+  }
+
+  async delete(id: string): Promise<Barbershop | null> {
+    const [deleteBarbershop] = await db
+      .update(barbershop)
+      .set({
+        isActive: false,
+        deletedAt: new Date(),
+      })
+      .where(eq(barbershop.id, id))
+      .returning()
+
+    return deleteBarbershop ?? null
+  }
+
   async findPopular(limit: number = 4): Promise<PopularBarbershop[]> {
     const safeLimit = Math.min(limit, 4)
     return (await db
@@ -283,6 +310,7 @@ class BarbershopRepository {
         services: {
           where: and(
             eq(barbershopService.isActive, true),
+            isNull(barbershop.deletedAt),
             isNull(barbershopService.deletedAt),
           ),
           with: { category: { columns: { id: true, name: true } } },
@@ -305,12 +333,14 @@ class BarbershopRepository {
     const safeLimit = Math.min(limit, 50)
     const whereClause = and(
       eq(barbershopService.barbershopId, barbershopId),
+      isNull(barbershop.deletedAt),
       isNull(barbershopService.deletedAt),
     )
 
     const totalResult = await db
       .select({ count: count(barbershopService.id) })
       .from(barbershopService)
+      .leftJoin(barbershop, eq(barbershopService.barbershopId, barbershop.id))
       .where(whereClause)
 
     const total = Number(totalResult[0]?.count ?? 0)
@@ -335,6 +365,7 @@ class BarbershopRepository {
         },
       })
       .from(barbershopService)
+      .leftJoin(barbershop, eq(barbershopService.barbershopId, barbershop.id))
       .leftJoin(category, eq(barbershopService.categoryId, category.id))
       .where(whereClause)
       .limit(safeLimit)
@@ -363,7 +394,10 @@ class BarbershopRepository {
     meta: PaginationMeta
   }> {
     const safeLimit = Math.min(limit, 10)
-    const whereClause = eq(barbershop.ownerId, ownerId)
+    const whereClause = and(
+      eq(barbershop.ownerId, ownerId),
+      isNull(barbershop.deletedAt),
+    )
 
     const totalResult = await db
       .select({ count: count(barbershop.id) })
@@ -421,7 +455,10 @@ class BarbershopRepository {
     limit: number = 12,
   ): Promise<{ barbershops: BarbershopSearchResult[]; meta: PaginationMeta }> {
     const safeLimit = Math.min(limit, 12)
-    const filters = [eq(barbershop.isActive, true)]
+    const filters = [
+      eq(barbershop.isActive, true),
+      isNull(barbershop.deletedAt),
+    ]
 
     if (search) filters.push(ilike(barbershop.name, `%${search}%`))
     if (categorySlug) filters.push(eq(category.slug, categorySlug))

@@ -10,19 +10,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/src/app/_components/ui/alert-dialog"
-import { TbTrashXFilled } from "react-icons/tb"
+import { TbBuildingOff } from "react-icons/tb"
 import { Button } from "@/src/app/_components/ui/button"
 
 import { Trash2, Loader2, AlertCircle } from "lucide-react"
-interface DeleteBarbershopServiceDialogProps {
+interface DeleteBarbershopDialogProps {
   handleDelete: () => void
   deleting: boolean
 }
 
-export function DeleteBarbershopServiceDialog({
+export function DeleteBarbershopDialog({
   handleDelete,
   deleting,
-}: DeleteBarbershopServiceDialogProps) {
+}: DeleteBarbershopDialogProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -41,12 +41,12 @@ export function DeleteBarbershopServiceDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-            <TbTrashXFilled />
+            <TbBuildingOff />
           </AlertDialogMedia>
-          <AlertDialogTitle> Deletar serviço </AlertDialogTitle>
+          <AlertDialogTitle> Deletar barbearia </AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja excluir esse serviço? Essa ação não pode ser
-            desfeita.
+            Tem certeza que deseja excluir essa barbearia? Essa ação não pode
+            ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -60,7 +60,7 @@ export function DeleteBarbershopServiceDialog({
             <AlertCircle className="text-amber-400" size={16} />
           </span>
           Antes de deletar, certifaca-se de não ter nenhum agendamento em
-          andamento vinculado a este serviço.
+          andamento vinculado a esta barbearia.
         </p>
       </AlertDialogContent>
     </AlertDialog>

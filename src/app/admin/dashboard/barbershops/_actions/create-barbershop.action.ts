@@ -276,9 +276,10 @@ export async function createBarbershopAction({
       status,
     )
 
+    revalidatePath("/admin/dashboard/barbershops")
     revalidatePath("/")
     revalidatePath("/barbershops")
-    revalidatePath("/admin/barbershops")
+    revalidatePath(`/barbershops/${createdBarbershop.slug}`)
 
     return ActionResponse.success({
       message: "Barbearia criada com sucesso",

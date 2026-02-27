@@ -159,7 +159,7 @@ export async function updateBarbershopServiceAction({
     notFound()
   }
 
-  revalidatePath("/admin/barbershops/*/services")
+  revalidatePath("/admin/dashboard/barbershops/*/services")
 
   return ActionResponse.success({
     message: "Serviço atualizado com sucesso",

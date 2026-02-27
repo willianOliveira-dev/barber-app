@@ -4,18 +4,17 @@ import { ActionResponse } from "@/src/app/_common/http/response/action.response"
 import { authOptions } from "@/src/app/_lib/auth.lib"
 import { getServerSession } from "next-auth"
 import { revalidatePath } from "next/cache"
-import { type BarbershopService } from "@/src/db/types"
-import { barbershopServiceRepo } from "@/src/repositories/barbershop-service.repository"
 import { notFound } from "next/navigation"
+import { barbershopRepo } from "@/src/repositories/barbershop.repository"
+import { type Barbershop } from "@/src/db/types"
 
-export async function deleteBarbershopServiceAction(serviceId: string) {
-  let service: BarbershopService | null
-
+export async function deleteBarbershopAction(barbershopId: string) {
+  let barbershop: Barbershop | null
   try {
     const session = await getServerSession(authOptions)
 
     if (!session || !session.user) {
-      console.error("[deleteServiceAction] Usuário não autenticado")
+      console.error("[deleteBarbershopAction] Usuário não autenticado")
       return ActionResponse.fail({
         error: "USER_UNAUTHENTICATED",
         message: "Usuário não autenticado",
@@ -24,29 +23,29 @@ export async function deleteBarbershopServiceAction(serviceId: string) {
     }
 
     if (session.user.role !== "barber") {
-      console.error("[deleteServiceAction] Usuário não é barbeiro")
+      console.error("[deleteBarbershopAction] Usuário não é barbeiro")
       return ActionResponse.fail({
         error: "USER_FORBIDDEN",
-        message: "Você não tem permissão para deletar um serviço",
+        message: "Você não tem permissão para deletar uma barbearia",
         statusCode: 403,
       })
     }
 
-    const hasBooking = await barbershopServiceRepo.hasBooking(serviceId)
+    const hasBooking = await barbershopRepo.hasBooking(barbershopId)
 
     if (hasBooking) {
-      console.error("[deleteServiceAction] Serviço possui agendamentos")
+      console.error("[deleteBarbershopAction] Barbearia possui agendamentos")
       return ActionResponse.fail({
         error: "SERVICE_HAS_BOOKINGS",
         message:
-          "Não é possível excluir: este serviço possui agendamentos vinculados.",
+          "Não é possível excluir: esta barbearia possui agendamentos vinculados.",
         statusCode: 400,
       })
     }
 
-    service = await barbershopServiceRepo.delete(serviceId)
+    barbershop = await barbershopRepo.delete(barbershopId)
   } catch (error) {
-    console.error("[deleteServiceAction]", error)
+    console.error("[deleteBarbershopAction]", error)
     return ActionResponse.fail({
       error: "INTERNAL_ERROR",
       message: "Erro ao remover serviço",
@@ -54,15 +53,16 @@ export async function deleteBarbershopServiceAction(serviceId: string) {
     })
   }
 
-  if (!service) {
-    console.error("[deleteServiceAction] Serviço não encontrado")
+  if (!barbershop) {
+    console.error("[deleteBarbershopAction] Barbearia não encontrada")
     notFound()
   }
-
-  revalidatePath("/admin/dashboard/barbershops/*/services")
+  revalidatePath("/")
+  revalidatePath("/barbershops")
+  revalidatePath("/admin/dashboard/barbershops")
 
   return ActionResponse.success({
-    message: "Serviço removido com sucesso",
+    message: "Barbearia removido com sucesso",
     statusCode: 204,
     data: null,
   })

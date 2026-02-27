@@ -34,11 +34,8 @@ export function AdminBarbershopServiceManagentCard({
   const handleDelete = async () => {
     if (!onDelete || deleting) return
     setDeleting(true)
-    try {
-      await onDelete(service.id)
-    } finally {
-      setDeleting(false)
-    }
+    await onDelete(service.id)
+    setDeleting(false)
   }
 
   return (

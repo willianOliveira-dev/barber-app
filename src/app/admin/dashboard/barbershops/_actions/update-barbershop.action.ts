@@ -245,10 +245,9 @@ export async function updateBarbershopAction({
       console.error("[updateBarbershopAction] Barbearia não encontrada")
       notFound()
     }
-
+    revalidatePath("/admin/dashboard/barbershops")
     revalidatePath("/")
     revalidatePath("/barbershops")
-    revalidatePath("/admin/barbershops")
     revalidatePath(`/barbershops/${updatedBarbershop.slug}`)
 
     return ActionResponse.success({

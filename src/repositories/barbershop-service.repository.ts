@@ -6,7 +6,7 @@ import type {
   UpdateBarbershopServiceData,
 } from "../db/types"
 import { barbershopService, booking } from "../db/schemas"
-import { eq, isNull } from "drizzle-orm"
+import { and, eq, isNull } from "drizzle-orm"
 
 export class BarbershopServiceRepo {
   async findBySlug(slug: string): Promise<BarbershopServiceDetails | null> {
@@ -50,11 +50,14 @@ export class BarbershopServiceRepo {
 
     return updatedService ?? null
   }
+
   async hasBooking(serviceId: string): Promise<boolean> {
     const result = await db
       .select({ id: booking.id })
       .from(booking)
-      .where(eq(booking.serviceId, serviceId))
+      .where(
+        and(eq(booking.serviceId, serviceId), eq(booking.status, "confirmed")),
+      )
       .limit(1)
     return result.length > 0
   }
