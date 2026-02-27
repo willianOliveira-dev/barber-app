@@ -22,6 +22,13 @@
       "when": 1772061685685,
       "tag": "0002_lumpy_ezekiel_stane",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772195875879,
+      "tag": "0003_aberrant_raider",
+      "breakpoints": true
     }
   ]
 }
