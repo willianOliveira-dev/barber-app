@@ -231,7 +231,7 @@ export async function updateBarbershopAction({
         latitude: coords.latitude ?? null,
         longitude: coords.longitude ?? null,
       }),
-      ...(imageUrl !== null && { image: imageUrl }),
+      image: imageUrl !== null ? imageUrl : null,
     }
 
     const updatedBarbershop = await barbershopRepo.update(

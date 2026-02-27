@@ -141,7 +141,7 @@ export async function updateBarbershopServiceAction({
 
     const barbershopService: UpdateBarbershopService = {
       ...barbershopServiceData,
-      ...(imageUrl !== null && { image: imageUrl }),
+      image: imageUrl !== null ? imageUrl : null,
     }
 
     service = await barbershopServiceRepo.update(serviceId, barbershopService)
