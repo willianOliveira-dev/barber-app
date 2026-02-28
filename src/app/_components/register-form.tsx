@@ -10,7 +10,7 @@ export function RegisterForm() {
     <div className="w-full max-w-md space-y-8">
       <div className="flex flex-col gap-2">
         <Link href="/">
-          <Image alt="Razor Barber" src="/logo.webp" width={180} height={22} />
+          <Image alt="Razor Barber" src="/images/logo.webp" width={180} height={22} />
         </Link>
         <h1 className="text-2xl font-bold">Cadastra-se agora</h1>
       </div>

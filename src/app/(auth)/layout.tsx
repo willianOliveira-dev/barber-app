@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           <span className="auth-ball auth-ball--4" />
           <div className="absolute inset-0 z-10 flex items-center justify-center">
             <Image
-              src="/logo-light.webp"
+              src="/images/logo-light.webp"
               alt="Ilustração de Autenticação"
               width={420}
               height={420}

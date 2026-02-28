@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
     <div className="w-full max-w-md space-y-8">
       <div>
         <Link href="/">
-          <Image alt="Razor Barber" src="/logo.webp" width={180} height={22} />
+          <Image alt="Razor Barber" src="/images/logo.webp" width={180} height={22} />
         </Link>
         <h1 className="mt-2 text-2xl font-bold">Recuperar senha</h1>
         <p className="mt-1 text-sm text-gray-400">
