@@ -1,1 +1,0 @@
-ALTER TABLE "barbershop_service" ADD COLUMN "deletedAt" timestamp with time zone;

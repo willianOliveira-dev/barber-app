@@ -24,6 +24,7 @@ import { ptBR } from "date-fns/locale"
 import { getBarbershopBySlug } from "../_actions/get-barbershop-by-slug.action"
 import { twMerge } from "tailwind-merge"
 import { getCategories } from "../_actions/get-categories.action"
+import { ChatSheet } from "../../_components/chat-sheet"
 
 interface BarbershopPageProps {
   params: Promise<{ slug: string }>
@@ -200,6 +201,12 @@ export default async function BarbershopDetailPage({
               </div>
             </div>
 
+            <ChatSheet
+              barbershopId={barbershop.id}
+              barbershopName={barbershop.name}
+              barbershopImage={barbershop.image}
+            />
+
             <div className="border-border bg-card rounded-2xl border p-5">
               <div className="mb-4 flex items-center gap-3">
                 <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
@@ -283,7 +290,10 @@ export default async function BarbershopDetailPage({
                 <div className="border-primary/10 bg-secondary/30 relative mt-4 overflow-hidden rounded-xl border p-3">
                   <div className="bg-primary absolute top-0 left-0 h-full w-1" />
                   <div className="flex items-start gap-3">
-                    <Megaphone size={14} className="text-primary mt-1 min-h-0 shrink-0" />
+                    <Megaphone
+                      size={14}
+                      className="text-primary mt-1 min-h-0 shrink-0"
+                    />
                     <div className="flex flex-col gap-0.5">
                       <span className="text-primary/80 text-[10px] font-bold uppercase">
                         Comunicado

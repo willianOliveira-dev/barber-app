@@ -1,7 +1,12 @@
 import { db } from "../db/connection"
 import { review, reviewLike } from "../db/schemas"
 import { eq, and, desc, asc, sql, or, inArray } from "drizzle-orm"
-import { GetStatsByBarbershop, ReviewRating, ReviewSortBy, ReviewWithRelationsCursorPagination } from "../db/types/review.type"
+import {
+  GetStatsByBarbershop,
+  ReviewRating,
+  ReviewSortBy,
+  ReviewWithRelationsCursorPagination,
+} from "../db/types/review.type"
 
 export interface GetReviewsParams {
   barbershopId: string
@@ -16,7 +21,9 @@ export interface GetReviewsParams {
 }
 
 export class ReviewRepository {
-  async findWithCursorPagination(params: GetReviewsParams): Promise<ReviewWithRelationsCursorPagination> {
+  async findWithCursorPagination(
+    params: GetReviewsParams,
+  ): Promise<ReviewWithRelationsCursorPagination> {
     const {
       barbershopId,
       rating,
@@ -194,7 +201,9 @@ export class ReviewRepository {
     return new Set(results.map((r) => r.reviewId))
   }
 
-  async getStatsByBarbershop(barbershopId: string): Promise<GetStatsByBarbershop> {
+  async getStatsByBarbershop(
+    barbershopId: string,
+  ): Promise<GetStatsByBarbershop> {
     const [result] = await db
       .select({
         totalReviews: sql<number>`COUNT(*)::int`,
@@ -266,6 +275,29 @@ export class ReviewRepository {
       likeCount: likeCounts[reviewData.id] || 0,
       isLikedByUser: userLikes.has(reviewData.id),
     }
+  }
+
+  async findBarbershopReviewContext(barbershopId: string) {
+    return db.query.review.findMany({
+      where: eq(review.barbershopId, barbershopId),
+      columns: {
+        id: true,
+        barbershopId: true,
+        comment: true,
+        rating: true,
+      },
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: desc(review.createdAt),
+      limit: 20,
+    })
   }
 
   async findByBookingId(bookingId: string) {

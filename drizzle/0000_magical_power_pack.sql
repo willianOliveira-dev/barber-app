@@ -1,5 +1,7 @@
 CREATE TYPE "public"."user_role" AS ENUM('barber', 'customer');--> statement-breakpoint
 CREATE TYPE "public"."booking_status" AS ENUM('confirmed', 'completed', 'cancelled');--> statement-breakpoint
+CREATE TYPE "public"."conversation_status" AS ENUM('bot_handling', 'human_required', 'human_handling', 'resolved');--> statement-breakpoint
+CREATE TYPE "public"."sender_type" AS ENUM('user', 'barbershop', 'bot');--> statement-breakpoint
 CREATE TYPE "public"."day_of_week" AS ENUM('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');--> statement-breakpoint
 CREATE TABLE "user" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -29,7 +31,8 @@ CREATE TABLE "barbershop" (
 	"city" varchar(100) NOT NULL,
 	"state" varchar(50) NOT NULL,
 	"zipCode" varchar(20) NOT NULL,
-	"streetNumber" varchar(20) NOT NULL,
+	"streetNumber" varchar(20),
+	"neighborhood" varchar(100),
 	"complement" varchar(100),
 	"phone" varchar(20),
 	"email" varchar(255),
@@ -54,7 +57,8 @@ CREATE TABLE "barbershop_service" (
 	"priceInCents" integer NOT NULL,
 	"isActive" boolean DEFAULT true NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
-	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"deletedAt" timestamp with time zone
 );
 --> statement-breakpoint
 CREATE TABLE "booking" (
@@ -87,38 +91,36 @@ CREATE TABLE "account" (
 	CONSTRAINT "account_provider_unique" UNIQUE("provider","providerAccountId")
 );
 --> statement-breakpoint
-CREATE TABLE "authenticator" (
-	"credentialID" text NOT NULL,
+CREATE TABLE "conversation" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"userId" uuid NOT NULL,
-	"providerAccountId" text NOT NULL,
-	"credentialPublicKey" text NOT NULL,
-	"counter" integer NOT NULL,
-	"credentialDeviceType" text NOT NULL,
-	"credentialBackedUp" boolean NOT NULL,
-	"transports" text,
-	CONSTRAINT "authenticator_userId_credentialID_pk" PRIMARY KEY("userId","credentialID"),
-	CONSTRAINT "authenticator_credentialID_unique" UNIQUE("credentialID")
+	"barbershopId" uuid NOT NULL,
+	"status" "conversation_status" DEFAULT 'bot_handling' NOT NULL,
+	"botEnabled" boolean DEFAULT true NOT NULL,
+	"unreadByUser" integer DEFAULT 0 NOT NULL,
+	"unreadByBarbershop" integer DEFAULT 0 NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"deletedAt" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "session" (
-	"sessionToken" text PRIMARY KEY NOT NULL,
-	"userId" uuid NOT NULL,
-	"expires" timestamp NOT NULL
+CREATE TABLE "message" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"conversationId" uuid NOT NULL,
+	"senderType" "sender_type" NOT NULL,
+	"senderUserId" uuid,
+	"senderBarbershopId" uuid,
+	"content" text NOT NULL,
+	"readByUser" boolean DEFAULT false NOT NULL,
+	"readByBarbershop" boolean DEFAULT false NOT NULL,
+	"deletedAt" timestamp with time zone,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "verificationToken" (
 	"identifier" text NOT NULL,
 	"token" text NOT NULL,
 	"expires" timestamp NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "available_time_slot" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"barbershopId" uuid NOT NULL,
-	"serviceId" uuid NOT NULL,
-	"startTime" timestamp with time zone NOT NULL,
-	"isAvailable" boolean DEFAULT true NOT NULL,
-	"bookingId" uuid
 );
 --> statement-breakpoint
 CREATE TABLE "barbershop_hour" (
@@ -179,11 +181,11 @@ ALTER TABLE "booking" ADD CONSTRAINT "booking_userId_user_id_fk" FOREIGN KEY ("u
 ALTER TABLE "booking" ADD CONSTRAINT "booking_serviceId_barbershop_service_id_fk" FOREIGN KEY ("serviceId") REFERENCES "public"."barbershop_service"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "booking" ADD CONSTRAINT "booking_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "authenticator" ADD CONSTRAINT "authenticator_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "available_time_slot" ADD CONSTRAINT "available_time_slot_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "available_time_slot" ADD CONSTRAINT "available_time_slot_serviceId_barbershop_service_id_fk" FOREIGN KEY ("serviceId") REFERENCES "public"."barbershop_service"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "available_time_slot" ADD CONSTRAINT "available_time_slot_bookingId_booking_id_fk" FOREIGN KEY ("bookingId") REFERENCES "public"."booking"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversation" ADD CONSTRAINT "conversation_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversation" ADD CONSTRAINT "conversation_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "message" ADD CONSTRAINT "message_conversationId_conversation_id_fk" FOREIGN KEY ("conversationId") REFERENCES "public"."conversation"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "message" ADD CONSTRAINT "message_senderUserId_user_id_fk" FOREIGN KEY ("senderUserId") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "message" ADD CONSTRAINT "message_senderBarbershopId_barbershop_id_fk" FOREIGN KEY ("senderBarbershopId") REFERENCES "public"."barbershop"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_hour" ADD CONSTRAINT "barbershop_hour_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "barbershop_status" ADD CONSTRAINT "barbershop_status_barbershopId_barbershop_id_fk" FOREIGN KEY ("barbershopId") REFERENCES "public"."barbershop"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "review" ADD CONSTRAINT "review_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -209,10 +211,6 @@ CREATE INDEX "booking_service_index" ON "booking" USING btree ("serviceId");--> 
 CREATE INDEX "booking_barbershop_index" ON "booking" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "booking_status_index" ON "booking" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "booking_scheduled_at_index" ON "booking" USING btree ("scheduledAt");--> statement-breakpoint
-CREATE INDEX "available_time_slot_barbershop_index" ON "available_time_slot" USING btree ("barbershopId");--> statement-breakpoint
-CREATE INDEX "available_time_slot_service_index" ON "available_time_slot" USING btree ("serviceId");--> statement-breakpoint
-CREATE INDEX "available_time_slot_start_time_index" ON "available_time_slot" USING btree ("startTime");--> statement-breakpoint
-CREATE INDEX "available_time_slot_availability_index" ON "available_time_slot" USING btree ("barbershopId","startTime","isAvailable");--> statement-breakpoint
 CREATE INDEX "barbershop_hours_index" ON "barbershop_hour" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "barbershop_status_index" ON "barbershop_status" USING btree ("barbershopId");--> statement-breakpoint
 CREATE INDEX "category_name_index" ON "category" USING btree ("name");--> statement-breakpoint

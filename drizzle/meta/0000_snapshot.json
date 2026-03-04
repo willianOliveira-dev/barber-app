@@ -1,5 +1,5 @@
 {
-  "id": "e5c99ad4-7fba-4b5e-9c49-89c854fad24f",
+  "id": "28a61d85-be1e-43ec-97a7-671283a2ff5c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -224,7 +224,13 @@
           "name": "streetNumber",
           "type": "varchar(20)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "neighborhood": {
+          "name": "neighborhood",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
         },
         "complement": {
           "name": "complement",
@@ -488,6 +494,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "deletedAt": {
+          "name": "deletedAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -901,15 +913,16 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.authenticator": {
-      "name": "authenticator",
+    "public.conversation": {
+      "name": "conversation",
       "schema": "",
       "columns": {
-        "credentialID": {
-          "name": "credentialID",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "userId": {
           "name": "userId",
@@ -917,51 +930,83 @@
           "primaryKey": false,
           "notNull": true
         },
-        "providerAccountId": {
-          "name": "providerAccountId",
-          "type": "text",
+        "barbershopId": {
+          "name": "barbershopId",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "credentialPublicKey": {
-          "name": "credentialPublicKey",
-          "type": "text",
+        "status": {
+          "name": "status",
+          "type": "conversation_status",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'bot_handling'"
         },
-        "counter": {
-          "name": "counter",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "credentialDeviceType": {
-          "name": "credentialDeviceType",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "credentialBackedUp": {
-          "name": "credentialBackedUp",
+        "botEnabled": {
+          "name": "botEnabled",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": true
         },
-        "transports": {
-          "name": "transports",
-          "type": "text",
+        "unreadByUser": {
+          "name": "unreadByUser",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unreadByBarbershop": {
+          "name": "unreadByBarbershop",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deletedAt": {
+          "name": "deletedAt",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "authenticator_userId_user_id_fk": {
-          "name": "authenticator_userId_user_id_fk",
-          "tableFrom": "authenticator",
+        "conversation_userId_user_id_fk": {
+          "name": "conversation_userId_user_id_fk",
+          "tableFrom": "conversation",
           "tableTo": "user",
           "columnsFrom": [
             "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "conversation_barbershopId_barbershop_id_fk": {
+          "name": "conversation_barbershopId_barbershop_id_fk",
+          "tableFrom": "conversation",
+          "tableTo": "barbershop",
+          "columnsFrom": [
+            "barbershopId"
           ],
           "columnsTo": [
             "id"
@@ -970,64 +1015,121 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "authenticator_userId_credentialID_pk": {
-          "name": "authenticator_userId_credentialID_pk",
-          "columns": [
-            "userId",
-            "credentialID"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "authenticator_credentialID_unique": {
-          "name": "authenticator_credentialID_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "credentialID"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.session": {
-      "name": "session",
+    "public.message": {
+      "name": "message",
       "schema": "",
       "columns": {
-        "sessionToken": {
-          "name": "sessionToken",
-          "type": "text",
+        "id": {
+          "name": "id",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
-        "userId": {
-          "name": "userId",
+        "conversationId": {
+          "name": "conversationId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "expires": {
-          "name": "expires",
-          "type": "timestamp",
+        "senderType": {
+          "name": "senderType",
+          "type": "sender_type",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        },
+        "senderUserId": {
+          "name": "senderUserId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "senderBarbershopId": {
+          "name": "senderBarbershopId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "readByUser": {
+          "name": "readByUser",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "readByBarbershop": {
+          "name": "readByBarbershop",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "deletedAt": {
+          "name": "deletedAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "session_userId_user_id_fk": {
-          "name": "session_userId_user_id_fk",
-          "tableFrom": "session",
-          "tableTo": "user",
+        "message_conversationId_conversation_id_fk": {
+          "name": "message_conversationId_conversation_id_fk",
+          "tableFrom": "message",
+          "tableTo": "conversation",
           "columnsFrom": [
-            "userId"
+            "conversationId"
           ],
           "columnsTo": [
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "message_senderUserId_user_id_fk": {
+          "name": "message_senderUserId_user_id_fk",
+          "tableFrom": "message",
+          "tableTo": "user",
+          "columnsFrom": [
+            "senderUserId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "message_senderBarbershopId_barbershop_id_fk": {
+          "name": "message_senderBarbershopId_barbershop_id_fk",
+          "tableFrom": "message",
+          "tableTo": "barbershop",
+          "columnsFrom": [
+            "senderBarbershopId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -1062,170 +1164,6 @@
       },
       "indexes": {},
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.available_time_slot": {
-      "name": "available_time_slot",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "barbershopId": {
-          "name": "barbershopId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "serviceId": {
-          "name": "serviceId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "startTime": {
-          "name": "startTime",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "isAvailable": {
-          "name": "isAvailable",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "bookingId": {
-          "name": "bookingId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "available_time_slot_barbershop_index": {
-          "name": "available_time_slot_barbershop_index",
-          "columns": [
-            {
-              "expression": "barbershopId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "available_time_slot_service_index": {
-          "name": "available_time_slot_service_index",
-          "columns": [
-            {
-              "expression": "serviceId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "available_time_slot_start_time_index": {
-          "name": "available_time_slot_start_time_index",
-          "columns": [
-            {
-              "expression": "startTime",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "available_time_slot_availability_index": {
-          "name": "available_time_slot_availability_index",
-          "columns": [
-            {
-              "expression": "barbershopId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "startTime",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "isAvailable",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "available_time_slot_barbershopId_barbershop_id_fk": {
-          "name": "available_time_slot_barbershopId_barbershop_id_fk",
-          "tableFrom": "available_time_slot",
-          "tableTo": "barbershop",
-          "columnsFrom": [
-            "barbershopId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "available_time_slot_serviceId_barbershop_service_id_fk": {
-          "name": "available_time_slot_serviceId_barbershop_service_id_fk",
-          "tableFrom": "available_time_slot",
-          "tableTo": "barbershop_service",
-          "columnsFrom": [
-            "serviceId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "available_time_slot_bookingId_booking_id_fk": {
-          "name": "available_time_slot_bookingId_booking_id_fk",
-          "tableFrom": "available_time_slot",
-          "tableTo": "booking",
-          "columnsFrom": [
-            "bookingId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1845,6 +1783,25 @@
         "confirmed",
         "completed",
         "cancelled"
+      ]
+    },
+    "public.conversation_status": {
+      "name": "conversation_status",
+      "schema": "public",
+      "values": [
+        "bot_handling",
+        "human_required",
+        "human_handling",
+        "resolved"
+      ]
+    },
+    "public.sender_type": {
+      "name": "sender_type",
+      "schema": "public",
+      "values": [
+        "user",
+        "barbershop",
+        "bot"
       ]
     },
     "public.day_of_week": {
