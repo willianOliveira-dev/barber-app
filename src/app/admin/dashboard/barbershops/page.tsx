@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Plus, Scissors } from "lucide-react"
 import { Button } from "@/src/app/_components/ui/button"
 import { getBarbershopsByOwner } from "./_actions/get-barbershops-by-owner.action"
 import { AdminBarbershopManagementCard } from "../_components/admin-barbershop-management-card"
@@ -19,7 +19,7 @@ export default async function AdminBarbershopsPage({
   })
   const barbershops =
     response.success && "data" in response ? response.data.barbershops : []
-  
+
   const meta =
     response.success && "data" in response
       ? response.data.meta
@@ -57,14 +57,30 @@ export default async function AdminBarbershopsPage({
       </section>
 
       <section className="flex-1 px-5 py-8 lg:px-8 xl:px-12">
-        <div className="flex flex-col gap-4">
-          {barbershops.map((barbershop) => (
-            <AdminBarbershopManagementCard
-              key={barbershop.id}
-              barbershop={barbershop}
-            />
-          ))}
-        </div>
+        {barbershops.length === 0 ? (
+          <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border py-16 text-center">
+            <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl">
+              <Scissors className="text-primary h-6 w-6" />
+            </div>
+            <p className="text-foreground text-sm font-semibold">
+              Nenhuma barbearia cadastrada
+            </p>
+            <Button asChild size="sm" className="gap-2 rounded-xl">
+              <Link href="/admin/dashboard/barbershops/new">
+                <Plus className="h-4 w-4" /> Criar primeira
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {barbershops.map((barbershop) => (
+              <AdminBarbershopManagementCard
+                key={barbershop.id}
+                barbershop={barbershop}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {meta.totalPages > 1 && (
