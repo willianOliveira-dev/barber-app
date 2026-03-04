@@ -4,14 +4,13 @@ import { useState } from "react"
 import { unlikeReviewAction } from "../barbershops/_actions/unlike-review.action"
 import { likeReviewAction } from "../barbershops/_actions/like-review.action"
 import { toast } from "sonner"
-import { ThumbsUp, Scissors, MessageSquareQuote } from "lucide-react"
+import { ThumbsUp, Scissors, MessageSquareQuote, Star } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { cn } from "../_lib/utils.lib"
 import { RatingStar } from "./rating-star"
 import { type ReviewWithRelations } from "@/src/db/types/review.type"
-import { RiStarSmileFill } from "react-icons/ri"
 
 interface ReviewCardProps {
   review: ReviewWithRelations
@@ -84,7 +83,7 @@ export function ReviewCard({ review, onUpdate }: ReviewCardProps) {
             <span className="text-primary text-xs font-bold">
               {review.rating}
             </span>
-            <RiStarSmileFill size={16} className="text-primary" />
+            <Star size={16} className="text-yellow-400 fill-current" />
           </div>
         </div>
 

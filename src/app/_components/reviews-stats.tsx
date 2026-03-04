@@ -4,8 +4,8 @@ import { useEffect, useState } from "react"
 import { getReviewStatsAction } from "../barbershops/_actions/get-review-stats.action"
 import { RatingStar } from "./rating-star"
 import { GetStatsByBarbershop, ReviewRating } from "@/src/db/types/review.type"
-import { RiStarSmileFill } from "react-icons/ri"
 import { Progress } from "./ui/progress"
+import { Star } from "lucide-react"
 
 interface ReviewStatsProps {
   barbershopId: string
@@ -74,10 +74,10 @@ export function ReviewStats({ barbershopId }: ReviewStatsProps) {
                   <span className="text-foreground text-xs font-medium">
                     {rating}
                   </span>
-                  <RiStarSmileFill size={16} className="text-primary" />
+                  <Star size={16} className="text-yellow-400 fill-current" />
                 </div>
 
-                <Progress value={percentage} />
+                <Progress className="bg-yellow-400/20 [&>*]:bg-yellow-400" value={percentage} />
 
                 <span className="text-muted-foreground w-8 shrink-0 text-right text-xs">
                   {count}

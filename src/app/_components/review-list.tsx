@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, AlertCircle, MessageSquare } from "lucide-react"
+import { Loader2, AlertCircle, MessageSquare, Star } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/src/app/_components/ui/tabs"
 import {
   Select,
@@ -13,7 +13,6 @@ import {
 import { useReviews } from "../barbershops/_hooks/use-reviews.hook"
 import { ReviewRating, ReviewSortBy } from "@/src/db/types/review.type"
 import { ReviewCard } from "./review-card"
-import { RiStarSmileFill } from "react-icons/ri"
 
 interface ReviewListProps {
   barbershopId: string
@@ -31,9 +30,9 @@ const ratingTabs: {
     label: (
       <span className="flex items-center gap-1">
         5
-        <RiStarSmileFill
+        <Star
           className={
-            "text-primary inline-block h-2 w-2 rotate-45 rounded-[2px]"
+            "text-yellow-400 inline-block h-2 w-2 rotate-45 rounded-[2px] fill-current"
           }
         />
       </span>
@@ -44,9 +43,9 @@ const ratingTabs: {
     label: (
       <span className="flex items-center gap-1">
         4{" "}
-        <RiStarSmileFill
+        <Star
           className={
-            "text-primary/90 inline-block h-2 w-2 rotate-45 rounded-[2px]"
+            "text-yellow-400/90 inline-block h-2 w-2 rotate-45 rounded-[2px] fill-current"
           }
         />
       </span>
@@ -57,9 +56,9 @@ const ratingTabs: {
     label: (
       <span className="flex items-center gap-1">
         3{" "}
-        <RiStarSmileFill
+        <Star
           className={
-            "text-primary/70 inline-block h-2 w-2 rotate-45 rounded-[2px]"
+            "text-yellow-400/70 inline-block h-2 w-2 rotate-45 rounded-[2px] fill-current"
           }
         />
       </span>
@@ -70,9 +69,9 @@ const ratingTabs: {
     label: (
       <span className="flex items-center gap-1">
         2{" "}
-        <RiStarSmileFill
+        <Star
           className={
-            "text-primary/50 inline-block h-2 w-2 rotate-45 rounded-[2px]"
+            "text-yellow-400/50 inline-block h-2 w-2 rotate-45 rounded-[2px] fill-current"
           }
         />
       </span>
@@ -83,9 +82,9 @@ const ratingTabs: {
     label: (
       <span className="flex items-center gap-1">
         1{" "}
-        <RiStarSmileFill
+        <Star
           className={
-            "text-primary/30 inline-block h-2 w-2 rotate-45 rounded-[2px]"
+            "text-yellow-400/30 inline-block h-2 w-2 rotate-45 rounded-[2px] fill-current"
           }
         />
       </span>

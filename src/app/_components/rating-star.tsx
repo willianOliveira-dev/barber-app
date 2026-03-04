@@ -1,5 +1,5 @@
-import { RiStarSmileFill } from "react-icons/ri"
 import { cn } from "../_lib/utils.lib"
+import { Star } from "lucide-react"
 
 export function RatingStar({
   rating,
@@ -13,11 +13,11 @@ export function RatingStar({
   return (
     <div className="flex items-center gap-1">
       {Array.from({ length: 5 }).map((_, i) => (
-        <RiStarSmileFill
+        <Star
           key={i}
           className={cn(
             dim,
-            i < rating ? "text-primary" : "text-muted-foreground",
+            i < rating ? "text-yellow-400 fill-current" : "text-muted-foreground",
           )}
         />
       ))}

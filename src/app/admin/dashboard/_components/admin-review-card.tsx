@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MessageSquareQuote, Send, CheckCircle2, Loader2 } from "lucide-react"
+import { MessageSquareQuote, Send, CheckCircle2, Loader2, Star as StarIcon } from "lucide-react"
 import { cn } from "../../../_lib/utils.lib"
 
 interface AdminReviewCardProps {
@@ -17,12 +17,12 @@ interface AdminReviewCardProps {
   }
 }
 
-function Diamond({ filled }: { filled?: boolean }) {
+function Star({ filled }: { filled?: boolean }) {
   return (
-    <span
+    <StarIcon
       className={cn(
-        "inline-block h-2.5 w-2.5 rotate-45 rounded-[2px]",
-        filled ? "bg-primary" : "bg-border",
+        "inline-block h-2.5 w-2.5 fill-current",
+        filled ? "text-yellow-400" : "text-muted-foreground",
       )}
     />
   )
@@ -59,7 +59,7 @@ export function AdminReviewCard({ review }: AdminReviewCardProps) {
               <div className="mt-0.5 flex items-center gap-1.5">
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Diamond key={i} filled={i < review.rating} />
+                    <Star key={i} filled={i < review.rating} />
                   ))}
                 </div>
                 <span className="text-muted-foreground text-[10px]">
