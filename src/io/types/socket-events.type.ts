@@ -9,4 +9,6 @@ type Event = {
 }
 export type ServerToClientEvents = {
   server_emit: ({ room, event, data }: Event) => void
+  typing_start:         () => void
+  typing_stop:          () => void
 }

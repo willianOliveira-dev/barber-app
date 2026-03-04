@@ -47,6 +47,14 @@ async function bootstrap() {
         },
       )
 
+      socket.on<keyof ServerToClientEvents>("typing_start", ({ conversationId }: { conversationId: string }) => {
+        socket.to(conversationId).emit("typing_start")
+      })
+
+      socket.on<keyof ServerToClientEvents>("typing_stop", ({ conversationId }: { conversationId: string }) => {
+        socket.to(conversationId).emit("typing_stop")
+      })
+
       socket.on("disconnect", () => {
         fastify.log.info(`[Socket] Desconectado: ${socket.id}`)
       })

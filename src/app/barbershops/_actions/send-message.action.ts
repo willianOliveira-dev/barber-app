@@ -73,8 +73,7 @@ export async function sendMessageAction({
     })
 
     await conversationRepo.incrementUnread(conversationId, "user")
-
-    // CORREÇÃO: typo "new_messsage" → "new_message"
+    
     emitToRoom(conversationId, "new_message", {
       ...botMessage,
       senderType: "bot",
@@ -83,6 +82,7 @@ export async function sendMessageAction({
     if (requiresHuman) {
       await conversationRepo.update(conversationId, {
         status: "human_required",
+        botEnabled: false,
       })
 
       emitToRoom(`barbershop:${conv.barbershopId}`, "human_required", {
