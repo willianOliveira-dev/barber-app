@@ -165,6 +165,59 @@ export class BookingRepository {
     })
   }
 
+  async findByBarbershopWithPagination(
+    barbershopId: string,
+    page: number = 1,
+    limit: number = 10,
+    status?: BookingStatus | BookingStatus[],
+  ) {
+    const safeLimit = Math.min(limit, 10)
+    const offset = (page - 1) * safeLimit
+    const filters = [eq(booking.barbershopId, barbershopId)]
+  
+    if (status) {
+      if (Array.isArray(status)) {
+        const statusFilters = status.map((s) => eq(booking.status, s))
+        if (statusFilters.length > 0) filters.push(or(...statusFilters)!)
+      } else {
+        filters.push(eq(booking.status, status))
+      }
+    }
+  
+    const whereClause = and(...filters)
+  
+    const [results, [{ total }]] = await Promise.all([
+      db.query.booking.findMany({
+        where: whereClause,
+        with: {
+          user: { columns: { id: true, name: true, email: true, image: true } },
+          barbershop: { columns: { id: true, name: true, slug: true } },
+          service: { columns: { id: true, name: true, priceInCents: true, durationMinutes: true } },
+        },
+        orderBy: [desc(booking.scheduledAt), desc(booking.id)],
+        limit: safeLimit,
+        offset,
+      }),
+      db.select({ total: sql<number>`count(*)::int` })
+        .from(booking)
+        .where(whereClause),
+    ])
+  
+    const totalPages = Math.ceil(total / safeLimit)
+  
+    return {
+      bookings: results,
+      meta: {
+        page,
+        limit: safeLimit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    }
+  }
+
   async findRecommendedServices(userId: string, limit: number = 3) {
     const result = await db
       .select({
