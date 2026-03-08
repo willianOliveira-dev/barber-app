@@ -324,7 +324,13 @@ class BarbershopRepository {
 
     return this.mapRatings(result) as unknown as BarbershopDetails | null
   }
-  
+
+  async findByOwnerId(ownerId: string) {
+    return await db.query.barbershop.findFirst({
+      where: eq(barbershop.ownerId, ownerId),
+    })
+  }
+
   async findById(id: string): Promise<BarbershopDetails | null> {
     const result = await db.query.barbershop.findFirst({
       where: and(eq(barbershop.id, id), eq(barbershop.isActive, true)),

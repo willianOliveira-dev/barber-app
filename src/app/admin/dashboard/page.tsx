@@ -27,20 +27,6 @@ const stats = [
     icon: CalendarCheck,
     href: "/admin/dashboard/bookings",
   },
-  {
-    label: "Clientes",
-    value: "1.204",
-    change: "+54 novos",
-    icon: Users,
-    href: "/admin/dashboard/customers",
-  },
-  {
-    label: "Receita",
-    value: "R$ 28.4k",
-    change: "+12% vs mês anterior",
-    icon: TrendingUp,
-    href: "/admin/dashboard/reports/payments",
-  },
 ]
 
 const quickActions = [

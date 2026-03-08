@@ -1,20 +1,38 @@
+// admin-review-card.tsx
 "use client"
 
 import { useState } from "react"
-import { MessageSquareQuote, Send, CheckCircle2, Loader2, Star as StarIcon } from "lucide-react"
+import {
+  MessageSquareQuote,
+  Send,
+  CheckCircle2,
+  Loader2,
+  Star as StarIcon,
+} from "lucide-react"
 import { cn } from "../../../_lib/utils.lib"
+import { toast } from "sonner"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { replyReviewAction } from "../reviews/_actions/reply-review.action"
 
 interface AdminReviewCardProps {
   review: {
     id: string
-    user: string
     rating: number
-    comment: string
-    service: string
-    barbershop: string
-    date: string
+    comment: string | null
     response: string | null
+    createdAt: Date
+    user: {
+      name: string | null
+      image: string | null
+    }
+    booking: {
+      service: {
+        name: string
+      }
+    } | null
   }
+  barbershopName: string
 }
 
 function Star({ filled }: { filled?: boolean }) {
@@ -28,7 +46,10 @@ function Star({ filled }: { filled?: boolean }) {
   )
 }
 
-export function AdminReviewCard({ review }: AdminReviewCardProps) {
+export function AdminReviewCard({
+  review,
+  barbershopName,
+}: AdminReviewCardProps) {
   const [response, setResponse] = useState(review.response ?? "")
   const [saved, setSaved] = useState(!!review.response)
   const [editing, setEditing] = useState(!review.response)
@@ -37,8 +58,19 @@ export function AdminReviewCard({ review }: AdminReviewCardProps) {
   const handleSave = async () => {
     if (!response.trim()) return
     setLoading(true)
-    // await replyReviewAction(review.id, response)
-    await new Promise((r) => setTimeout(r, 600))
+
+    const result = await replyReviewAction({
+      reviewId: review.id,
+      response,
+    })
+
+    if (!result.success) {
+      toast.error(result.message ?? "Erro ao responder avaliação")
+      setLoading(false)
+      return
+    }
+
+    toast.success("Resposta enviada com sucesso")
     setSaved(true)
     setEditing(false)
     setLoading(false)
@@ -50,11 +82,11 @@ export function AdminReviewCard({ review }: AdminReviewCardProps) {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold">
-              {review.user[0]}
+              {review.user.name?.[0] ?? "?"}
             </div>
             <div>
               <p className="text-foreground text-sm font-semibold">
-                {review.user}
+                {review.user.name ?? "Usuário"}
               </p>
               <div className="mt-0.5 flex items-center gap-1.5">
                 <div className="flex gap-0.5">
@@ -63,7 +95,9 @@ export function AdminReviewCard({ review }: AdminReviewCardProps) {
                   ))}
                 </div>
                 <span className="text-muted-foreground text-[10px]">
-                  {review.date}
+                  {format(new Date(review.createdAt), "dd MMM yyyy", {
+                    locale: ptBR,
+                  })}
                 </span>
               </div>
             </div>
@@ -71,16 +105,18 @@ export function AdminReviewCard({ review }: AdminReviewCardProps) {
 
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="text-muted-foreground text-xs">
-              {review.barbershop}
+              {barbershopName}
             </span>
-            <span className="border-border bg-background/50 text-muted-foreground rounded-full border px-2 py-0.5 text-[10px]">
-              {review.service}
-            </span>
+            {review.booking?.service && (
+              <span className="border-border bg-background/50 text-muted-foreground rounded-full border px-2 py-0.5 text-[10px]">
+                {review.booking.service.name}
+              </span>
+            )}
           </div>
         </div>
 
         <p className="text-muted-foreground text-sm leading-relaxed">
-          {review.comment}
+          {review.comment ?? "Sem comentário"}
         </p>
       </div>
 
