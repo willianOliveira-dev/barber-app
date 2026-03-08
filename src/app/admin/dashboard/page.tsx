@@ -1,33 +1,38 @@
 import {
   Scissors,
   CalendarCheck,
-  Users,
   TrendingUp,
   ArrowRight,
   MessageSquare,
   Plus,
-  Clock,
   CheckCircle2,
   XCircle,
+  BarChart3,
 } from "lucide-react"
 import Link from "next/link"
+import { getAdminDashboardAction } from "./_actions/get-admin-dashboard.action"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { BookingWithRelations } from "@/src/db/types/booking.type"
+import { priceFormatter } from "../../_utils/price-formatter.util"
 
-const stats = [
-  {
-    label: "Barbearias",
-    value: "12",
-    change: "+2 este mês",
-    icon: Scissors,
-    href: "/admin/dashboard/barbershops",
+const statusConfig = {
+  confirmed: {
+    label: "Confirmado",
+    className: "bg-green-400/10 text-green-400 border-green-400/20",
+    icon: CheckCircle2,
   },
-  {
-    label: "Agendamentos",
-    value: "348",
-    change: "+18% esta semana",
-    icon: CalendarCheck,
-    href: "/admin/dashboard/bookings",
+  completed: {
+    label: "Concluído",
+    className: "bg-primary/10 text-primary border-primary/20",
+    icon: CheckCircle2,
   },
-]
+  cancelled: {
+    label: "Cancelado",
+    className: "bg-destructive/10 text-destructive border-destructive/20",
+    icon: XCircle,
+  },
+}
 
 const quickActions = [
   {
@@ -48,70 +53,48 @@ const quickActions = [
     icon: MessageSquare,
     description: "Responder avaliações",
   },
-]
-
-const recentBookings = [
   {
-    id: "1",
-    client: "Lucas Mendes",
-    service: "Corte + Barba",
-    barbershop: "Razor Centro",
-    time: "14:30",
-    status: "confirmed",
-  },
-  {
-    id: "2",
-    client: "Pedro Alves",
-    service: "Corte Social",
-    barbershop: "Razor Pinheiros",
-    time: "15:00",
-    status: "pending",
-  },
-  {
-    id: "3",
-    client: "Mateus Costa",
-    service: "Barba",
-    barbershop: "Razor Centro",
-    time: "15:30",
-    status: "cancelled",
-  },
-  {
-    id: "4",
-    client: "João Silva",
-    service: "Corte Degradê",
-    barbershop: "Razor Sul",
-    time: "16:00",
-    status: "confirmed",
-  },
-  {
-    id: "5",
-    client: "Rafael Lima",
-    service: "Corte + Barba",
-    barbershop: "Razor Pinheiros",
-    time: "16:30",
-    status: "pending",
+    label: "Relatórios",
+    href: "/admin/dashboard/reports",
+    icon: BarChart3,
+    description: "Métricas e desempenho",
   },
 ]
-
-const statusConfig = {
-  confirmed: {
-    label: "Confirmado",
-    className: "bg-green-400/10 text-green-400 border-green-400/20",
-    icon: CheckCircle2,
-  },
-  pending: {
-    label: "Pendente",
-    className: "bg-primary/10 text-primary border-primary/20",
-    icon: Clock,
-  },
-  cancelled: {
-    label: "Cancelado",
-    className: "bg-destructive/10 text-destructive border-destructive/20",
-    icon: XCircle,
-  },
-}
 
 export default async function AdminDashboard() {
+  const response = await getAdminDashboardAction()
+
+  if (!response.success || !("data" in response)) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <p className="text-muted-foreground text-sm">
+          Erro ao carregar dashboard
+        </p>
+      </div>
+    )
+  }
+
+  const { stats, todayBookings, last7Days, barbershops } = response.data
+
+  const maxRevenue = Math.max(...last7Days, 1)
+
+  const statsCards = [
+    {
+      label: "Agendamentos",
+      value: stats.totalBookings.toString(),
+      change: `${stats.weekChange >= 0 ? "+" : ""}${stats.weekChange}% esta semana`,
+      icon: CalendarCheck,
+      href: "/admin/dashboard/bookings",
+    },
+    {
+      label: "Barbearias",
+      value: barbershops.length.toString(),
+      change: `${barbershops.map((b) => b.name).join(", ")}`,
+      icon: Scissors,
+      href: "/admin/dashboard/barbershops",
+    },
+  ]
+
   return (
     <div className="mx-auto max-w-screen-2xl">
       <section className="border-border border-b px-5 py-8 lg:px-8 xl:px-12">
@@ -130,7 +113,7 @@ export default async function AdminDashboard() {
 
       <div className="space-y-8 px-5 py-8 lg:px-8 xl:px-12">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {stats.map(({ label, value, change, icon: Icon, href }) => (
+          {statsCards.map(({ label, value, change, icon: Icon, href }) => (
             <Link
               key={label}
               href={href}
@@ -143,7 +126,7 @@ export default async function AdminDashboard() {
                 <ArrowRight className="text-muted-foreground h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
               </div>
               <div>
-                <p className="text-foreground text-2xl font-bold lg:text-3xl">
+                <p className="text-foreground truncate text-2xl font-bold lg:text-3xl">
                   {value}
                 </p>
                 <p className="text-muted-foreground text-xs font-medium">
@@ -164,13 +147,15 @@ export default async function AdminDashboard() {
                 </div>
                 <div>
                   <h2 className="text-sm font-semibold tracking-wide uppercase">
-                    Agendamentos <span className="text-primary">Recentes</span>
+                    Agendamentos <span className="text-primary">de Hoje</span>
                   </h2>
-                  <p className="text-muted-foreground text-xs">Hoje</p>
+                  <p className="text-muted-foreground text-xs">
+                    {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}
+                  </p>
                 </div>
               </div>
               <Link
-                href="/admin/bookings"
+                href="/admin/dashboard/bookings"
                 className="text-primary flex items-center gap-1 text-xs hover:underline"
               >
                 Ver todos <ArrowRight className="h-3 w-3" />
@@ -178,39 +163,49 @@ export default async function AdminDashboard() {
             </div>
 
             <div className="border-border bg-card overflow-hidden rounded-2xl border">
-              <div className="divide-border divide-y">
-                {recentBookings.map((booking) => {
-                  const status =
-                    statusConfig[booking.status as keyof typeof statusConfig]
-                  const StatusIcon = status.icon
-                  return (
-                    <div
-                      key={booking.id}
-                      className="flex items-center justify-between gap-4 px-5 py-3.5"
-                    >
-                      <div className="flex min-w-0 flex-col gap-0.5">
-                        <p className="text-foreground truncate text-sm font-medium">
-                          {booking.client}
-                        </p>
-                        <p className="text-muted-foreground truncate text-xs">
-                          {booking.service} · {booking.barbershop}
-                        </p>
+              {todayBookings.length === 0 ? (
+                <div className="flex items-center justify-center py-10">
+                  <p className="text-muted-foreground text-sm">
+                    Nenhum agendamento hoje
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-border divide-y">
+                  {(todayBookings as BookingWithRelations[]).map((b) => {
+                    const status =
+                      statusConfig[b.status as keyof typeof statusConfig]
+                    const StatusIcon = status?.icon ?? CheckCircle2
+                    return (
+                      <div
+                        key={b.id}
+                        className="flex items-center justify-between gap-4 px-5 py-3.5"
+                      >
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <p className="text-foreground truncate text-sm font-medium">
+                            {b.user?.name ?? "Cliente"}
+                          </p>
+                          <p className="text-muted-foreground truncate text-xs">
+                            {b.service?.name}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-3">
+                          <span className="text-muted-foreground text-xs">
+                            {format(new Date(b.scheduledAt), "HH:mm")}
+                          </span>
+                          {status && (
+                            <span
+                              className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${status.className}`}
+                            >
+                              <StatusIcon className="h-3 w-3" />
+                              {status.label}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-3">
-                        <span className="text-muted-foreground text-xs">
-                          {booking.time}
-                        </span>
-                        <span
-                          className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${status.className}`}
-                        >
-                          <StatusIcon className="h-3 w-3" />
-                          {status.label}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -255,7 +250,7 @@ export default async function AdminDashboard() {
             </div>
 
             <Link
-              href="/admin/reports/payments"
+              href="/admin/dashboard/reports"
               className="border-primary/20 bg-primary/5 hover:bg-primary/10 mt-2 flex flex-col gap-3 rounded-2xl border p-5 transition-colors"
             >
               <div className="flex items-center justify-between">
@@ -264,16 +259,21 @@ export default async function AdminDashboard() {
                 </p>
                 <ArrowRight className="text-primary h-3.5 w-3.5" />
               </div>
-              <p className="text-foreground text-3xl font-bold">R$ 1.240</p>
-              <p className="text-muted-foreground text-xs">
-                +8% em relação a ontem
+              <p className="text-foreground text-3xl font-bold">
+                {priceFormatter.format(stats.revenueToday)}
               </p>
-              <div className="flex gap-1">
-                {[40, 65, 45, 80, 60, 90, 75].map((h, i) => (
+              <p className="text-muted-foreground text-xs">
+                {stats.revenueChange >= 0 ? "+" : ""}
+                {stats.revenueChange}% em relação a ontem
+              </p>
+              <div className="flex items-end gap-1">
+                {last7Days.map((revenue, i) => (
                   <div
                     key={i}
-                    className="bg-primary/30 flex-1 rounded-sm"
-                    style={{ height: `${h * 0.4}px` }}
+                    className="bg-primary/30 flex-1 rounded-sm transition-all"
+                    style={{
+                      height: `${Math.max((revenue / maxRevenue) * 32, 4)}px`,
+                    }}
                   />
                 ))}
               </div>

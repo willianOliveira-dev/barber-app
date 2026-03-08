@@ -358,6 +358,22 @@ export class ReviewRepository {
       .returning()
   }
 
+  async getAverageRating(barbershopId: string | string[]) {
+    const filter = Array.isArray(barbershopId)
+      ? inArray(review.barbershopId, barbershopId)
+      : eq(review.barbershopId, barbershopId)
+  
+    const [result] = await db
+      .select({
+        average: sql<number>`round(avg(${review.rating})::numeric, 1)::float`,
+        total: sql<number>`count(*)::int`,
+        responded: sql<number>`count(case when ${review.response} is not null then 1 end)::int`,
+      })
+      .from(review)
+      .where(filter)
+    return result
+  }
+
   async canUserReview(userId: string, bookingId: string): Promise<boolean> {
     const bookingData = await db.query.booking.findFirst({
       where: and(eq(review.bookingId, bookingId), eq(review.userId, userId)),

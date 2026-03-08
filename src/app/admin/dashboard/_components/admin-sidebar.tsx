@@ -42,7 +42,11 @@ export function AdminSidebar() {
           href: "/admin/dashboard/barbershops",
           icon: Scissors,
         },
-        { label: "Nova barbearia", href: "/admin/dashboard/barbershops/new", icon: Plus },
+        {
+          label: "Nova barbearia",
+          href: "/admin/dashboard/barbershops/new",
+          icon: Plus,
+        },
       ],
     },
     {
@@ -58,7 +62,11 @@ export function AdminSidebar() {
     {
       label: "Comunidade",
       items: [
-        { label: "Comentários", href: "/admin/dashboard/reviews", icon: MessageSquare },
+        {
+          label: "Comentários",
+          href: "/admin/dashboard/reviews",
+          icon: MessageSquare,
+        },
       ],
     },
     {
@@ -66,13 +74,8 @@ export function AdminSidebar() {
       items: [
         {
           label: "Pagamentos",
-          href: "/admin/dashboard/reports/payments",
+          href: "/admin/dashboard/reports",
           icon: BarChart3,
-        },
-        {
-          label: "Fluxo de clientes",
-          href: "/admin/dashboard/reports/customers",
-          icon: Users,
         },
       ],
     },
